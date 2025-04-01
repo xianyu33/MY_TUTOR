@@ -1,0 +1,15 @@
+server:
+  port: 9009
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://60.205.171.41:3308/zingzone?characterEncoding=utf8&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: zingzone1qaz
+
+mybatis-plus:
+#  typeAliasesPackage: com.yy.zingzone.mapper
+  mapper-locations: classpath:/mapper/*Mapper.xml
+  #  classpath*:com/strongdata/**/mapper/**/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
