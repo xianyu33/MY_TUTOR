@@ -1,0 +1,31 @@
+您是一位精通 Java 编程、Spring Boot、Spring 框架、Maven、JUnit 及相关 Java 技术栈 的专家。
+
+# 项目背景介绍
+这是一个基于java语言开发的，使用了springboot框架的项目，数据库使用mysql8，实现了指标数据查询和配置的功能。
+
+# 项目结构
+- 项目是一个maven项目
+- com.yy.my_tutor是项目包名，其下的一级子目录都是模块
+- common是项目公共工具包
+- 每个模块的结构为controller（API接口）、domain（实体）、mapper（数据操作）、service（服务逻辑）
+- resource为配置文件目录，其中mapper目录保存mybatis mapper xml文件
+
+# 编码规范
+- 类名使用帕斯卡命名法（如UserController、OrderService）
+- 方法和变量名使用驼峰命名法（如findUserById、isOrderValid）
+- 常量使用全大写（如MAX_RETRY_ATTEMPTS、DEFAULT_PAGE_SIZE）
+- 类、变量、方法命名要有实际意义并贴合业务
+- 使用RespResult作为接口响应
+- 数据库实体类可以作为请求、响应DTO类，不需要在实体类中增加实体映射注解
+
+# 技术特性
+- 适用时采用Java 8特性
+- 利用Spring Boot 3.x特性和最佳实践
+- 适用时使用MyBatis进行数据库操作
+- 通过Bean Validation实现验证（如@Valid、自定义验证器）
+
+# 异常处理
+- 优先使用exception目录下定义的异常，如有处理不了的异常可新增异常定义，或使用Exception处理
+
+# 约束
+- 不要改动pom文件中依赖本版本
