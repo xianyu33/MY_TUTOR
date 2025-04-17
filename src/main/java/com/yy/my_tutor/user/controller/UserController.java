@@ -18,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     public static void main(String[] args) {
-        System.out.println(AESUtil.encrypt("123456"));
+        System.out.println(AESUtil.decryptBase64("WTYLwEY4tolpRjBDxhTqlQ=="));
     }
 
     /**
@@ -29,7 +29,7 @@ public class UserController {
         log.info("用户登录: {}", JSON.toJSONString(userVo));
         
         // 解密密码
-        String decryptedPassword = AESUtil.decrypt(userVo.getPassword());
+        String decryptedPassword = AESUtil.decryptBase64(userVo.getPassword());
         userVo.setPassword(decryptedPassword);
         
         User user = userService.login(userVo.getUserAccount(), userVo.getPassword());
@@ -39,6 +39,7 @@ public class UserController {
         return RespResult.error("用户名或密码错误");
     }
 
+
     /**
      * 用户注册
      */
@@ -47,7 +48,7 @@ public class UserController {
         log.info("用户注册: {}", user.getUserAccount());
         
         // 解密密码
-        String decryptedPassword = AESUtil.decrypt(user.getPassword());
+        String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
         
         boolean result = userService.register(user);
@@ -65,7 +66,7 @@ public class UserController {
         log.info("新增用户: {}", user.getUserAccount());
         
         // 解密密码
-        String decryptedPassword = AESUtil.decrypt(user.getPassword());
+        String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
         
         boolean result = userService.addUser(user);

@@ -1,84 +1,85 @@
 package com.yy.my_tutor.common;
 
-import org.springframework.util.Base64Utils;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.HexUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.symmetric.AES;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * AES加密工具类
- */
+@Slf4j
 public class AESUtil {
+    private static final String AES_KEY = "9d2b5f8a1e3c7d9b";
+    private static final AES aes = SecureUtil.aes("9d2b5f8a1e3c7d9b".getBytes());
 
-    private static final String KEY_ALGORITHM = "AES";
-    private static final String DEFAULT_CIPHER_ALGORITHM = "AES/ECB/PKCS5Padding";
-    // 密钥长度为128位
-    private static final int KEY_SIZE = 128;
-    // 密钥 (实际项目中应该存储在配置文件中，并且加载时解密)
-    private static final String SECRET_KEY = "MY_TUTOR_AES_KEY";
+    public AESUtil() {
+    }
 
-    /**
-     * 加密
-     *
-     * @param content 待加密内容
-     * @return 加密后的内容，Base64编码
-     */
-    public static String encrypt(String content) {
-        try {
-            // 创建密码器
-            Cipher cipher = Cipher.getInstance(DEFAULT_CIPHER_ALGORITHM);
-            // 初始化为加密模式
-            cipher.init(Cipher.ENCRYPT_MODE, getSecretKey());
-            // 加密
-            byte[] result = cipher.doFinal(content.getBytes(StandardCharsets.UTF_8));
-            // 使用Base64编码
-            return Base64Utils.encodeToString(result);
-        } catch (Exception e) {
-            throw new RuntimeException("AES加密失败", e);
+
+
+    public static String encryptHttp(String str) {
+        if (StrUtil.isBlank(str)) {
+            return str;
+        } else if (!str.startsWith("http")) {
+            return str;
+        } else {
+            String res;
+            try {
+                res = aes.encryptHex(str);
+            } catch (Exception var3) {
+                log.error("字符串[{}]加密失败：{}", str, var3.getMessage());
+                res = str;
+            }
+
+            return res;
         }
     }
 
-    /**
-     * 解密
-     *
-     * @param content 待解密内容，Base64编码
-     * @return 解密后的内容
-     */
-    public static String decrypt(String content) {
-        try {
-            // 创建密码器
-            Cipher cipher = Cipher.getInstance(DEFAULT_CIPHER_ALGORITHM);
-            // 初始化为解密模式
-            cipher.init(Cipher.DECRYPT_MODE, getSecretKey());
-            // 解密
-            byte[] result = cipher.doFinal(Base64Utils.decodeFromString(content));
-            return new String(result, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new RuntimeException("AES解密失败", e);
+    public static String decryptHttp(String str) {
+        if (StrUtil.isBlank(str)) {
+            return str;
+        } else if (str.startsWith("http")) {
+            return str;
+        } else {
+            String res;
+            try {
+                res = aes.decryptStr(HexUtil.decodeHex(str));
+            } catch (Exception var3) {
+                log.error("字符串[{}]解密失败：{}", str, var3.getMessage());
+                res = str;
+            }
+
+            return res;
         }
     }
 
-    /**
-     * 生成加密秘钥
-     */
-    private static SecretKeySpec getSecretKey() {
-        try {
-            KeyGenerator kg = KeyGenerator.getInstance(KEY_ALGORITHM);
-            // 初始化密钥生成器，指定密钥长度
-            SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-            random.setSeed(SECRET_KEY.getBytes());
-            kg.init(KEY_SIZE, random);
-            // 生成密钥
-            SecretKey secretKey = kg.generateKey();
-            // 转换为AES专用密钥
-            return new SecretKeySpec(secretKey.getEncoded(), KEY_ALGORITHM);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("生成AES密钥失败", e);
+    public static String encryptBase64(String str) {
+        if (StrUtil.isBlank(str)) {
+            return str;
+        } else {
+            try {
+                return aes.encryptBase64(str);
+            } catch (Exception var2) {
+                log.error("字符串[{}]加密失败：{}", str, var2.getMessage());
+                return str;
+            }
         }
     }
-} 
+
+    public static String decryptBase64(String str) {
+        if (StrUtil.isBlank(str)) {
+            return str;
+        } else {
+            try {
+                return aes.decryptStr(Base64.decode(str));
+            } catch (Exception var2) {
+                log.error("字符串[{}]解密失败：{}", str, var2.getMessage());
+                return str;
+            }
+        }
+    }
+}
+
