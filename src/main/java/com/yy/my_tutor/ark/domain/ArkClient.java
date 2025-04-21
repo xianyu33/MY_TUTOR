@@ -19,4 +19,12 @@ public class ArkClient implements Serializable {
     private JSONObject stream_options;
 
     private JSONArray messages;
+
+    private String mode;
+
+    private Integer ttl;
+
+    private JSONObject truncation_strategy;
+
+    private String context_id;
 }

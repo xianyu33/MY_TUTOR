@@ -156,3 +156,94 @@ application/json
 }
 
 ```
+
+### 4.创建会话，获取上下文id
+
+#### url
+
+```
+39.106.32.28:9009/context
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{}
+```
+
+#### 返回样例
+
+```json
+{
+  "id": "ctx-20250421142907-q2ttn", //对话的时候传入，作为上下文的缓存
+  "model": "ep-20250421140255-d6sfx",
+  "ttl": 3600,
+  "truncation_strategy": {
+    "type": "rolling_tokens",
+    "rolling_tokens": true
+  },
+  "usage": {
+    "prompt_tokens": 113,
+    "completion_tokens": 0,
+    "total_tokens": 113,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "mode": "session"
+}
+
+```
+### 5.带上下文的问答接口
+
+#### url
+
+```
+39.106.32.28:9009/context/chat
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+  "messages": [
+    {
+      "content": "今天什么日子",
+      "role": "user"
+    }
+  ],
+  "stream": true,  //是否流式
+  "context_id": "ctx-20250421140817-ltlzk"  //4.创建会话，获取上下文id返回的id
+}
+```
+
+#### 返回样例
+
+```json
+https://www.volcengine.com/docs/82379/1298454  参照 响应参数-流式调用
+
+```
