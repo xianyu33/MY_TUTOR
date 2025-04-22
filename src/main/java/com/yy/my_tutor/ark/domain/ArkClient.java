@@ -27,4 +27,6 @@ public class ArkClient implements Serializable {
     private JSONObject truncation_strategy;
 
     private String context_id;
+
+    private String enc_param;
 }

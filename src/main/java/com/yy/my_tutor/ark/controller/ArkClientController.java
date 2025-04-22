@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yy.my_tutor.ark.domain.ArkClient;
+import com.yy.my_tutor.common.AESUtil;
 import com.yy.my_tutor.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -130,6 +131,12 @@ public class ArkClientController {
 
     @PostMapping(value = "/context/chat", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> contextChat(@RequestBody ArkClient arkClient) {
+        log.info("上下文对话入参:{}", JSON.toJSONString(arkClient));
+        if (null != arkClient.getEnc_param()) {
+            String decryptedBody = AESUtil.decryptBase64(arkClient.getEnc_param());
+            arkClient = JSON.parseObject(decryptedBody, ArkClient.class);
+            log.info("解析后的入参:{}", JSON.toJSONString(arkClient));
+        }
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer " + API_KEY);
