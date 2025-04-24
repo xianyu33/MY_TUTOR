@@ -1,3 +1,16 @@
+
+
+#### EX:
+
+```json
+除登录注册外，所有接口需携带请求头：
+Authorization，
+例如：
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5aXlhbyIsImlhdCI6MTc0NTM5ODEzOSwiZXhwIjoxNzQ1NDg0NTM5fQ.-6_J41io0Drj6EEHyJg5xh5GyMrh2s3Kkwu-tx-nfMJe8oGxUzknuqkXMOKDqEmMQXCKoIS5N_h3SCt3d7WnYA
+```
+
+
+
 ### 1.问答接口
 
 #### url
@@ -128,31 +141,26 @@ application/json
 
 ```json
 {
-  "code": 200,
-  "message": "登录成功",
-  "data": {
-    "user": {
-      "id": 4,
-      "userAccount": "yy",
-      "username": "yy",
-      "sex": "sex_33ac30c1791c",
-      "age": 10,
-      "password": null,
-      "tel": "tel_973d448759cc",
-      "country": "country_622039f7e0c8",
-      "email": "email_047505e4e480",
-      "grade": "grade_1f8d76bf5c32",
-      "createAt": "2025-04-14 09:12:46",
-      "createBy": null,
-      "updateAt": "2025-04-14 09:12:46",
-      "updateBy": null,
-      "deleteFlag": "0"
-    },
-    "token": {
-      "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5eSIsImV4cCI6MTc0NDcwODM3MCwiaWF0IjoxNzQ0NjIxOTcwfQ.doDqtsAVjZ1wjadEMUksS1VpqZ-8Ea4k1PfG4kMWjZSTwsrJjm1EM0pTFGa2pbKdftfXBbUTjDHa5SnelYvjNw",
-      "tokenType": "Bearer"
+    "code": 200,
+    "message": "登录成功",
+    "data": {
+        "id": 9,
+        "userAccount": "yyy",
+        "username": "yiyao",
+        "sex": "1",
+        "age": 18,
+        "password": null,
+        "tel": "15892334013",
+        "country": "calada",
+        "email": "100049846@qq.com",
+        "grade": "9",
+        "createAt": "2025-04-21 01:38:58",
+        "createBy": null,
+        "updateAt": "2025-04-21 01:38:58",
+        "updateBy": null,
+        "deleteFlag": "0",
+        "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5aXlhbyIsImlhdCI6MTc0NTQ2Njk1MCwiZXhwIjoxNzQ1NDg4NTUwfQ.W0xCZKnVxl19I9xKeJV5gAo6BjJgLfygo75m4AJb8VoyakdpSZHW_UZzv0-qKUGfIkZjfo2i0blQhDMKZsHX2w"
     }
-  }
 }
 
 ```
