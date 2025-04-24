@@ -26,7 +26,7 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/user/login").permitAll()
-                .antMatchers("user/register").permitAll()
+                .antMatchers("/user/register").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
