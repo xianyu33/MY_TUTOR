@@ -30,4 +30,6 @@ public class User implements Serializable {
     private Date updateAt;
     private String updateBy;
     private String deleteFlag;
-} 
+
+    private String token;
+}

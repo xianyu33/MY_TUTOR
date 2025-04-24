@@ -18,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     public static void main(String[] args) {
-        System.out.println(AESUtil.decryptBase64("WTYLwEY4tolpRjBDxhTqlQ=="));
+        System.out.println(AESUtil.encryptBase64("123456"));
     }
 
     /**
@@ -27,11 +27,11 @@ public class UserController {
     @PostMapping("/login")
     public RespResult<User> login(@RequestBody User userVo) {
         log.info("用户登录: {}", JSON.toJSONString(userVo));
-        
+
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(userVo.getPassword());
         userVo.setPassword(decryptedPassword);
-        
+
         User user = userService.login(userVo.getUserAccount(), userVo.getPassword());
         if (user != null) {
             return RespResult.success("登录成功", user);
@@ -46,11 +46,11 @@ public class UserController {
     @PostMapping("/register")
     public RespResult<Boolean> register(@RequestBody User user) {
         log.info("用户注册: {}", user.getUserAccount());
-        
+
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
-        
+
         boolean result = userService.register(user);
         if (result) {
             return RespResult.success("注册成功", true);
@@ -64,17 +64,18 @@ public class UserController {
     @PostMapping("/add")
     public RespResult<Boolean> addUser(@RequestBody User user) {
         log.info("新增用户: {}", user.getUserAccount());
-        
+
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
-        
+
         boolean result = userService.addUser(user);
         if (result) {
             return RespResult.success("新增成功", true);
         }
         return RespResult.error("新增失败");
     }
+
 
     /**
      * 根据ID查询用户
@@ -88,4 +89,4 @@ public class UserController {
         }
         return RespResult.error("用户不存在");
     }
-} 
+}

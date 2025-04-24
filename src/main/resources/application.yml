@@ -13,3 +13,9 @@ mybatis-plus:
   #  classpath*:com/strongdata/**/mapper/**/*.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  tokenHeader: X-Token #JWT存储的请求头
+  tokenHead: Bearer  #令牌前缀
+  secret: junnan-oa-secret #JWT加解密使用的密钥
+  expiration: 86400 #JWT的超期限时间秒(60*60*24)

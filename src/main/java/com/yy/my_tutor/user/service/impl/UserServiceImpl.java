@@ -1,13 +1,19 @@
 package com.yy.my_tutor.user.service.impl;
 
+import com.yy.my_tutor.security.JwtTokenUtil;
+import com.yy.my_tutor.security.LoginUser;
+import com.yy.my_tutor.security.UserDetailsServiceImpl;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -20,6 +26,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Resource
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Resource
+    private JwtTokenUtil jwtTokenUtil;
     @Override
     public User login(String userAccount, String password) {
         User user = userMapper.findByUserAccount(userAccount);
@@ -27,16 +38,19 @@ public class UserServiceImpl implements UserService {
             log.info("用户不存在: {}", userAccount);
             return null;
         }
-        
+
         // 验证密码
         String encryptedPassword = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
         if (!Objects.equals(encryptedPassword, user.getPassword())) {
             log.info("密码错误: {}", userAccount);
             return null;
         }
-        
+
         // 隐藏敏感信息
         user.setPassword(null);
+        //增加 token
+        String token = JwtTokenUtil.generateToken(user.getUsername());
+        user.setToken(token);
         return user;
     }
 
@@ -45,23 +59,23 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return false;
         }
-        
+
         // 检查用户是否已存在
         User existingUser = userMapper.findByUserAccount(user.getUserAccount());
         if (existingUser != null) {
             log.info("用户已存在: {}", user.getUserAccount());
             return false;
         }
-        
+
         // 设置初始值
         user.setCreateAt(new Date());
         user.setUpdateAt(new Date());
         user.setDeleteFlag("0");
-        
+
         // 密码加密
         String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));
         user.setPassword(encryptedPassword);
-        
+
         return userMapper.insert(user) > 0;
     }
 
@@ -70,16 +84,16 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return false;
         }
-        
+
         // 设置初始值
         user.setCreateAt(new Date());
         user.setUpdateAt(new Date());
         user.setDeleteFlag("0");
-        
+
         // 密码加密
         String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));
         user.setPassword(encryptedPassword);
-        
+
         return userMapper.insert(user) > 0;
     }
 
@@ -92,4 +106,4 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
-} 
+}
