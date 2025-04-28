@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 
 
 @Configuration
@@ -36,5 +38,12 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    @Bean
+    public HttpFirewall httpFirewall() {
+        StrictHttpFirewall strictHttpFirewall = new StrictHttpFirewall();
+        strictHttpFirewall.setAllowUrlEncodedDoubleSlash(true);
+        return strictHttpFirewall;
     }
 }
