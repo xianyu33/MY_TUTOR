@@ -64,6 +64,11 @@ public class ArkClientController {
 
         arkClient.setStream(true);
 
+        JSONObject message = new JSONObject();
+        message.put("role", "system");
+        message.put("content", "英文回答");
+        arkClient.getMessages().add(message);
+
         JSONObject stream_options = new JSONObject();
         stream_options.put("include_usage", true);
         arkClient.setStream_options(stream_options);
@@ -140,6 +145,12 @@ public class ArkClientController {
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer " + API_KEY);
+
+        JSONObject message = new JSONObject();
+        message.put("role", "system");
+        message.put("content", "英文回答");
+        arkClient.getMessages().add(message);
+
 
         arkClient.setModel(MODEL);
         arkClient.setStream(true);

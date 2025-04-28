@@ -18,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     public static void main(String[] args) {
-        System.out.println(AESUtil.encryptBase64("123456"));
+        System.out.println(AESUtil.decryptBase64("CH+8oJbnh+IfILiWQWY5OpfP5u2cbBEKWWVBg2bJ+NcLRPh3t8vxgQE2T1M2RRNzH9Sue8RgS4i14VES15YQM/9PlSxiWa0PJ8tI5B2i4iXl4gDYOswtWgxQGVuNCY5RYCQcGz75XoYSpC/Eybcbvz9N8g4QlL2pDBLGrBQW1aM/57QVmmsFMD6+ZXPAGXStQBxaCHa3Or9Z+3f4wD4y5XYVC6uMk6WuQmvcS68e4Z0etI9KrctCFF+70lLEcIBz"));
     }
 
     /**
