@@ -3,11 +3,15 @@ package com.yy.my_tutor.user.controller;
 import com.alibaba.fastjson.JSON;
 import com.yy.my_tutor.common.AESUtil;
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.config.EmailUtil;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.mail.MessagingException;
 
 @Slf4j
 @RestController
@@ -16,6 +20,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
 
     public static void main(String[] args) {
         System.out.println(AESUtil.decryptBase64("CH+8oJbnh+IfILiWQWY5OpfP5u2cbBEKWWVBg2bJ+NcLRPh3t8vxgQE2T1M2RRNzH9Sue8RgS4i14VES15YQM/9PlSxiWa0PJ8tI5B2i4iXl4gDYOswtWgxQGVuNCY5RYCQcGz75XoYSpC/Eybcbvz9N8g4QlL2pDBLGrBQW1aM/57QVmmsFMD6+ZXPAGXStQBxaCHa3Or9Z+3f4wD4y5XYVC6uMk6WuQmvcS68e4Z0etI9KrctCFF+70lLEcIBz"));
@@ -33,9 +38,17 @@ public class UserController {
         userVo.setPassword(decryptedPassword);
 
         User user = userService.login(userVo.getUserAccount(), userVo.getPassword());
+
+//        try {
+//            EmailUtil.sendVerificationCode("229268931@qq.com", "123123");
+//        } catch (MessagingException e) {
+//            throw new RuntimeException(e);
+//        }
+
         if (user != null) {
             return RespResult.success("登录成功", user);
         }
+
         return RespResult.error("用户名或密码错误");
     }
 
