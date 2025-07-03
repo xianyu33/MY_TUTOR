@@ -16,6 +16,13 @@ public class RespResult<T> {
         return result;
     }
 
+    public static <T> RespResult<T> success(String message) {
+        RespResult<T> result = new RespResult<>();
+        result.setCode(200);
+        result.setMessage(message);
+        return result;
+    }
+
     public static <T> RespResult<T> success(String message, T data) {
         RespResult<T> result = new RespResult<>();
         result.setCode(200);
@@ -37,4 +44,4 @@ public class RespResult<T> {
         result.setMessage(message);
         return result;
     }
-} 
+}

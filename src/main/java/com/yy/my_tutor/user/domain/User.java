@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -32,4 +33,8 @@ public class User implements Serializable {
     private String deleteFlag;
 
     private String token;
+
+    private String verificationCode;
+
+    private List<User> children;
 }
