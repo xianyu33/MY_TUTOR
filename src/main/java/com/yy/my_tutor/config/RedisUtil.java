@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.TimeUnit;
+
 @Component
 public class RedisUtil<T> {
     @Autowired
@@ -14,7 +16,10 @@ public class RedisUtil<T> {
 
     // 存储数据
     public void set(String key, Object value, long expireTime) {
-        redisTemplate.opsForValue().set(key, value, expireTime);
+        if (value != null) {
+            value = ((String)value).replace("\"", "'");
+        }
+        redisTemplate.opsForValue().set(key, value, expireTime, TimeUnit.SECONDS);
     }
 
     // 获取数据

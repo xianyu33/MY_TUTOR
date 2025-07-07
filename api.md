@@ -264,3 +264,153 @@ application/json
 https://www.volcengine.com/docs/82379/1298454  参照 响应参数-流式调用
 
 ```
+
+
+### 6.新增家长用户
+
+#### url
+
+```
+/parent/addWithUsers
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+  {
+  "parent": {
+    "userAccount": "parent002",
+    "username": "李四",
+    "sex": "2",
+    "age": 38,
+    "password": "abcdef",
+    "tel": "13900000000",
+    "country": "中国",
+    "email": "parent002@example.com",
+    "grade": "无"
+  },
+  "users": [
+    {
+      "userAccount": "student001",
+      "username": "李小四",
+      "sex": "1",
+      "age": 10,
+      "password": "stu123",
+      "tel": "13900000001",
+      "country": "中国",
+      "email": "student001@example.com",
+      "grade": "五年级"
+    },
+    {
+      "userAccount": "student002",
+      "username": "李小五",
+      "sex": "2",
+      "age": 8,
+      "password": "stu456",
+      "tel": "13900000002",
+      "country": "中国",
+      "email": "student002@example.com",
+      "grade": "三年级"
+    }
+  ]
+}
+```
+#### 实际入参样例
+```json
+  {
+  "code": 200,
+  "msg": "新增家长和学生成功",
+  "data": true
+  }
+```
+
+### 7.验证码发送
+
+#### url
+
+```
+/user/verificationCode
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+  "email": "229268931@qq.com"
+}
+
+```
+#### 实际入参样例
+```json
+{
+  "code": 200,
+  "message": "发送成功",
+  "data": null
+}
+```
+
+### 7.验证码校验
+
+#### url
+
+```
+/user/verification
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+  "email": "229268931@qq.com",
+  "verificationCode": "753882"
+}
+
+```
+#### 实际入参样例
+```json
+{
+  "code": 200,
+  "message": "验证通过",
+  "data": null
+}
+
+```
+
+
+

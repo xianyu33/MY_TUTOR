@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -105,5 +106,21 @@ public class UserServiceImpl implements UserService {
             user.setPassword(null);
         }
         return user;
+    }
+
+    @Override
+    public boolean addUsers(List<User> users) {
+        if (users == null || users.isEmpty()) {
+            return false;
+        }
+        for (User user : users) {
+            user.setCreateAt(new Date());
+            user.setUpdateAt(new Date());
+            user.setDeleteFlag("0");
+            String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));
+            user.setPassword(encryptedPassword);
+            userMapper.insert(user);
+        }
+        return true;
     }
 }

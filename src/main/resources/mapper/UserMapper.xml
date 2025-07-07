@@ -42,11 +42,11 @@
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.User">
         insert into user (
             user_account, username, sex, age, password, tel, country, email, grade,
-            create_at, create_by, update_at, update_by, delete_flag
+            create_at, create_by, update_at, update_by, delete_flag, parent_id
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
             #{country}, #{email}, #{grade}, #{createAt}, #{createBy}, #{updateAt},
-            #{updateBy}, #{deleteFlag}
+            #{updateBy}, #{deleteFlag}, #{parentId}
         )
     </insert>
 </mapper>

@@ -37,4 +37,7 @@ public class User implements Serializable {
     private String verificationCode;
 
     private List<User> children;
+
+    private Integer parentId;
+
 }

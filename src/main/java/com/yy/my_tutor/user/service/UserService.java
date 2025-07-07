@@ -1,6 +1,7 @@
 package com.yy.my_tutor.user.service;
 
 import com.yy.my_tutor.user.domain.User;
+import java.util.List;
 
 public interface UserService {
     
@@ -25,6 +26,13 @@ public interface UserService {
      * @return 是否成功
      */
     boolean addUser(User user);
+    
+    /**
+     * 新增多个用户
+     * @param users 用户列表
+     * @return 是否成功
+     */
+    boolean addUsers(List<User> users);
     
     /**
      * 根据ID查询用户

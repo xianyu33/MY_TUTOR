@@ -53,7 +53,6 @@ public class ArkClientController {
     }
 
 
-
     @PostMapping(value = "/chat", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chat(@RequestBody ArkClient arkClient) {
 
@@ -141,6 +140,8 @@ public class ArkClientController {
             String decryptedBody = AESUtil.decryptBase64(arkClient.getEnc_param());
             arkClient = JSON.parseObject(decryptedBody, ArkClient.class);
             log.info("解析后的入参:{}", JSON.toJSONString(arkClient));
+            //获取问题
+
         }
 
         Map<String, String> headers = new HashMap<>();
@@ -190,12 +191,18 @@ public class ArkClientController {
                     try(ResponseBody responseBody = response.body()) {
                         if (ObjectUtil.isNotEmpty(responseBody)) {
                             BufferedSource source = responseBody.source();
+                            StringBuilder responseStr = new StringBuilder();
                             while (!source.exhausted()) {
                                 String line = source.readUtf8Line();
                                 if (StrUtil.isNotBlank(line)) {
                                     log.info("==============获取到的流信息结果为：{}",line);
+                                    responseStr.append(line);
                                     fluxSink.next(line);
                                 }
+                            }
+                            //入库
+                            if (StrUtil.isNotBlank(responseStr)) {
+
                             }
                         } else {
                             log.info("~~~~~~~~流式请求人工机器人接口响应失败:ResponseBody为空");

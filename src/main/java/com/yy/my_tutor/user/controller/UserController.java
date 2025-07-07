@@ -3,8 +3,8 @@ package com.yy.my_tutor.user.controller;
 import com.alibaba.fastjson.JSON;
 import com.yy.my_tutor.common.AESUtil;
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.config.CustomException;
 import com.yy.my_tutor.config.EmailUtil;
-import com.yy.my_tutor.config.RedisDBType;
 import com.yy.my_tutor.config.RedisUtil;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.service.UserService;
@@ -36,7 +36,7 @@ public class UserController {
 
     // 生成6位随机数字验证码
     public static String generateCode() {
-        return String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
+        return JSON.toJSONString((int) ((Math.random() * 9 + 1) * 100000));
     }
 
     /**
@@ -45,16 +45,23 @@ public class UserController {
     @PostMapping("/verificationCode")
     public RespResult<User> verificationCode(@RequestBody User userVo) {
         if (userVo.getEmail().isEmpty()) {
-            throw new RuntimeException("验证码不能为null");
+            throw new CustomException("邮箱不能为null");
         }
         try {
             String code = generateCode();
-            redisUtil.set("CODE:" + userVo.getEmail(), code, 5 * 60);
+            String redisKey = getVerificationKey(userVo.getEmail());
+            redisUtil.set(redisKey, code, 5 * 60);
             EmailUtil.sendVerificationCode(userVo.getEmail(), code);
         } catch (MessagingException e) {
-            throw new RuntimeException(e);
+            throw new CustomException("发送是吧");
         }
         return RespResult.success("发送成功");
+    }
+
+
+    private String getVerificationKey(String email) {
+        String replace = ("CODE:" + email).replace("@", "_");
+        return replace.replace(".", "_");
     }
 
 
@@ -80,6 +87,34 @@ public class UserController {
     }
 
 
+
+
+
+    /**
+     * 校验验证码
+     */
+    @PostMapping("/verification")
+    public RespResult<Boolean> verification(@RequestBody User user) {
+        log.info("校验验证码: {}", user.getVerificationCode());
+        Boolean b = redisUtil.hasKey("CODE:" + user.getEmail());
+        if (user.getVerificationCode().isEmpty() || !b) {
+            throw new CustomException("验证码失效");
+        }
+        String redisKey = getVerificationKey(user.getEmail());
+        String s = redisUtil.get(redisKey);
+
+        if (null != s) {
+            String substring = s.substring(1, s.length() - 1);
+            if ( substring.equals(user.getVerificationCode())) {
+                return RespResult.success("验证通过");
+            } else {
+                throw new CustomException("验证失败");
+            }
+        } else {
+            throw new CustomException("验证失败");
+        }
+    }
+
     /**
      * 用户注册
      */
@@ -90,14 +125,6 @@ public class UserController {
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
-        Boolean b = redisUtil.hasKey("CODE:" + user.getEmail());
-        if (user.getVerificationCode().isEmpty() || !b) {
-            throw new RuntimeException("验证码失效");
-        }
-        String s = redisUtil.get("CODE:" + user.getEmail());
-        if (null != s && !s.equals(user.getVerificationCode())) {
-            throw new RuntimeException("验证码错误");
-        }
         boolean result = userService.register(user);
         if (result) {
             return RespResult.success("注册成功", true);
