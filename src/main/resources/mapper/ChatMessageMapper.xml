@@ -44,7 +44,7 @@
         <include refid="Base_Column_List"/>
         from chat_message
         where user_id = #{userId}
-        order by create_time desc
+        order by create_time asc
     </select>
 
     <update id="update" parameterType="com.yy.my_tutor.chat.domain.ChatMessage">

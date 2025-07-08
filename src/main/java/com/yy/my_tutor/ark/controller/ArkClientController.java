@@ -113,10 +113,6 @@ public class ArkClientController {
                 ChatMessage chatMessage = new ChatMessage();
                 chatMessage.setTitle(question);
                 if (StrUtil.isBlank(arkClient.getConversation_id())) {
-                    chatMessage.setConversationId(arkClient.getConversation_id());
-                    //更新
-                    chatMessageService.updateChatMessage(chatMessage);
-                } else {
                     String conversationId = UUID.randomUUID().toString();
                     arkClient.setConversation_id(conversationId);
                     chatMessage.setConversationId(conversationId);

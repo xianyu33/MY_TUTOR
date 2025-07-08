@@ -33,6 +33,7 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/verification").permitAll()
                 .antMatchers("/parent/addWithUsers").permitAll()
                 .antMatchers("/user/existAccount").permitAll()
+                .antMatchers("/chat/**").authenticated()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);

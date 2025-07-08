@@ -41,14 +41,12 @@ application/json
   },
   "messages": [
     {
-      "role": "system", //角色 system 系统消息，比如提示词
-      "content": "你是一个老师，英语回答"
-    },
-    {
       "role": "user", // user 用户消息 用户提问 
-      "content": "9年级数据学习的内容"
+      "content": "今天是星期几"
     }
-  ]
+  ],
+  "user_id": "123124131",
+  "conversation_id": "07227fb3-b5a9-4b94-a0f8-f83337222a2b"   //首次对话无该字段，后续对话传入该字段，代表是一次对话
 }
 ```
 
@@ -328,7 +326,7 @@ application/json
 }
 
 ```
-#### 实际入参样例
+#### 返回样例
 ```json
   {
   "code": 200,
@@ -365,7 +363,7 @@ application/json
 }
 
 ```
-#### 实际入参样例
+#### 返回样例
 ```json
 {
   "code": 200,
@@ -441,54 +439,7 @@ application/json
 }
 
 ```
-#### 实际入参样例
-```json
-# 不可创建
-{
-  "code": 500,
-  "message": "账号已存在",
-  "data": null
-}
-
-# 可创建
-{
-"code": 200,
-"message": "账号可使用",
-"data": null
-}
-
-
-```
-
-### 10.账号校验是否存在
-
-#### url
-
-```
-/user/existAccount
-```
-
-#### 请求方式
-
-```
-POST
-```
-
-#### 请求格式
-
-```
-application/json
-```
-
-#### 入参样例
-
-```json
-{
-  "userAccount": "yyy"
-}
-
-```
-#### 实际入参样例
+#### 返回样例
 ```json
 # 不可创建
 {
@@ -536,7 +487,7 @@ application/json
 }
 
 ```
-#### 实际入参样例
+#### 返回样例
 ```json
 # 不可创建
 {
@@ -550,6 +501,101 @@ application/json
 "code": 200,
 "message": "账号可使用",
 "data": null
+}
+
+
+```
+
+
+### 12.根据用户id查询对话列表
+
+查询用户的对话列表
+#### url
+
+```
+/chat/message/user/{userId}
+```
+
+#### 请求方式
+
+```
+GET
+```
+
+
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 3,
+      "conversationId": "23699ff5-04a4-4555-abe4-9043972d0f85",
+      "userId": "123124131",
+      "type": null,
+      "context": null,
+      "createTime": "2025-07-08 01:39:51",
+      "title": "9年级数据学习的内容"
+    },
+    {
+      "id": 4,
+      "conversationId": "07227fb3-b5a9-4b94-a0f8-f83337222a2b",
+      "userId": "123124131",
+      "type": null,
+      "context": null,
+      "createTime": "2025-07-08 05:48:23",
+      "title": "9年级数据学习的内容"
+    }
+  ]
+}
+
+
+```
+
+### 13.根据conversationId查询对话详情
+
+查询用户的对话列表
+#### url
+
+```
+/chat/message-detail/conversation/{conversationId}
+```
+
+#### 请求方式
+
+```
+GET
+```
+
+
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 5,
+      "userId": "123124131",
+      "sort": null,
+      "type": "q",  //回答类型  a:回答 q:问题
+      "context": "9年级数据学习的内容",      //内容
+      "createTime": "2025-07-08 13:48:06",
+      "conversationId": "07227fb3-b5a9-4b94-a0f8-f83337222a2b",
+      "messageId": null
+    },
+    {
+      "id": 6,
+      "userId": "123124131",
+      "sort": null,
+      "type": "a",      //回答类型  a:回答 q:问题
+      "context": "data:{\"id\":\"021751982503622cfdb5492872ab5355d14cd98fab21436a7ece9\",\"choices\":[{\"delta\":{\"content\":\"In\",\"role\":\"assistant\"},\"index\":0}],\"created\":1751982503,\"model\":\"doubao-lite-32k-240828\",\"object\":\"chat.completion.chunk\",\"metadata\":{}}",
+      "createTime": "2025-07-08 13:48:09",
+      "conversationId": "07227fb3-b5a9-4b94-a0f8-f83337222a2b",
+      "messageId": null
+    }
+  ]
 }
 
 
