@@ -40,7 +40,7 @@
         order by create_at desc
     </select>
 
-    <insert id="insert" parameterType="com.yy.my_tutor.user.domain.Parent">
+    <insert id="insert" parameterType="com.yy.my_tutor.user.domain.Parent" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
         insert into parent (
             user_account, username, sex, age, password, tel, country, email, grade,
             create_at, create_by, update_at, update_by, delete_flag
@@ -83,4 +83,4 @@
         where user_account = #{userAccount} and delete_flag = '0'
     </select>
 
-</mapper> 
+</mapper>

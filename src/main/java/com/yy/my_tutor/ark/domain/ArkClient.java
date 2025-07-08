@@ -29,4 +29,9 @@ public class ArkClient implements Serializable {
     private String context_id;
 
     private String enc_param;
+
+    private String conversation_id;
+
+    private String user_id;
+
 }

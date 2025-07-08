@@ -132,6 +132,20 @@ public class UserController {
         return RespResult.error("注册失败，用户可能已存在");
     }
 
+
+    /**
+     * 用户注册
+     */
+    @PostMapping("/existAccount")
+    public RespResult<Boolean> existAccount(@RequestBody User user) {
+        log.info("用户注册: {}", user.getUserAccount());
+
+        Boolean flag = userService.findByUserAccount(user);
+
+        return flag ? RespResult.error("账号已存在") : RespResult.success("账号可使用");
+    }
+
+
     /**
      * 新增用户
      */

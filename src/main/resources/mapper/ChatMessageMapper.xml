@@ -20,7 +20,7 @@
         insert into chat_message (
             conversation_id, user_id, type, context, create_time, title
         ) values (
-            #{conversationId}, #{userId}, #{type}, #{context}, #{createTime}, #{title}
+            #{conversationId}, #{userId}, #{type}, #{context}, NOW(), #{title}
         )
     </insert>
 
@@ -50,14 +50,13 @@
     <update id="update" parameterType="com.yy.my_tutor.chat.domain.ChatMessage">
         update chat_message
         <set>
-            <if test="conversationId != null">conversation_id = #{conversationId},</if>
             <if test="userId != null">user_id = #{userId},</if>
             <if test="type != null">type = #{type},</if>
             <if test="context != null">context = #{context},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="title != null">title = #{title},</if>
         </set>
-        where id = #{id}
+        where conversation_id = #{conversationId}
     </update>
 
     <delete id="deleteById" parameterType="java.lang.Integer">
@@ -75,4 +74,4 @@
         order by create_time desc
     </select>
 
-</mapper> 
+</mapper>

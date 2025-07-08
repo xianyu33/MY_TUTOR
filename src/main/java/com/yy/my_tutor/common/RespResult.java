@@ -23,6 +23,14 @@ public class RespResult<T> {
         return result;
     }
 
+    public static <T> RespResult<T> data(T data) {
+        RespResult<T> result = new RespResult<>();
+        result.setCode(200);
+        result.setMessage("success");
+        result.setData(data);
+        return result;
+    }
+
     public static <T> RespResult<T> success(String message, T data) {
         RespResult<T> result = new RespResult<>();
         result.setCode(200);

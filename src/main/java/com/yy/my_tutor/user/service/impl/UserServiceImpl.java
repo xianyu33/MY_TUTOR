@@ -1,21 +1,17 @@
 package com.yy.my_tutor.user.service.impl;
 
 import com.yy.my_tutor.security.JwtTokenUtil;
-import com.yy.my_tutor.security.LoginUser;
 import com.yy.my_tutor.security.UserDetailsServiceImpl;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -106,6 +102,18 @@ public class UserServiceImpl implements UserService {
             user.setPassword(null);
         }
         return user;
+    }
+
+    @Override
+    public Boolean findByUserAccount(User user) {
+        // 检查用户是否已存在
+        User existingUser = userMapper.findByUserAccount(user.getUserAccount());
+        if (existingUser != null) {
+            log.info("用户已存在: {}", user.getUserAccount());
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

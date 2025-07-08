@@ -289,7 +289,7 @@ application/json
 #### 入参样例
 
 ```json
-  {
+{
   "parent": {
     "userAccount": "parent002",
     "username": "李四",
@@ -297,7 +297,7 @@ application/json
     "age": 38,
     "password": "abcdef",
     "tel": "13900000000",
-    "country": "中国",
+    "country": "china",
     "email": "parent002@example.com",
     "grade": "无"
   },
@@ -309,9 +309,9 @@ application/json
       "age": 10,
       "password": "stu123",
       "tel": "13900000001",
-      "country": "中国",
+      "country": "china",
       "email": "student001@example.com",
-      "grade": "五年级"
+      "grade": "7"
     },
     {
       "userAccount": "student002",
@@ -322,10 +322,11 @@ application/json
       "tel": "13900000002",
       "country": "中国",
       "email": "student002@example.com",
-      "grade": "三年级"
+      "grade": "7"
     }
   ]
 }
+
 ```
 #### 实际入参样例
 ```json
@@ -373,7 +374,7 @@ application/json
 }
 ```
 
-### 7.验证码校验
+### 8.验证码校验
 
 #### url
 
@@ -412,5 +413,144 @@ application/json
 
 ```
 
+### 9.账号校验是否存在
+
+#### url
+
+```
+/user/existAccount
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+  "userAccount": "yyy"
+}
+
+```
+#### 实际入参样例
+```json
+# 不可创建
+{
+  "code": 500,
+  "message": "账号已存在",
+  "data": null
+}
+
+# 可创建
+{
+"code": 200,
+"message": "账号可使用",
+"data": null
+}
 
 
+```
+
+### 10.账号校验是否存在
+
+#### url
+
+```
+/user/existAccount
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+  "userAccount": "yyy"
+}
+
+```
+#### 实际入参样例
+```json
+# 不可创建
+{
+  "code": 500,
+  "message": "账号已存在",
+  "data": null
+}
+
+# 可创建
+{
+"code": 200,
+"message": "账号可使用",
+"data": null
+}
+
+
+```
+
+
+### 11.创建对话
+
+每次第一次对话之前调用
+#### url
+
+```
+/context
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+}
+
+```
+#### 实际入参样例
+```json
+# 不可创建
+{
+  "code": 500,
+  "message": "账号已存在",
+  "data": null
+}
+
+# 可创建
+{
+"code": 200,
+"message": "账号可使用",
+"data": null
+}
+
+
+```

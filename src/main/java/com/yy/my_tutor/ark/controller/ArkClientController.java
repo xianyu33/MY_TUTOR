@@ -6,20 +6,29 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yy.my_tutor.ark.domain.ArkClient;
+import com.yy.my_tutor.ark.domain.Context;
+import com.yy.my_tutor.chat.domain.ChatMessage;
+import com.yy.my_tutor.chat.domain.ChatMessageDetail;
+import com.yy.my_tutor.chat.service.ChatMessageDetailService;
+import com.yy.my_tutor.chat.service.ChatMessageService;
 import com.yy.my_tutor.common.AESUtil;
+import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.BufferedSource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -29,6 +38,11 @@ public class ArkClientController {
 
     private final String MODEL = "ep-20250421140255-d6sfx";
 
+    @Resource
+    ChatMessageService chatMessageService;
+
+    @Resource
+    ChatMessageDetailService chatMessageDetailService;
 
     @PostMapping(value = "/context")
     public Object context(@RequestBody ArkClient arkClient) {
@@ -39,19 +53,30 @@ public class ArkClientController {
         jsonObject.put("role", "system");
         messages.add(jsonObject);
 
-        arkClient.setMessages(messages);
-        arkClient.setModel(MODEL);
-        arkClient.setMode("session");
-        arkClient.setTtl(3600);
+//        arkClient.setMessages(messages);
+//        arkClient.setModel(MODEL);
+//        arkClient.setMode("session");
+//        arkClient.setTtl(3600);
+//
+//        JSONObject truncation_strategy = new JSONObject();
+//        truncation_strategy.put("type", "rolling_tokens");
+//        arkClient.setTruncation_strategy(truncation_strategy);
 
-        JSONObject truncation_strategy = new JSONObject();
-        truncation_strategy.put("type", "rolling_tokens");
-        arkClient.setTruncation_strategy(truncation_strategy);
-
-        String url = "https://ark.cn-beijing.volces.com/api/v3/context/create";
-        return HttpUtil.postHttp(JSON.toJSONString(arkClient), url, "Bearer " + API_KEY);
+//        String url = "https://ark.cn-beijing.volces.com/api/v3/context/create";
+//        HttpUtil.postHttp(JSON.toJSONString(arkClient), url, "Bearer " + API_KEY);
+        //创建对话id
+        ChatMessage chatMessage = new ChatMessage();
+        String conversationId = UUID.randomUUID().toString();
+        chatMessage.setConversationId(conversationId);
+        chatMessage.setUserId(arkClient.getUser_id());
+        chatMessageService.addChatMessage(chatMessage);
+        return RespResult.data(conversationId);
     }
 
+
+    public static void main(String[] args) {
+        System.out.println(AESUtil.decryptBase64("CH+8oJbnh+IfILiWQWY5OpfP5u2cbBEKWWVBg2bJ+NcLRPh3t8vxgQE2T1M2RRNzH9Sue8RgS4i14VES15YQM/9PlSxiWa0PJ8tI5B2i4iXl4gDYOswtWgxQGVuNCY5RYCQcGz75XoYSpC/Eybcbv9iWYoySa70ngahTd1VkjqNgseWTUji3E0vvnb/fiMjXN4smy0GMdOHa96xtLgK+4Cxcb+E/0bDpd/BsdnN0VDQ="));
+    }
 
     @PostMapping(value = "/chat", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chat(@RequestBody ArkClient arkClient) {
@@ -66,13 +91,47 @@ public class ArkClientController {
         JSONObject message = new JSONObject();
         message.put("role", "system");
         message.put("content", "英文回答");
-        arkClient.getMessages().add(message);
 
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("content", "你是一位智能AI老师，能够解答小学到高中的任何学科问题，并对难点进行剖析，同时支持中英文切换。根据以下规则一步步执行任务：1. 首先确定用户提问的学科领域以及所在学段（小学或高中）。2. 针对用户的问题，给出准确清晰的解答内容。3. 分析问题中的难点部分，并进行详细的剖析讲解。4. 如果用户有中英文切换需求，按照用户要求的语言进行回复;5.同时你也可以回答常识性问题;6.用户未指定时，使用英文回复");
+        jsonObject.put("role", "system");
+
+        arkClient.getMessages().add(message);
+        arkClient.getMessages().add(jsonObject);
         JSONObject stream_options = new JSONObject();
         stream_options.put("include_usage", true);
         arkClient.setStream_options(stream_options);
 
 
+        JSONArray messages = arkClient.getMessages();
+        messages.forEach(item -> {
+            JSONObject jsonObject1 = JSON.parseObject(JSON.toJSONString(item));
+            String role = jsonObject1.getString("role");
+            if (role.equals("user")) {
+                String question = jsonObject1.getString("content");
+
+                ChatMessage chatMessage = new ChatMessage();
+                chatMessage.setTitle(question);
+                if (StrUtil.isBlank(arkClient.getConversation_id())) {
+                    chatMessage.setConversationId(arkClient.getConversation_id());
+                    //更新
+                    chatMessageService.updateChatMessage(chatMessage);
+                } else {
+                    String conversationId = UUID.randomUUID().toString();
+                    arkClient.setConversation_id(conversationId);
+                    chatMessage.setConversationId(conversationId);
+                    chatMessage.setUserId(arkClient.getUser_id());
+                    chatMessageService.addChatMessage(chatMessage);
+                }
+                //保存
+                ChatMessageDetail chatMessageDetail = new ChatMessageDetail();
+                chatMessageDetail.setConversationId(arkClient.getConversation_id());
+                chatMessageDetail.setType("q");
+                chatMessageDetail.setContext(question);
+                chatMessageDetail.setUserId(arkClient.getUser_id());
+                chatMessageDetailService.addChatMessageDetail(chatMessageDetail);
+            }
+        });
 
         String url = "https://ark.cn-beijing.volces.com/api/v3/bots/chat/completions";
         OkHttpClient client = new OkHttpClient.Builder()
@@ -109,13 +168,23 @@ public class ArkClientController {
                     try(ResponseBody responseBody = response.body()) {
                         if (ObjectUtil.isNotEmpty(responseBody)) {
                             BufferedSource source = responseBody.source();
+                            StringBuilder responseStr = new StringBuilder();
                             while (!source.exhausted()) {
                                 String line = source.readUtf8Line();
                                 if (StrUtil.isNotBlank(line)) {
                                     log.info("==============获取到的流信息结果为：{}",line);
+                                    responseStr.append(line);
                                     fluxSink.next(line);
                                 }
                             }
+                            //保存回答
+                            //保存
+                            ChatMessageDetail chatMessageDetail = new ChatMessageDetail();
+                            chatMessageDetail.setConversationId(arkClient.getConversation_id());
+                            chatMessageDetail.setType("a");
+                            chatMessageDetail.setContext(responseStr.toString());
+                            chatMessageDetail.setUserId(arkClient.getUser_id());
+                            chatMessageDetailService.addChatMessageDetail(chatMessageDetail);
                         } else {
                             log.info("~~~~~~~~流式请求人工机器人接口响应失败:ResponseBody为空");
                             fluxSink.error(new RuntimeException("请求失败:ResponseBody为空"));
