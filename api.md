@@ -193,22 +193,9 @@ application/json
 
 ```json
 {
-  "id": "ctx-20250421142907-q2ttn", //对话的时候传入，作为上下文的缓存
-  "model": "ep-20250421140255-d6sfx",
-  "ttl": 3600,
-  "truncation_strategy": {
-    "type": "rolling_tokens",
-    "rolling_tokens": true
-  },
-  "usage": {
-    "prompt_tokens": 113,
-    "completion_tokens": 0,
-    "total_tokens": 113,
-    "prompt_tokens_details": {
-      "cached_tokens": 0
-    }
-  },
-  "mode": "session"
+  "code": 200,
+  "data": "f559eccf-7e6d-4885-bae9-5665e9953ae8",
+  "message": null
 }
 
 ```
@@ -459,52 +446,7 @@ application/json
 ```
 
 
-### 11.创建对话
 
-每次第一次对话之前调用
-#### url
-
-```
-/context
-```
-
-#### 请求方式
-
-```
-POST
-```
-
-#### 请求格式
-
-```
-application/json
-```
-
-#### 入参样例
-
-```json
-{
-}
-
-```
-#### 返回样例
-```json
-# 不可创建
-{
-  "code": 500,
-  "message": "账号已存在",
-  "data": null
-}
-
-# 可创建
-{
-"code": 200,
-"message": "账号可使用",
-"data": null
-}
-
-
-```
 
 
 ### 12.根据用户id查询对话列表
