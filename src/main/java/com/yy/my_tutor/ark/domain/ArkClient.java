@@ -34,4 +34,6 @@ public class ArkClient implements Serializable {
 
     private String user_id;
 
+    private String question;
+
 }

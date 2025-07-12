@@ -69,6 +69,7 @@ public class ArkClientController {
         String conversationId = UUID.randomUUID().toString();
         chatMessage.setConversationId(conversationId);
         chatMessage.setUserId(arkClient.getUser_id());
+        chatMessage.setTitle(arkClient.getQuestion());
         chatMessageService.addChatMessage(chatMessage);
         return RespResult.data(conversationId);
     }
@@ -118,6 +119,8 @@ public class ArkClientController {
                     chatMessage.setConversationId(conversationId);
                     chatMessage.setUserId(arkClient.getUser_id());
                     chatMessageService.addChatMessage(chatMessage);
+                } else {
+
                 }
                 //保存
                 ChatMessageDetail chatMessageDetail = new ChatMessageDetail();
