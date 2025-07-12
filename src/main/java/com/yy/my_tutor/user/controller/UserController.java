@@ -96,7 +96,7 @@ public class UserController {
     @PostMapping("/verification")
     public RespResult<Boolean> verification(@RequestBody User user) {
         log.info("校验验证码: {}", user.getVerificationCode());
-        Boolean b = redisUtil.hasKey("CODE:" + user.getEmail());
+        Boolean b = redisUtil.hasKey(getVerificationKey(user.getEmail()));
         if (user.getVerificationCode().isEmpty() || !b) {
             throw new CustomException("验证码失效");
         }
