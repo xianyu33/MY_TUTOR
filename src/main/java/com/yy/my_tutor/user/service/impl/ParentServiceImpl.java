@@ -76,7 +76,7 @@ public class ParentServiceImpl implements ParentService {
             user.setCreateAt(new Date());
             user.setUpdateAt(new Date());
             user.setDeleteFlag("0");
-            String decryptedUserPassword = AESUtil.decryptBase64(parent.getPassword());
+            String decryptedUserPassword = AESUtil.decryptBase64(user.getPassword());
             String encryptedPassword = DigestUtils.md5DigestAsHex(decryptedUserPassword.getBytes(StandardCharsets.UTF_8));
             user.setPassword(encryptedPassword);
             userMapper.insert(user);
