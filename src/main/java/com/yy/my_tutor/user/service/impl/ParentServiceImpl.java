@@ -1,5 +1,6 @@
 package com.yy.my_tutor.user.service.impl;
 
+import com.yy.my_tutor.common.AESUtil;
 import com.yy.my_tutor.user.domain.Parent;
 import com.yy.my_tutor.user.mapper.ParentMapper;
 import com.yy.my_tutor.user.service.ParentService;
@@ -8,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
+import org.springframework.util.DigestUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
@@ -64,6 +67,8 @@ public class ParentServiceImpl implements ParentService {
         }
         parent.setCreateAt(new Date());
         parent.setDeleteFlag("0");
+        String decryptedPassword = AESUtil.decryptBase64(parent.getPassword());
+        parent.setPassword(DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8)));
         parentMapper.insert(parent);
         Integer parentId = parent.getId();
         for (User user : users) {
@@ -71,10 +76,11 @@ public class ParentServiceImpl implements ParentService {
             user.setCreateAt(new Date());
             user.setUpdateAt(new Date());
             user.setDeleteFlag("0");
-            String encryptedPassword = org.springframework.util.DigestUtils.md5DigestAsHex(user.getPassword().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String decryptedUserPassword = AESUtil.decryptBase64(parent.getPassword());
+            String encryptedPassword = DigestUtils.md5DigestAsHex(decryptedUserPassword.getBytes(StandardCharsets.UTF_8));
             user.setPassword(encryptedPassword);
             userMapper.insert(user);
         }
         return true;
     }
-} 
+}

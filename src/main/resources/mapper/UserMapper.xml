@@ -30,6 +30,11 @@
         <include refid="Base_Column_List"/>
         from user
         where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
+        UNION
+        select
+        <include refid="Base_Column_List"/>
+        from parent
+        where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
     </select>
 
     <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
