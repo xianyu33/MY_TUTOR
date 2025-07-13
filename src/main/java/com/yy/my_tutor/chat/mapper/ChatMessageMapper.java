@@ -1,6 +1,7 @@
 package com.yy.my_tutor.chat.mapper;
 
 import com.yy.my_tutor.chat.domain.ChatMessage;
+import com.yy.my_tutor.user.domain.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -63,4 +64,10 @@ public interface ChatMessageMapper {
      * @return 聊天消息列表
      */
     List<ChatMessage> findAll();
-} 
+
+    List<User> findUserByParent(String id);
+
+    List<ChatMessage> findChatByUsers(List<User> list);
+
+    User findParent(String userId);
+}

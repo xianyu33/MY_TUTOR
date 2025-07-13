@@ -1,6 +1,8 @@
 package com.yy.my_tutor.user.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.yy.my_tutor.chat.domain.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class User implements Serializable {
     private Integer id;
     private String userAccount;
@@ -39,5 +42,9 @@ public class User implements Serializable {
     private List<User> children;
 
     private Integer parentId;
+
+    private String role;
+
+    private List<ChatMessage> chatMessages;
 
 }

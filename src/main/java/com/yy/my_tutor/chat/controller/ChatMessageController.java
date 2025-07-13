@@ -4,11 +4,14 @@ import com.alibaba.fastjson.JSON;
 import com.yy.my_tutor.chat.domain.ChatMessage;
 import com.yy.my_tutor.chat.service.ChatMessageService;
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.user.domain.Parent;
+import com.yy.my_tutor.user.domain.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -111,5 +114,15 @@ public class ChatMessageController {
         log.info("查询所有聊天消息");
         List<ChatMessage> chatMessages = chatMessageService.findAll();
         return RespResult.success(chatMessages);
+    }
+
+    /**
+     * 根据家长查询想学生对话记录
+     */
+    @GetMapping("/parent/{userAccount}")
+    public RespResult<Map<String, User>> findByParent(@PathVariable String userAccount) {
+        log.info("查询家长账号: {}", userAccount);
+        Map<String, User> parents = chatMessageService.findByParent(userAccount);
+        return RespResult.data(parents);
     }
 } 

@@ -1,8 +1,11 @@
 package com.yy.my_tutor.chat.service;
 
 import com.yy.my_tutor.chat.domain.ChatMessage;
+import com.yy.my_tutor.user.domain.Parent;
+import com.yy.my_tutor.user.domain.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ChatMessageService {
     
@@ -60,4 +63,6 @@ public interface ChatMessageService {
      * @return 聊天消息列表
      */
     List<ChatMessage> findAll();
-} 
+
+    Map<String, User> findByParent(String userAccount);
+}

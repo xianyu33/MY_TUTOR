@@ -12,6 +12,25 @@
         <result column="title" property="title" jdbcType="VARCHAR"/>
     </resultMap>
 
+    <resultMap id="UserMap" type="com.yy.my_tutor.user.domain.User">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_account" property="userAccount" jdbcType="VARCHAR"/>
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="sex" property="sex" jdbcType="VARCHAR"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="tel" property="tel" jdbcType="VARCHAR"/>
+        <result column="country" property="country" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="grade" property="grade" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="role" property="role"  jdbcType="VARCHAR"/>
+    </resultMap>
+
     <sql id="Base_Column_List">
         id, conversation_id, user_id, type, context, create_time, title
     </sql>
@@ -72,6 +91,30 @@
         <include refid="Base_Column_List"/>
         from chat_message
         order by create_time desc
+    </select>
+
+    <select id="findUserByParent" resultType="com.yy.my_tutor.user.domain.User">
+        SELECT id, user_account, username, sex, age, password, tel, country, email, grade,
+               create_at, create_by, update_at, update_by, delete_flag
+        FROM user
+        WHERE parent_id = #{id}
+    </select>
+    <select id="findChatByUsers" resultType="com.yy.my_tutor.chat.domain.ChatMessage">
+        select
+        t1.id, t1.conversation_id, t1.user_id, t1.type, t1.context, t1.create_time, t1.title,t2.username username
+        from chat_message t1 left join user t2 ON t1.user_id = t2.id
+        where
+            t1.user_id IN
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+        order by t1.create_time asc
+    </select>
+    <select id="findParent" resultType="com.yy.my_tutor.user.domain.User">
+        SELECT id, user_account, username, sex, age, password, tel, country, email, grade,
+               create_at, create_by, update_at, update_by, delete_flag
+        FROM parent
+        WHERE id = #{id}
     </select>
 
 </mapper>
