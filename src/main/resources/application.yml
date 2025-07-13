@@ -3,7 +3,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://59.110.35.233:3308/tutor?characterEncoding=utf8&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&serverTimezone=GMT+8
+    url: jdbc:mysql://59.110.35.233:3308/tutor?characterEncoding=utf8&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: tutor1qaz
   redis:
