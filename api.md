@@ -13,6 +13,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5aXlhbyIsImlhdCI6MTc0NTM5O
 
 ### 1.问答接口
 
+支持正常问答，上传图片识别图片内容回答
 #### url
 
 ```
@@ -48,6 +49,36 @@ application/json
   "user_id": "123124131",
   "conversation_id": "07227fb3-b5a9-4b94-a0f8-f83337222a2b"   //首次对话无该字段，后续对话传入该字段，代表是一次对话
 }
+-- 带图片的入参方式
+{
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "你是一个老师角色，不仅局限于学科问题回答，正常的问答也支持，英语回答"
+    },
+    {
+      "content": "42配置信息",
+      "role": "user"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "image_url",
+          "image_url" : {
+            "url": "https://test-yy.tos-cn-shanghai.volces.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250714104219.png?X-Tos-Algorithm=TOS4-HMAC-SHA256&X-Tos-Credential=AKLTMjdmZDRlZmU4YmQxNDZhZDlhYjkyMmJlYzMwNmFlNjc%2F20250714%2Fcn-shanghai%2Ftos%2Frequest&X-Tos-Expires=3600&X-Tos-Date=20250714T024320Z&X-Tos-Signature=517aeb0f3cb60e283ab2cdd724aa72f6301ac9ceecf86e0191a3e958a191f951&X-Tos-SignedHeaders=host"
+          }
+        }
+      ]
+    }
+  ],
+  "user_id": 11
+}
+
+
+
+
 ```
 
 #### 返回样例
@@ -540,5 +571,37 @@ GET
   ]
 }
 
+
+```
+
+
+### 14.上传文件
+
+上传文件，对话使用
+#### url
+
+```
+/update
+```
+
+#### 请求方式
+
+```
+POST
+```
+from-data
+#### 入参
+```json
+file
+```
+
+
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "上传成功",
+  "data": "https://test-yy.tos-cn-shanghai.volces.com/%E5%B1%9E%E5%9C%B0%E5%8C%96%E4%BF%A1%E6%81%AF.txt?X-Tos-Algorithm=TOS4-HMAC-SHA256&X-Tos-Credential=AKLTMjdmZDRlZmU4YmQxNDZhZDlhYjkyMmJlYzMwNmFlNjc%2F20250714%2Fcn-shanghai%2Ftos%2Frequest&X-Tos-Expires=3600&X-Tos-Date=20250714T023329Z&X-Tos-Signature=7b959d8226f48564b2470573c771a6e15dcce1c774dc1abf9191e048b4e16eb8&X-Tos-SignedHeaders=host"
+}
 
 ```
