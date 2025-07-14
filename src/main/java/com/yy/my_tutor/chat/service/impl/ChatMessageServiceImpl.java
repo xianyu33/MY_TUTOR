@@ -74,22 +74,25 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         List<User> list = chatMessageMapper.findUserByParent(userId);
 
-        for (User user : list) {
-            map.put(user.getUsername(), user);
-        }
-        List<ChatMessage> chats = chatMessageMapper.findChatByUsers(list);
-        for (ChatMessage chat : chats) {
-            if (map.containsKey(chat.getUsername())) {
-                User user = map.get(chat.getUsername());
-                if (user.getChatMessages() == null) {
-                    List<ChatMessage> messages = new ArrayList<>();
-                    messages.add(chat);
-                    user.setChatMessages(messages);
-                } else {
-                    user.getChatMessages().add(chat);
+        if (null != list && !list.isEmpty()) {
+            for (User user : list) {
+                map.put(user.getUsername(), user);
+            }
+            List<ChatMessage> chats = chatMessageMapper.findChatByUsers(list);
+            for (ChatMessage chat : chats) {
+                if (map.containsKey(chat.getUsername())) {
+                    User user = map.get(chat.getUsername());
+                    if (user.getChatMessages() == null) {
+                        List<ChatMessage> messages = new ArrayList<>();
+                        messages.add(chat);
+                        user.setChatMessages(messages);
+                    } else {
+                        user.getChatMessages().add(chat);
+                    }
                 }
             }
         }
+
         return map;
     }
 } 
