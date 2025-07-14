@@ -43,9 +43,12 @@ public class EmailUtil {
         // 设置收件人
         message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
         // 邮件主题
-        message.setSubject("您的验证码");
+        message.setSubject("Your Code - " + code);
         // 邮件内容（包含6位验证码）
-        String content = "<p>您的验证码是：<b>" + code + "</b></p><p>有效期5分钟，请勿泄露！</p>";
+        String content = "<p>Hello</p></br> <p>Your code is: <b>" + code + "</b>. Use it to verify your email for Login. </br>" +
+                "<p>Valid for 5 minutes, please do not disclose.</p></br>" +
+                "<p>Yours,</p>" +
+                "<p>MYTUTOR</p>";
         message.setContent(content, "text/html;charset=UTF-8");
 
         // 4. 发送邮件

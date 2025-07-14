@@ -13,7 +13,6 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5aXlhbyIsImlhdCI6MTc0NTM5O
 
 ### 1.问答接口
 
-支持正常问答，上传图片识别图片内容回答
 #### url
 
 ```
@@ -189,6 +188,7 @@ application/json
         "updateBy": null,
         "deleteFlag": "0",
         "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ5aXlhbyIsImlhdCI6MTc0NTQ2Njk1MCwiZXhwIjoxNzQ1NDg4NTUwfQ.W0xCZKnVxl19I9xKeJV5gAo6BjJgLfygo75m4AJb8VoyakdpSZHW_UZzv0-qKUGfIkZjfo2i0blQhDMKZsHX2w"
+        "role": "P"  //P-家长  S-学生
     }
 }
 
@@ -574,6 +574,96 @@ GET
 
 ```
 
+### 14.家长查看对话列表（包含自己和孩子的所有列表）
+
+家长查看对话列表（包含自己和孩子的所有列表）
+根据登录判断是否为家长，然后判断是否调用该接口
+#### url
+
+```
+/chat/message/parent/{parentId}
+```
+
+#### 请求方式
+
+```
+GET
+```
+
+
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "yours": {
+      "id": 25,
+      "userAccount": "yyy",
+      "username": "yyy",
+      "sex": "1",
+      "age": 18,
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "tel": "15892334013",
+      "country": "Calanda",
+      "email": "229268931@qq.com",
+      "grade": "11",
+      "createAt": "2025-07-13 09:03:33",
+      "deleteFlag": "0",
+      "chatMessages": [
+        {
+          "id": 74,
+          "conversationId": "be92b9b1-ed54-4091-81d3-63813bb6fa0f",
+          "userId": "25",
+          "createTime": "2025-07-13 01:18:45",
+          "title": "how are you"
+        },
+        {
+          "id": 75,
+          "conversationId": "f260f0f0-a240-4b7c-b054-9d9661fe544b",
+          "userId": "25",
+          "createTime": "2025-07-13 01:21:07",
+          "title": "三角函数"
+        },
+        {
+          "id": 76,
+          "conversationId": "1ce905d8-ed89-4114-a161-ea9667c25d63",
+          "userId": "25",
+          "createTime": "2025-07-13 01:21:24",
+          "title": "ok ,how are you"
+        }
+      ]
+    },
+    "jane": {
+      "id": 27,
+      "userAccount": "jane",
+      "username": "jane",
+      "sex": "2",
+      "age": 10,
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "tel": "15892334013",
+      "country": "calanda",
+      "email": "",
+      "grade": "9",
+      "createAt": "2025-07-13 09:03:33",
+      "updateAt": "2025-07-13 09:03:33",
+      "deleteFlag": "0",
+      "chatMessages": [
+        {
+          "id": 73,
+          "conversationId": "97a446cd-0ddf-4571-9d22-4a2e924c8959",
+          "userId": "27",
+          "createTime": "2025-07-13 01:03:46",
+          "title": "who are you",
+          "username": "jane"
+        }
+      ]
+    }
+  }
+}
+
+
+```
 
 ### 14.上传文件
 
