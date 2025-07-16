@@ -62,7 +62,7 @@ public class ParentServiceImpl implements ParentService {
     @Override
     @Transactional
     public boolean addParentWithUsers(Parent parent, List<User> users) {
-        if (parent == null || users == null || users.isEmpty()) {
+        if (parent == null) {
             return false;
         }
         parent.setCreateAt(new Date());
@@ -71,15 +71,17 @@ public class ParentServiceImpl implements ParentService {
         parent.setPassword(DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8)));
         parentMapper.insert(parent);
         Integer parentId = parent.getId();
-        for (User user : users) {
-            user.setParentId(parentId);
-            user.setCreateAt(new Date());
-            user.setUpdateAt(new Date());
-            user.setDeleteFlag("0");
-            String decryptedUserPassword = AESUtil.decryptBase64(user.getPassword());
-            String encryptedPassword = DigestUtils.md5DigestAsHex(decryptedUserPassword.getBytes(StandardCharsets.UTF_8));
-            user.setPassword(encryptedPassword);
-            userMapper.insert(user);
+        if (!users.isEmpty()) {
+            for (User user : users) {
+                user.setParentId(parentId);
+                user.setCreateAt(new Date());
+                user.setUpdateAt(new Date());
+                user.setDeleteFlag("0");
+                String decryptedUserPassword = AESUtil.decryptBase64(user.getPassword());
+                String encryptedPassword = DigestUtils.md5DigestAsHex(decryptedUserPassword.getBytes(StandardCharsets.UTF_8));
+                user.setPassword(encryptedPassword);
+                userMapper.insert(user);
+            }
         }
         return true;
     }
