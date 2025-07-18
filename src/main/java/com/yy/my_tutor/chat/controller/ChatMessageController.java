@@ -1,6 +1,7 @@
 package com.yy.my_tutor.chat.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.yy.my_tutor.chat.domain.ChatMessage;
 import com.yy.my_tutor.chat.service.ChatMessageService;
 import com.yy.my_tutor.common.RespResult;
@@ -122,7 +123,7 @@ public class ChatMessageController {
     @GetMapping("/parent/{userAccount}")
     public RespResult<Map<String, User>> findByParent(@PathVariable String userAccount) {
         log.info("查询家长账号: {}", userAccount);
-        Map<String, User> parents = chatMessageService.findByParent(userAccount);
-        return RespResult.data(parents);
+        Map<String, User> byParent = chatMessageService.findByParent(userAccount);
+        return RespResult.data(byParent);
     }
-} 
+}

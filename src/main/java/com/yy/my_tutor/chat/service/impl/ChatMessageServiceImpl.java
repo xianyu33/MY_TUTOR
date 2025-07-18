@@ -1,5 +1,7 @@
 package com.yy.my_tutor.chat.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.yy.my_tutor.chat.domain.ChatMessage;
 import com.yy.my_tutor.chat.mapper.ChatMessageMapper;
 import com.yy.my_tutor.chat.service.ChatMessageService;
@@ -64,7 +66,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     @Override
     public Map<String, User> findByParent(String userId) {
-        Map<String, User> map = new HashMap<>();
+        Map<String, User> map = new LinkedHashMap<>();
 
         User parent = chatMessageMapper.findParent(userId);
 
@@ -82,6 +84,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             for (ChatMessage chat : chats) {
                 if (map.containsKey(chat.getUsername())) {
                     User user = map.get(chat.getUsername());
+
                     if (user.getChatMessages() == null) {
                         List<ChatMessage> messages = new ArrayList<>();
                         messages.add(chat);
@@ -95,4 +98,4 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         return map;
     }
-} 
+}
