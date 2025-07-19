@@ -5,6 +5,7 @@ import com.yy.my_tutor.common.AESUtil;
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.config.CustomException;
 import com.yy.my_tutor.config.EmailUtil;
+import com.yy.my_tutor.config.GoDaddyEmailSender;
 import com.yy.my_tutor.config.RedisUtil;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.service.UserService;
@@ -47,14 +48,11 @@ public class UserController {
         if (userVo.getEmail().isEmpty()) {
             throw new CustomException("邮箱不能为null");
         }
-        try {
-            String code = generateCode();
-            String redisKey = getVerificationKey(userVo.getEmail());
-            redisUtil.set(redisKey, code, 5 * 60);
-            EmailUtil.sendVerificationCode(userVo.getEmail(), code);
-        } catch (MessagingException e) {
-            throw new CustomException("发送是吧");
-        }
+        String code = generateCode();
+        String redisKey = getVerificationKey(userVo.getEmail());
+        redisUtil.set(redisKey, code, 5 * 60);
+//            EmailUtil.sendVerificationCode(userVo.getEmail(), code);
+        GoDaddyEmailSender.send(userVo.getEmail(), code);
         return RespResult.success("发送成功");
     }
 
