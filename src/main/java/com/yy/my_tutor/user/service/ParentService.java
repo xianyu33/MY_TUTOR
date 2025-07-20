@@ -12,4 +12,6 @@ public interface ParentService {
     boolean deleteById(Integer id);
     List<Parent> findByUserAccount(String userAccount);
     boolean addParentWithUsers(Parent parent, List<User> users);
-} 
+
+    List<User> findChild(Parent parent);
+}

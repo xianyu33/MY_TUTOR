@@ -695,3 +695,66 @@ file
 }
 
 ```
+
+
+### 15.根据家长id查询学生信息
+
+#### url
+
+```
+/parent/findChild
+```
+
+#### 请求方式
+
+```
+POST
+```
+#### 入参
+```json
+{
+  "id": 18
+}
+```
+
+
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 20,
+      "userAccount": "222",
+      "username": "2",
+      "sex": "1",
+      "age": 10,
+      "password": "1f8dfa2cb79ed9b036de542847b30dbb",
+      "tel": "2",
+      "country": "2",
+      "email": "",
+      "grade": "2",
+      "createAt": "2025-07-12 09:09:28",
+      "updateAt": "2025-07-12 09:09:28",
+      "deleteFlag": "0"
+    },
+    {
+      "id": 21,
+      "userAccount": "333",
+      "username": "3",
+      "sex": "1",
+      "age": 10,
+      "password": "1f8dfa2cb79ed9b036de542847b30dbb",
+      "tel": "3",
+      "country": "3",
+      "email": "",
+      "grade": "3",
+      "createAt": "2025-07-12 09:09:28",
+      "updateAt": "2025-07-12 09:09:28",
+      "deleteFlag": "0"
+    }
+  ]
+}
+
+```

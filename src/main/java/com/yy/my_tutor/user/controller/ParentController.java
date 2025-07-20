@@ -106,5 +106,14 @@ public class ParentController {
         return RespResult.error("新增家长和学生失败");
     }
 
+    /**
+     * 查询家长下的学生
+     */
+    @PostMapping("/findChild")
+    public RespResult<List<User>> findChild(@RequestBody Parent parent) {
+        List<User> users = parentService.findChild(parent);
+        return RespResult.data(users);
+    }
+
 
 } 

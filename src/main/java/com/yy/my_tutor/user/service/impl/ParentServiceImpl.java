@@ -85,4 +85,9 @@ public class ParentServiceImpl implements ParentService {
         }
         return true;
     }
+
+    @Override
+    public List<User> findChild(Parent parent) {
+        return userMapper.findChild(parent.getId());
+    }
 }

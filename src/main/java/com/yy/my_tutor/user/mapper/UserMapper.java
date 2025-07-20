@@ -4,6 +4,8 @@ import com.yy.my_tutor.user.domain.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface UserMapper {
     
@@ -27,4 +29,6 @@ public interface UserMapper {
      * @return 用户信息
      */
     User findById(Integer id);
-} 
+
+    List<User> findChild(Integer id);
+}
