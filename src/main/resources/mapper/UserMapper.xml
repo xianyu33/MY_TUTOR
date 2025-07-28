@@ -25,6 +25,38 @@
         id, user_account, username, sex, age, password, tel, country, email, grade,
         create_at, create_by, update_at, update_by, delete_flag
     </sql>
+    <update id="update">
+        update user
+        <set>
+            <if test="userAccount != null">user_account = #{userAccount},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="tel != null">tel = #{tel},</if>
+            <if test="country != null">country = #{country},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="grade != null">grade = #{grade},</if>
+            <if test="updateAt != null">update_at = NOW(),</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateParent">
+        update parent
+        <set>
+            <if test="userAccount != null">user_account = #{userAccount},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="tel != null">tel = #{tel},</if>
+            <if test="country != null">country = #{country},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="grade != null">grade = #{grade},</if>
+            <if test="updateAt != null">update_at = NOW(),</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+        </set>
+        where id = #{id}
+    </update>
 
     <select id="findByUserAccount" resultMap="BaseResultMap" parameterType="java.lang.String">
         select
@@ -48,6 +80,12 @@
         SELECT id, user_account, username, sex, age, password, tel, country, email, grade,
                create_at, create_by, update_at, update_by, delete_flag
         FROM user where parent_id = #{id} AND delete_flag = 0
+    </select>
+    <select id="findParentById" resultType="com.yy.my_tutor.user.domain.User">
+        select
+        <include refid="Base_Column_List"/>
+        from parent
+        where id = #{id} and delete_flag = '0'
     </select>
 
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.User">

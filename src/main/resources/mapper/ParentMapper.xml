@@ -58,16 +58,12 @@
             <if test="username != null">username = #{username},</if>
             <if test="sex != null">sex = #{sex},</if>
             <if test="age != null">age = #{age},</if>
-            <if test="password != null">password = #{password},</if>
             <if test="tel != null">tel = #{tel},</if>
             <if test="country != null">country = #{country},</if>
             <if test="email != null">email = #{email},</if>
             <if test="grade != null">grade = #{grade},</if>
-            <if test="createAt != null">create_at = #{createAt},</if>
-            <if test="createBy != null">create_by = #{createBy},</if>
-            <if test="updateAt != null">update_at = #{updateAt},</if>
+            <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
-            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
         </set>
         where id = #{id}
     </update>

@@ -8,21 +8,21 @@ import java.util.List;
 
 @Mapper
 public interface UserMapper {
-    
+
     /**
      * 根据用户账号查询用户
      * @param userAccount 用户账号
      * @return 用户信息
      */
     User findByUserAccount(String userAccount);
-    
+
     /**
      * 插入新用户
      * @param user 用户信息
      * @return 影响行数
      */
     int insert(User user);
-    
+
     /**
      * 根据ID查询用户
      * @param id 用户ID
@@ -31,4 +31,10 @@ public interface UserMapper {
     User findById(Integer id);
 
     List<User> findChild(Integer id);
+
+    User findParentById(Integer id);
+
+    void update(User user);
+
+    void updateParent(User user);
 }

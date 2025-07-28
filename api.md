@@ -758,3 +758,83 @@ POST
 }
 
 ```
+
+
+### 16.查询个人信息
+
+#### url
+
+```
+/user/findById
+```
+
+#### 请求方式
+
+```
+POST
+```
+#### 入参
+```json
+{
+  "id": 18,
+  "role": "S"    //S-学生   P-家长
+}
+```
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "id": 27,
+    "userAccount": "jane",
+    "username": "jane",
+    "sex": "2",
+    "age": 10,
+    "tel": "15892334013",
+    "country": "calanda",
+    "email": "",
+    "grade": "9",
+    "createAt": "2025-07-13 09:03:33",
+    "updateAt": "2025-07-13 09:03:33",
+    "deleteFlag": "0"
+  }
+}
+
+```
+### 17.更新个人信息
+
+#### url
+
+```
+/user/edit
+```
+
+#### 请求方式
+
+```
+POST
+```
+#### 入参
+```json
+{
+  "id": 27,
+  "userAccount": "jane",
+  "username": "jane",
+  "sex": "2",
+  "age": 10,
+  "tel": "15892334013",
+  "country": "calanda",
+  "email": "jane@qq.com",
+  "grade": "9",
+  "role": "S"    //S-学生   P-家长
+}
+```
+#### 返回
+```json
+{
+  "code": 200,
+  "message": "更新成功"
+}
+
+```

@@ -42,4 +42,8 @@ public interface UserService {
     User findById(Integer id);
 
     Boolean findByUserAccount(User user);
+
+    User find(User user);
+
+    User edit(User user);
 }

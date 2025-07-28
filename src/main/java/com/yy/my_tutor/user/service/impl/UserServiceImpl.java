@@ -3,6 +3,7 @@ package com.yy.my_tutor.user.service.impl;
 import com.yy.my_tutor.security.JwtTokenUtil;
 import com.yy.my_tutor.security.UserDetailsServiceImpl;
 import com.yy.my_tutor.user.domain.User;
+import com.yy.my_tutor.user.mapper.ParentMapper;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Resource
+    private ParentMapper parentMapper;
 
     @Resource
     private UserDetailsServiceImpl userDetailsService;
@@ -114,6 +118,32 @@ public class UserServiceImpl implements UserService {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public User find(User user) {
+        User res;
+        // 隐藏敏感信息
+        if (user.getRole().equals("S")) {
+            res = userMapper.findById(user.getId());
+        } else {
+            res = userMapper.findParentById(user.getId());
+        }
+        if (res != null) {
+            // 隐藏敏感信息
+            res.setPassword(null);
+        }
+        return res;
+    }
+
+    @Override
+    public User edit(User user) {
+        if (user.getRole().equals("S")) {
+            userMapper.update(user);
+        } else {
+            userMapper.updateParent(user);
+        }
+        return null;
     }
 
     @Override

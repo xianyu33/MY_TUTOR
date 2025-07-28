@@ -166,13 +166,23 @@ public class UserController {
     /**
      * 根据ID查询用户
      */
-    @GetMapping("/{id}")
-    public RespResult<User> findById(@PathVariable Integer id) {
-        log.info("查询用户: {}", id);
-        User user = userService.findById(id);
-        if (user != null) {
-            return RespResult.success(user);
+    @PostMapping("/findById")
+    public RespResult<User> findById(@RequestBody User user) {
+        log.info("查询用户: {}", JSON.toJSONString(user));
+        User res = userService.find(user);
+        if (res != null) {
+            return RespResult.success(res);
         }
         return RespResult.error("用户不存在");
+    }
+
+    /**
+     * 修改用户信息
+     */
+    @PostMapping("/edit")
+    public RespResult<User> edit(@RequestBody User user) {
+        log.info("修改用户信息: {}", JSON.toJSONString(user));
+        userService.edit(user);
+        return RespResult.success("更新成功");
     }
 }

@@ -43,6 +43,9 @@ public class User implements Serializable {
 
     private Integer parentId;
 
+    /**
+     * P-家长  S-学生
+     */
     private String role;
 
     private List<ChatMessage> chatMessages;
