@@ -78,10 +78,10 @@ public class UserController {
 
 
         if (user != null) {
-            return RespResult.success("登录成功", user);
+            return RespResult.success("login success", user);
         }
 
-        return RespResult.error("用户名或密码错误");
+        return RespResult.error("Incorrect username or password");
     }
 
 
