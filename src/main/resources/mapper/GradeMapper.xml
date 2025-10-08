@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.GradeMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.Grade">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="grade_name" property="gradeName" jdbcType="VARCHAR"/>
+        <result column="grade_level" property="gradeLevel" jdbcType="INTEGER"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, grade_name, grade_level, description, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findAllGrades" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM grade
+        WHERE delete_flag = 'N'
+        ORDER BY grade_level ASC
+    </select>
+
+    <select id="findGradeById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM grade
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findGradeByLevel" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM grade
+        WHERE grade_level = #{gradeLevel} AND delete_flag = 'N'
+    </select>
+
+    <insert id="insertGrade" parameterType="com.yy.my_tutor.math.domain.Grade" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO grade (grade_name, grade_level, description, create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{gradeName}, #{gradeLevel}, #{description}, NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateGrade" parameterType="com.yy.my_tutor.math.domain.Grade">
+        UPDATE grade
+        SET grade_name = #{gradeName},
+            grade_level = #{gradeLevel},
+            description = #{description},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteGrade" parameterType="java.lang.Integer">
+        UPDATE grade
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

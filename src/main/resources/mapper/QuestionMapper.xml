@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.QuestionMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.Question">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
+        <result column="question_type" property="questionType" jdbcType="TINYINT"/>
+        <result column="question_title" property="questionTitle" jdbcType="VARCHAR"/>
+        <result column="question_content" property="questionContent" jdbcType="VARCHAR"/>
+        <result column="options" property="options" jdbcType="VARCHAR"/>
+        <result column="correct_answer" property="correctAnswer" jdbcType="VARCHAR"/>
+        <result column="answer_explanation" property="answerExplanation" jdbcType="VARCHAR"/>
+        <result column="difficulty_level" property="difficultyLevel" jdbcType="TINYINT"/>
+        <result column="points" property="points" jdbcType="INTEGER"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, knowledge_point_id, question_type, question_title, question_content, options, correct_answer,
+        answer_explanation, difficulty_level, points, sort_order, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findAllQuestions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE delete_flag = 'N'
+        ORDER BY knowledge_point_id, sort_order ASC
+    </select>
+
+    <select id="findQuestionById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findQuestionsByKnowledgePointId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="findQuestionsByType" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE question_type = #{questionType} AND delete_flag = 'N'
+        ORDER BY knowledge_point_id, sort_order ASC
+    </select>
+
+    <select id="findQuestionsByDifficulty" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE difficulty_level = #{difficultyLevel} AND delete_flag = 'N'
+        ORDER BY knowledge_point_id, sort_order ASC
+    </select>
+
+    <select id="findQuestionsByKnowledgeAndDifficulty" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE knowledge_point_id = #{knowledgePointId} AND difficulty_level = #{difficultyLevel} AND delete_flag = 'N'
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="findRandomQuestions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insertQuestion" parameterType="com.yy.my_tutor.math.domain.Question" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO question (knowledge_point_id, question_type, question_title, question_content, options,
+                             correct_answer, answer_explanation, difficulty_level, points, sort_order,
+                             create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{knowledgePointId}, #{questionType}, #{questionTitle}, #{questionContent}, #{options},
+                #{correctAnswer}, #{answerExplanation}, #{difficultyLevel}, #{points}, #{sortOrder},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateQuestion" parameterType="com.yy.my_tutor.math.domain.Question">
+        UPDATE question
+        SET knowledge_point_id = #{knowledgePointId},
+            question_type = #{questionType},
+            question_title = #{questionTitle},
+            question_content = #{questionContent},
+            options = #{options},
+            correct_answer = #{correctAnswer},
+            answer_explanation = #{answerExplanation},
+            difficulty_level = #{difficultyLevel},
+            points = #{points},
+            sort_order = #{sortOrder},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteQuestion" parameterType="java.lang.Integer">
+        UPDATE question
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

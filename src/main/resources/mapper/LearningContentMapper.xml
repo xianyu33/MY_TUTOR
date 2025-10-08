@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.LearningContentMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.LearningContent">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
+        <result column="content_type" property="contentType" jdbcType="TINYINT"/>
+        <result column="content_title" property="contentTitle" jdbcType="VARCHAR"/>
+        <result column="content_url" property="contentUrl" jdbcType="VARCHAR"/>
+        <result column="content_data" property="contentData" jdbcType="VARCHAR"/>
+        <result column="study_time" property="studyTime" jdbcType="INTEGER"/>
+        <result column="completion_status" property="completionStatus" jdbcType="TINYINT"/>
+        <result column="score" property="score" jdbcType="DECIMAL"/>
+        <result column="feedback" property="feedback" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, knowledge_point_id, content_type, content_title, content_url, content_data,
+        study_time, completion_status, score, feedback, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findLearningContentByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_content
+        WHERE user_id = #{userId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findLearningContentByUserAndKnowledge" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_content
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findLearningContentByType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_content
+        WHERE user_id = #{userId} AND content_type = #{contentType} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findLearningContentByCompletionStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_content
+        WHERE user_id = #{userId} AND completion_status = #{completionStatus} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <insert id="insertLearningContent" parameterType="com.yy.my_tutor.math.domain.LearningContent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO learning_content (user_id, knowledge_point_id, content_type, content_title, content_url, 
+                                     content_data, study_time, completion_status, score, feedback,
+                                     create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{userId}, #{knowledgePointId}, #{contentType}, #{contentTitle}, #{contentUrl}, 
+                #{contentData}, #{studyTime}, #{completionStatus}, #{score}, #{feedback},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateLearningContent" parameterType="com.yy.my_tutor.math.domain.LearningContent">
+        UPDATE learning_content
+        SET content_type = #{contentType},
+            content_title = #{contentTitle},
+            content_url = #{contentUrl},
+            content_data = #{contentData},
+            study_time = #{studyTime},
+            completion_status = #{completionStatus},
+            score = #{score},
+            feedback = #{feedback},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteLearningContent" parameterType="java.lang.Integer">
+        UPDATE learning_content
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

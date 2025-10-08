@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.StudentAnswerMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.StudentAnswer">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="question_id" property="questionId" jdbcType="INTEGER"/>
+        <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
+        <result column="user_answer" property="userAnswer" jdbcType="VARCHAR"/>
+        <result column="is_correct" property="isCorrect" jdbcType="TINYINT"/>
+        <result column="score" property="score" jdbcType="DECIMAL"/>
+        <result column="answer_time" property="answerTime" jdbcType="TIMESTAMP"/>
+        <result column="time_spent" property="timeSpent" jdbcType="INTEGER"/>
+        <result column="attempt_count" property="attemptCount" jdbcType="INTEGER"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, question_id, knowledge_point_id, user_answer, is_correct, score, answer_time,
+        time_spent, attempt_count, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findStudentAnswersByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_answer
+        WHERE user_id = #{userId} AND delete_flag = 'N'
+        ORDER BY answer_time DESC
+    </select>
+
+    <select id="findStudentAnswersByUserAndQuestion" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_answer
+        WHERE user_id = #{userId} AND question_id = #{questionId} AND delete_flag = 'N'
+        ORDER BY answer_time DESC
+    </select>
+
+    <select id="findStudentAnswersByKnowledgePointId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_answer
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        ORDER BY answer_time DESC
+    </select>
+
+    <select id="findCorrectAnswersByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_answer
+        WHERE user_id = #{userId} AND is_correct = 1 AND delete_flag = 'N'
+        ORDER BY answer_time DESC
+    </select>
+
+    <select id="findIncorrectAnswersByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_answer
+        WHERE user_id = #{userId} AND is_correct = 0 AND delete_flag = 'N'
+        ORDER BY answer_time DESC
+    </select>
+
+    <insert id="insertStudentAnswer" parameterType="com.yy.my_tutor.math.domain.StudentAnswer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student_answer (user_id, question_id, knowledge_point_id, user_answer, is_correct,
+                                  score, answer_time, time_spent, attempt_count,
+                                  create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{userId}, #{questionId}, #{knowledgePointId}, #{userAnswer}, #{isCorrect},
+                #{score}, #{answerTime}, #{timeSpent}, #{attemptCount},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateStudentAnswer" parameterType="com.yy.my_tutor.math.domain.StudentAnswer">
+        UPDATE student_answer
+        SET user_answer = #{userAnswer},
+            is_correct = #{isCorrect},
+            score = #{score},
+            answer_time = #{answerTime},
+            time_spent = #{timeSpent},
+            attempt_count = #{attemptCount},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteStudentAnswer" parameterType="java.lang.Integer">
+        UPDATE student_answer
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="countAnswersByUserAndKnowledge" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM student_answer
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+    </select>
+
+    <select id="countCorrectAnswersByUserAndKnowledge" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM student_answer
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND is_correct = 1 AND delete_flag = 'N'
+    </select>
+
+</mapper>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.KnowledgePointMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.KnowledgePoint">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="grade_id" property="gradeId" jdbcType="INTEGER"/>
+        <result column="category_id" property="categoryId" jdbcType="INTEGER"/>
+        <result column="point_name" property="pointName" jdbcType="VARCHAR"/>
+        <result column="point_code" property="pointCode" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="difficulty_level" property="difficultyLevel" jdbcType="TINYINT"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="prerequisite_points" property="prerequisitePoints" jdbcType="VARCHAR"/>
+        <result column="learning_objectives" property="learningObjectives" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, grade_id, category_id, point_name, point_code, description, content, difficulty_level, 
+        sort_order, prerequisite_points, learning_objectives, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findAllKnowledgePoints" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE delete_flag = 'N'
+        ORDER BY grade_id, sort_order ASC
+    </select>
+
+    <select id="findKnowledgePointById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findKnowledgePointsByGradeId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE grade_id = #{gradeId} AND delete_flag = 'N'
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="findKnowledgePointsByCategoryId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE category_id = #{categoryId} AND delete_flag = 'N'
+        ORDER BY grade_id, sort_order ASC
+    </select>
+
+    <select id="findKnowledgePointsByGradeAndCategory" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE grade_id = #{gradeId} AND category_id = #{categoryId} AND delete_flag = 'N'
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="findKnowledgePointByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE point_code = #{pointCode} AND delete_flag = 'N'
+    </select>
+
+    <select id="findKnowledgePointsByDifficulty" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE difficulty_level = #{difficultyLevel} AND delete_flag = 'N'
+        ORDER BY grade_id, sort_order ASC
+    </select>
+
+    <insert id="insertKnowledgePoint" parameterType="com.yy.my_tutor.math.domain.KnowledgePoint" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_point (grade_id, category_id, point_name, point_code, description, content, 
+                                   difficulty_level, sort_order, prerequisite_points, learning_objectives, 
+                                   create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{gradeId}, #{categoryId}, #{pointName}, #{pointCode}, #{description}, #{content}, 
+                #{difficultyLevel}, #{sortOrder}, #{prerequisitePoints}, #{learningObjectives}, 
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateKnowledgePoint" parameterType="com.yy.my_tutor.math.domain.KnowledgePoint">
+        UPDATE knowledge_point
+        SET grade_id = #{gradeId},
+            category_id = #{categoryId},
+            point_name = #{pointName},
+            point_code = #{pointCode},
+            description = #{description},
+            content = #{content},
+            difficulty_level = #{difficultyLevel},
+            sort_order = #{sortOrder},
+            prerequisite_points = #{prerequisitePoints},
+            learning_objectives = #{learningObjectives},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteKnowledgePoint" parameterType="java.lang.Integer">
+        UPDATE knowledge_point
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

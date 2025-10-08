@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.LearningProgressMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.LearningProgress">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
+        <result column="progress_status" property="progressStatus" jdbcType="TINYINT"/>
+        <result column="completion_percentage" property="completionPercentage" jdbcType="DECIMAL"/>
+        <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="complete_time" property="completeTime" jdbcType="TIMESTAMP"/>
+        <result column="study_duration" property="studyDuration" jdbcType="INTEGER"/>
+        <result column="last_study_time" property="lastStudyTime" jdbcType="TIMESTAMP"/>
+        <result column="notes" property="notes" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, knowledge_point_id, progress_status, completion_percentage, start_time, complete_time,
+        study_duration, last_study_time, notes, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findLearningProgressByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_progress
+        WHERE user_id = #{userId} AND delete_flag = 'N'
+        ORDER BY last_study_time DESC
+    </select>
+
+    <select id="findLearningProgressByUserAndKnowledge" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_progress
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+    </select>
+
+    <select id="findLearningProgressByKnowledgePointId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_progress
+        WHERE knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        ORDER BY last_study_time DESC
+    </select>
+
+    <select id="findLearningProgressByStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_progress
+        WHERE user_id = #{userId} AND progress_status = #{progressStatus} AND delete_flag = 'N'
+        ORDER BY last_study_time DESC
+    </select>
+
+    <insert id="insertLearningProgress" parameterType="com.yy.my_tutor.math.domain.LearningProgress" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO learning_progress (user_id, knowledge_point_id, progress_status, completion_percentage, 
+                                     start_time, complete_time, study_duration, last_study_time, notes,
+                                     create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{userId}, #{knowledgePointId}, #{progressStatus}, #{completionPercentage}, 
+                #{startTime}, #{completeTime}, #{studyDuration}, #{lastStudyTime}, #{notes},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateLearningProgress" parameterType="com.yy.my_tutor.math.domain.LearningProgress">
+        UPDATE learning_progress
+        SET progress_status = #{progressStatus},
+            completion_percentage = #{completionPercentage},
+            start_time = #{startTime},
+            complete_time = #{completeTime},
+            study_duration = #{studyDuration},
+            last_study_time = #{lastStudyTime},
+            notes = #{notes},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="updateProgressStatus">
+        UPDATE learning_progress
+        SET progress_status = #{progressStatus},
+            update_at = NOW()
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteLearningProgress" parameterType="java.lang.Integer">
+        UPDATE learning_progress
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

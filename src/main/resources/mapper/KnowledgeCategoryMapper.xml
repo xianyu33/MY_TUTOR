@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.KnowledgeCategoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.KnowledgeCategory">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="category_name" property="categoryName" jdbcType="VARCHAR"/>
+        <result column="category_code" property="categoryCode" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, category_name, category_code, description, sort_order, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findAllCategories" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_category
+        WHERE delete_flag = 'N'
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="findCategoryById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_category
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findCategoryByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_category
+        WHERE category_code = #{categoryCode} AND delete_flag = 'N'
+    </select>
+
+    <insert id="insertCategory" parameterType="com.yy.my_tutor.math.domain.KnowledgeCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_category (category_name, category_code, description, sort_order, create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{categoryName}, #{categoryCode}, #{description}, #{sortOrder}, NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateCategory" parameterType="com.yy.my_tutor.math.domain.KnowledgeCategory">
+        UPDATE knowledge_category
+        SET category_name = #{categoryName},
+            category_code = #{categoryCode},
+            description = #{description},
+            sort_order = #{sortOrder},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteCategory" parameterType="java.lang.Integer">
+        UPDATE knowledge_category
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

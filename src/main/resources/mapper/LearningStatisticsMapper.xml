@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.math.mapper.LearningStatisticsMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.LearningStatistics">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
+        <result column="total_study_time" property="totalStudyTime" jdbcType="INTEGER"/>
+        <result column="total_questions" property="totalQuestions" jdbcType="INTEGER"/>
+        <result column="correct_answers" property="correctAnswers" jdbcType="INTEGER"/>
+        <result column="accuracy_rate" property="accuracyRate" jdbcType="DECIMAL"/>
+        <result column="mastery_level" property="masteryLevel" jdbcType="TINYINT"/>
+        <result column="last_study_date" property="lastStudyDate" jdbcType="DATE"/>
+        <result column="study_days" property="studyDays" jdbcType="INTEGER"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, knowledge_point_id, total_study_time, total_questions, correct_answers, accuracy_rate,
+        mastery_level, last_study_date, study_days, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findLearningStatisticsByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_statistics
+        WHERE user_id = #{userId} AND delete_flag = 'N'
+        ORDER BY last_study_date DESC
+    </select>
+
+    <select id="findLearningStatisticsByUserAndKnowledge" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_statistics
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+    </select>
+
+    <select id="findLearningStatisticsByMasteryLevel" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_statistics
+        WHERE user_id = #{userId} AND mastery_level = #{masteryLevel} AND delete_flag = 'N'
+        ORDER BY last_study_date DESC
+    </select>
+
+    <insert id="insertLearningStatistics" parameterType="com.yy.my_tutor.math.domain.LearningStatistics" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO learning_statistics (user_id, knowledge_point_id, total_study_time, total_questions, 
+                                        correct_answers, accuracy_rate, mastery_level, last_study_date, study_days,
+                                        create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{userId}, #{knowledgePointId}, #{totalStudyTime}, #{totalQuestions}, 
+                #{correctAnswers}, #{accuracyRate}, #{masteryLevel}, #{lastStudyDate}, #{studyDays},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateLearningStatistics" parameterType="com.yy.my_tutor.math.domain.LearningStatistics">
+        UPDATE learning_statistics
+        SET total_study_time = #{totalStudyTime},
+            total_questions = #{totalQuestions},
+            correct_answers = #{correctAnswers},
+            accuracy_rate = #{accuracyRate},
+            mastery_level = #{masteryLevel},
+            last_study_date = #{lastStudyDate},
+            study_days = #{studyDays},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="updateStatisticsData">
+        UPDATE learning_statistics
+        SET total_study_time = #{totalStudyTime},
+            total_questions = #{totalQuestions},
+            correct_answers = #{correctAnswers},
+            accuracy_rate = #{accuracyRate},
+            update_at = NOW()
+        WHERE user_id = #{userId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteLearningStatistics" parameterType="java.lang.Integer">
+        UPDATE learning_statistics
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
