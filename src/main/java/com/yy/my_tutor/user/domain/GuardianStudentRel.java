@@ -33,6 +33,10 @@ public class GuardianStudentRel implements Serializable {
     private Date updateAt;
     private String updateBy;
     private String deleteFlag;
+    
+    // 关联对象
+    private Parent guardian;
+    private User student;
 }
 
 

@@ -10,6 +10,9 @@ import java.util.List;
 public interface GuardianStudentRelMapper {
     List<GuardianStudentRel> findByGuardian(@Param("guardianId") Integer guardianId,
                                            @Param("guardianType") Integer guardianType);
+    
+    List<GuardianStudentRel> findByGuardianWithDetails(@Param("guardianId") Integer guardianId,
+                                                      @Param("guardianType") Integer guardianType);
 
     List<GuardianStudentRel> findByStudent(@Param("studentId") Integer studentId);
 

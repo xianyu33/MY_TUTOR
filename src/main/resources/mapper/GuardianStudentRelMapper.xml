@@ -17,6 +17,43 @@
         <result column="delete_flag" property="deleteFlag"/>
     </resultMap>
 
+    <resultMap id="DetailResultMap" type="com.yy.my_tutor.user.domain.GuardianStudentRel" extends="BaseResultMap">
+        <association property="guardian" javaType="com.yy.my_tutor.user.domain.Parent">
+            <id column="guardian_id" property="id"/>
+            <result column="guardian_user_account" property="userAccount"/>
+            <result column="guardian_username" property="username"/>
+            <result column="guardian_sex" property="sex"/>
+            <result column="guardian_age" property="age"/>
+            <result column="guardian_tel" property="tel"/>
+            <result column="guardian_country" property="country"/>
+            <result column="guardian_email" property="email"/>
+            <result column="guardian_grade" property="grade"/>
+            <result column="guardian_type" property="type"/>
+            <result column="guardian_create_at" property="createAt"/>
+            <result column="guardian_create_by" property="createBy"/>
+            <result column="guardian_update_at" property="updateAt"/>
+            <result column="guardian_update_by" property="updateBy"/>
+            <result column="guardian_delete_flag" property="deleteFlag"/>
+        </association>
+        <association property="student" javaType="com.yy.my_tutor.user.domain.User">
+            <id column="student_id" property="id"/>
+            <result column="student_user_account" property="userAccount"/>
+            <result column="student_username" property="username"/>
+            <result column="student_sex" property="sex"/>
+            <result column="student_age" property="age"/>
+            <result column="student_tel" property="tel"/>
+            <result column="student_country" property="country"/>
+            <result column="student_email" property="email"/>
+            <result column="student_grade" property="grade"/>
+            <result column="student_role" property="role"/>
+            <result column="student_create_at" property="createAt"/>
+            <result column="student_create_by" property="createBy"/>
+            <result column="student_update_at" property="updateAt"/>
+            <result column="student_update_by" property="updateBy"/>
+            <result column="student_delete_flag" property="deleteFlag"/>
+        </association>
+    </resultMap>
+
     <sql id="Base_Columns">
         id, guardian_id, guardian_type, student_id, relation, start_at, end_at,
         create_at, create_by, update_at, update_by, delete_flag
@@ -29,6 +66,51 @@
           AND guardian_type = #{guardianType}
           AND delete_flag = '0'
         ORDER BY create_at DESC
+    </select>
+
+    <select id="findByGuardianWithDetails" resultMap="DetailResultMap">
+        SELECT 
+            gsr.id, gsr.guardian_id, gsr.guardian_type, gsr.student_id, gsr.relation, 
+            gsr.start_at, gsr.end_at, gsr.create_at, gsr.create_by, gsr.update_at, gsr.update_by, gsr.delete_flag,
+            -- 家长/老师信息
+            p.id as guardian_id,
+            p.user_account as guardian_user_account,
+            p.username as guardian_username,
+            p.sex as guardian_sex,
+            p.age as guardian_age,
+            p.tel as guardian_tel,
+            p.country as guardian_country,
+            p.email as guardian_email,
+            p.grade as guardian_grade,
+            p.type as guardian_type,
+            p.create_at as guardian_create_at,
+            p.create_by as guardian_create_by,
+            p.update_at as guardian_update_at,
+            p.update_by as guardian_update_by,
+            p.delete_flag as guardian_delete_flag,
+            -- 学生信息
+            u.id as student_id,
+            u.user_account as student_user_account,
+            u.username as student_username,
+            u.sex as student_sex,
+            u.age as student_age,
+            u.tel as student_tel,
+            u.country as student_country,
+            u.email as student_email,
+            u.grade as student_grade,
+            u.role as student_role,
+            u.create_at as student_create_at,
+            u.create_by as student_create_by,
+            u.update_at as student_update_at,
+            u.update_by as student_update_by,
+            u.delete_flag as student_delete_flag
+        FROM guardian_student_rel gsr
+        LEFT JOIN parent p ON gsr.guardian_id = p.id AND p.delete_flag = '0'
+        LEFT JOIN user u ON gsr.student_id = u.id AND u.delete_flag = '0'
+        WHERE gsr.guardian_id = #{guardianId}
+          AND gsr.guardian_type = #{guardianType}
+          AND gsr.delete_flag = '0'
+        ORDER BY gsr.create_at DESC
     </select>
 
     <select id="findByStudent" resultMap="BaseResultMap">

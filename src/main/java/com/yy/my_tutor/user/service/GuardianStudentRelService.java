@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface GuardianStudentRelService {
     List<GuardianStudentRel> listByGuardian(Integer guardianId, Integer guardianType);
+    
+    List<GuardianStudentRel> listByGuardianWithDetails(Integer guardianId, Integer guardianType);
 
     List<GuardianStudentRel> listByStudent(Integer studentId);
 

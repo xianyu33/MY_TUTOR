@@ -21,6 +21,12 @@ public class GuardianRelationController {
                                                                @PathVariable Integer guardianType) {
         return RespResult.success(relService.listByGuardian(guardianId, guardianType));
     }
+    
+    @GetMapping("/guardian/{guardianId}/type/{guardianType}/details")
+    public RespResult<List<GuardianStudentRel>> listByGuardianWithDetails(@PathVariable Integer guardianId,
+                                                                          @PathVariable Integer guardianType) {
+        return RespResult.success(relService.listByGuardianWithDetails(guardianId, guardianType));
+    }
 
     @GetMapping("/student/{studentId}")
     public RespResult<List<GuardianStudentRel>> listByStudent(@PathVariable Integer studentId) {

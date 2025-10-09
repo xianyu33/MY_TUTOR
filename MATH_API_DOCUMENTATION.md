@@ -413,3 +413,9 @@ GET /api/math/statistics/user/1
 4. 时间字段使用"yyyy-MM-dd HH:mm:ss"格式
 5. 分页查询可以根据需要添加分页参数
 6. 建议在生产环境中添加适当的权限验证和参数校验
+7. 学习进度、学习内容、答题记录、学习统计等表的外键都关联到 `user` 表（学生表）
+
+## 相关模块
+
+- **家长/老师-学生关系管理**: 详见 `GUARDIAN_STUDENT_API_DOCUMENTATION.md`
+- **用户管理**: 使用现有的 `UserController` 和 `ParentController`

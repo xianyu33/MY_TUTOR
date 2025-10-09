@@ -19,6 +19,11 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
     public List<GuardianStudentRel> listByGuardian(Integer guardianId, Integer guardianType) {
         return relMapper.findByGuardian(guardianId, guardianType);
     }
+    
+    @Override
+    public List<GuardianStudentRel> listByGuardianWithDetails(Integer guardianId, Integer guardianType) {
+        return relMapper.findByGuardianWithDetails(guardianId, guardianType);
+    }
 
     @Override
     public List<GuardianStudentRel> listByStudent(Integer studentId) {
