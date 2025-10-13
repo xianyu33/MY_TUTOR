@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.test.mapper.KnowledgeMasteryMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.test.domain.KnowledgeMastery">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="knowledge_point_id" property="knowledgePointId"/>
+        <result column="total_tests" property="totalTests"/>
+        <result column="total_questions" property="totalQuestions"/>
+        <result column="correct_answers" property="correctAnswers"/>
+        <result column="accuracy_rate" property="accuracyRate"/>
+        <result column="mastery_level" property="masteryLevel"/>
+        <result column="last_test_time" property="lastTestTime"/>
+        <result column="create_at" property="createAt"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_at" property="updateAt"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="delete_flag" property="deleteFlag"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, student_id, knowledge_point_id, total_tests, total_questions, correct_answers,
+        accuracy_rate, mastery_level, last_test_time, create_at, create_by,
+        update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findMasteryByStudentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM knowledge_mastery
+        WHERE student_id = #{studentId} AND delete_flag = 'N'
+        ORDER BY last_test_time DESC
+    </select>
+
+    <select id="findMasteryByStudentAndKnowledge" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM knowledge_mastery
+        WHERE student_id = #{studentId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        LIMIT 1
+    </select>
+
+    <select id="findMasteryByLevel" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM knowledge_mastery
+        WHERE student_id = #{studentId} AND mastery_level = #{masteryLevel} AND delete_flag = 'N'
+        ORDER BY last_test_time DESC
+    </select>
+
+    <insert id="insertKnowledgeMastery" parameterType="com.yy.my_tutor.test.domain.KnowledgeMastery" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_mastery (student_id, knowledge_point_id, total_tests, total_questions,
+                                      correct_answers, accuracy_rate, mastery_level, last_test_time,
+                                      create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{studentId}, #{knowledgePointId}, #{totalTests}, #{totalQuestions},
+                #{correctAnswers}, #{accuracyRate}, #{masteryLevel}, #{lastTestTime},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateKnowledgeMastery" parameterType="com.yy.my_tutor.test.domain.KnowledgeMastery">
+        UPDATE knowledge_mastery
+        SET total_tests = #{totalTests},
+            total_questions = #{totalQuestions},
+            correct_answers = #{correctAnswers},
+            accuracy_rate = #{accuracyRate},
+            mastery_level = #{masteryLevel},
+            last_test_time = #{lastTestTime},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="updateMasteryLevel">
+        UPDATE knowledge_mastery
+        SET mastery_level = #{masteryLevel}, update_at = NOW()
+        WHERE student_id = #{studentId} AND knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteKnowledgeMastery">
+        UPDATE knowledge_mastery
+        SET delete_flag = 'Y', update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

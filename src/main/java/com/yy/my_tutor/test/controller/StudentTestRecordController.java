@@ -12,7 +12,7 @@ import java.util.List;
  * 学生测试记录控制器
  */
 @RestController
-@RequestMapping("/api/student-test")
+@RequestMapping("/api/student-test-record")
 @CrossOrigin(origins = "*")
 public class StudentTestRecordController {
     

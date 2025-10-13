@@ -12,7 +12,7 @@ import java.util.List;
  * 测试分析报告控制器
  */
 @RestController
-@RequestMapping("/api/test-report")
+@RequestMapping("/api/test-analysis-report")
 @CrossOrigin(origins = "*")
 public class TestAnalysisReportController {
     

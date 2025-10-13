@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 测试控制器
+ * 测试管理控制器
  */
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/test-management")
 @CrossOrigin(origins = "*")
-public class TestController {
+public class TestManagementController {
     
     @Autowired
     private TestService testService;

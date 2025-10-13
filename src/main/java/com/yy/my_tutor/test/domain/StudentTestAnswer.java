@@ -2,6 +2,7 @@ package com.yy.my_tutor.test.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.yy.my_tutor.math.domain.Question;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +33,7 @@ public class StudentTestAnswer implements Serializable {
     private Integer timeSpent;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createAt;
-    
+
     // 关联对象
     private Question question;
 }
