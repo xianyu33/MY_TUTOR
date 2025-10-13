@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.test.mapper.StudentTestAnswerMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.test.domain.StudentTestAnswer">
+        <id column="id" property="id"/>
+        <result column="test_record_id" property="testRecordId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="question_id" property="questionId"/>
+        <result column="question_content" property="questionContent"/>
+        <result column="correct_answer" property="correctAnswer"/>
+        <result column="student_answer" property="studentAnswer"/>
+        <result column="is_correct" property="isCorrect"/>
+        <result column="points" property="points"/>
+        <result column="earned_points" property="earnedPoints"/>
+        <result column="answer_time" property="answerTime"/>
+        <result column="time_spent" property="timeSpent"/>
+        <result column="create_at" property="createAt"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, test_record_id, student_id, question_id, question_content, correct_answer, student_answer,
+        is_correct, points, earned_points, answer_time, time_spent, create_at
+    </sql>
+
+    <select id="findAnswersByTestRecordId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_answer
+        WHERE test_record_id = #{testRecordId}
+        ORDER BY answer_time ASC
+    </select>
+
+    <select id="findAnswerByStudentAndQuestion" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_answer
+        WHERE student_id = #{studentId} AND question_id = #{questionId}
+        ORDER BY answer_time DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insertTestAnswer" parameterType="com.yy.my_tutor.test.domain.StudentTestAnswer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student_test_answer (test_record_id, student_id, question_id, question_content,
+                                        correct_answer, student_answer, is_correct, points, earned_points,
+                                        answer_time, time_spent, create_at)
+        VALUES (#{testRecordId}, #{studentId}, #{questionId}, #{questionContent},
+                #{correctAnswer}, #{studentAnswer}, #{isCorrect}, #{points}, #{earnedPoints},
+                #{answerTime}, #{timeSpent}, NOW())
+    </insert>
+
+    <update id="updateTestAnswer" parameterType="com.yy.my_tutor.test.domain.StudentTestAnswer">
+        UPDATE student_test_answer
+        SET student_answer = #{studentAnswer},
+            is_correct = #{isCorrect},
+            earned_points = #{earnedPoints},
+            answer_time = #{answerTime},
+            time_spent = #{timeSpent}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="batchInsertTestAnswers" parameterType="java.util.List">
+        INSERT INTO student_test_answer (test_record_id, student_id, question_id, question_content,
+                                        correct_answer, student_answer, is_correct, points, earned_points,
+                                        answer_time, time_spent, create_at)
+        VALUES
+        <foreach collection="answers" item="answer" separator=",">
+            (#{answer.testRecordId}, #{answer.studentId}, #{answer.questionId}, #{answer.questionContent},
+             #{answer.correctAnswer}, #{answer.studentAnswer}, #{answer.isCorrect}, #{answer.points}, #{answer.earnedPoints},
+             #{answer.answerTime}, #{answer.timeSpent}, NOW())
+        </foreach>
+    </insert>
+
+    <update id="deleteTestAnswer">
+        DELETE FROM student_test_answer WHERE id = #{id}
+    </update>
+
+</mapper>
+
+

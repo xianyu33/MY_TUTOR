@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.test.mapper.StudentTestRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.test.domain.StudentTestRecord">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="test_id" property="testId"/>
+        <result column="test_name" property="testName"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="submit_time" property="submitTime"/>
+        <result column="time_spent" property="timeSpent"/>
+        <result column="total_questions" property="totalQuestions"/>
+        <result column="answered_questions" property="answeredQuestions"/>
+        <result column="correct_answers" property="correctAnswers"/>
+        <result column="total_points" property="totalPoints"/>
+        <result column="earned_points" property="earnedPoints"/>
+        <result column="score_percentage" property="scorePercentage"/>
+        <result column="test_status" property="testStatus"/>
+        <result column="create_at" property="createAt"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_at" property="updateAt"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="delete_flag" property="deleteFlag"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, student_id, test_id, test_name, start_time, end_time, submit_time, time_spent,
+        total_questions, answered_questions, correct_answers, total_points, earned_points,
+        score_percentage, test_status, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findTestRecordsByStudentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE student_id = #{studentId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findTestRecordsByTestId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE test_id = #{testId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findTestRecordByStudentAndTest" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE student_id = #{studentId} AND test_id = #{testId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findOngoingTestRecords" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE student_id = #{studentId} AND test_status = 1 AND delete_flag = 'N'
+        ORDER BY start_time DESC
+    </select>
+
+    <insert id="insertTestRecord" parameterType="com.yy.my_tutor.test.domain.StudentTestRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student_test_record (student_id, test_id, test_name, start_time, end_time, submit_time,
+                                        time_spent, total_questions, answered_questions, correct_answers,
+                                        total_points, earned_points, score_percentage, test_status,
+                                        create_at, create_by, update_at, update_by, delete_flag)
+        VALUES (#{studentId}, #{testId}, #{testName}, #{startTime}, #{endTime}, #{submitTime},
+                #{timeSpent}, #{totalQuestions}, #{answeredQuestions}, #{correctAnswers},
+                #{totalPoints}, #{earnedPoints}, #{scorePercentage}, #{testStatus},
+                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateTestRecord" parameterType="com.yy.my_tutor.test.domain.StudentTestRecord">
+        UPDATE student_test_record
+        SET end_time = #{endTime},
+            submit_time = #{submitTime},
+            time_spent = #{timeSpent},
+            answered_questions = #{answeredQuestions},
+            correct_answers = #{correctAnswers},
+            earned_points = #{earnedPoints},
+            score_percentage = #{scorePercentage},
+            test_status = #{testStatus},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteTestRecord">
+        UPDATE student_test_record
+        SET delete_flag = 'Y', update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
+
+

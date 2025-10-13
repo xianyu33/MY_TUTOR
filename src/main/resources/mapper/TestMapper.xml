@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.test.mapper.TestMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.test.domain.Test">
+        <id column="id" property="id"/>
+        <result column="test_name" property="testName"/>
+        <result column="grade_id" property="gradeId"/>
+        <result column="knowledge_point_ids" property="knowledgePointIds"/>
+        <result column="total_questions" property="totalQuestions"/>
+        <result column="total_points" property="totalPoints"/>
+        <result column="time_limit" property="timeLimit"/>
+        <result column="difficulty_level" property="difficultyLevel"/>
+        <result column="test_type" property="testType"/>
+        <result column="status" property="status"/>
+        <result column="create_at" property="createAt"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_at" property="updateAt"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="delete_flag" property="deleteFlag"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, test_name, grade_id, knowledge_point_ids, total_questions, total_points, time_limit,
+        difficulty_level, test_type, status, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findAllTests" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM test
+        WHERE delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findTestById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM test
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findTestsByGradeId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM test
+        WHERE grade_id = #{gradeId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findTestsByGradeAndDifficulty" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM test
+        WHERE grade_id = #{gradeId} AND difficulty_level = #{difficultyLevel} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findTestsByType" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM test
+        WHERE test_type = #{testType} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+    </select>
+
+    <insert id="insertTest" parameterType="com.yy.my_tutor.test.domain.Test" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO test (test_name, grade_id, knowledge_point_ids, total_questions, total_points, 
+                         time_limit, difficulty_level, test_type, status, create_at, create_by, 
+                         update_at, update_by, delete_flag)
+        VALUES (#{testName}, #{gradeId}, #{knowledgePointIds}, #{totalQuestions}, #{totalPoints}, 
+                #{timeLimit}, #{difficultyLevel}, #{testType}, #{status}, NOW(), #{createBy}, 
+                NOW(), #{updateBy}, 'N')
+    </insert>
+
+    <update id="updateTest" parameterType="com.yy.my_tutor.test.domain.Test">
+        UPDATE test
+        SET test_name = #{testName},
+            grade_id = #{gradeId},
+            knowledge_point_ids = #{knowledgePointIds},
+            total_questions = #{totalQuestions},
+            total_points = #{totalPoints},
+            time_limit = #{timeLimit},
+            difficulty_level = #{difficultyLevel},
+            test_type = #{testType},
+            status = #{status},
+            update_at = NOW(),
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteTest">
+        UPDATE test
+        SET delete_flag = 'Y', update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
+
+
