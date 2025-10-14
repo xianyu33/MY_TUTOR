@@ -39,6 +39,16 @@ public class User implements Serializable {
 
     private String verificationCode;
 
+    /**
+     * 登录验证码
+     */
+    private String captcha;
+    
+    /**
+     * 验证码ID，用于从Redis中获取验证码
+     */
+    private String captchaId;
+
     private List<User> children;
 
     private Integer parentId;

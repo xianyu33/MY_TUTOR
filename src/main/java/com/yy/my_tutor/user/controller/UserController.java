@@ -9,12 +9,16 @@ import com.yy.my_tutor.config.GoDaddyEmailSender;
 import com.yy.my_tutor.config.RedisUtil;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.service.UserService;
+import com.yy.my_tutor.util.CaptchaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -62,6 +66,25 @@ public class UserController {
         return replace.replace(".", "_");
     }
 
+    /**
+     * 获取登录验证码
+     */
+    @PostMapping("/getLoginCaptcha")
+    public RespResult<Map<String, String>> getLoginCaptcha() {
+        String captcha = CaptchaUtil.generateCaptcha();
+        String captchaId = UUID.randomUUID().toString();
+        String redisKey = "CAPTCHA:" + captchaId;
+        // 验证码有效期5分钟
+        redisUtil.set(redisKey, captcha, 5 * 60);
+        
+        Map<String, String> result = new HashMap<>();
+        result.put("captcha", captcha);
+        result.put("captchaId", captchaId);
+        
+        log.info("生成登录验证码: {}, ID: {}", captcha, captchaId);
+        return RespResult.success("获取验证码成功", result);
+    }
+
 
     /**
      * 用户登录
@@ -70,12 +93,32 @@ public class UserController {
     public RespResult<User> login(@RequestBody User userVo) {
         log.info("用户登录: {}", JSON.toJSONString(userVo));
 
+        // 验证验证码
+        if (userVo.getCaptchaId() == null || userVo.getCaptchaId().isEmpty()) {
+            throw new CustomException("验证码ID不能为空");
+        }
+        if (userVo.getCaptcha() == null || userVo.getCaptcha().isEmpty()) {
+            throw new CustomException("验证码不能为空");
+        }
+        
+        String redisKey = "CAPTCHA:" + userVo.getCaptchaId();
+        String storedCaptcha = redisUtil.get(redisKey);
+        if (storedCaptcha == null) {
+            throw new CustomException("验证码已过期，请重新获取");
+        }
+        
+        if (!CaptchaUtil.validateCaptcha(userVo.getCaptcha(), storedCaptcha)) {
+            throw new CustomException("验证码错误");
+        }
+        
+        // 验证通过后删除验证码
+        redisUtil.delete(redisKey);
+
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(userVo.getPassword());
         userVo.setPassword(decryptedPassword);
 
         User user = userService.login(userVo.getUserAccount(), userVo.getPassword());
-
 
         if (user != null) {
             return RespResult.success("login success", user);

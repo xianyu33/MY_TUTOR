@@ -17,18 +17,28 @@ public class RedisUtil<T> {
     // 存储数据
     public void set(String key, Object value, long expireTime) {
         if (value != null) {
-            value = ((String)value).replace("\"", "'");
+            // 如果是字符串，直接存储，避免不必要的处理
+            if (value instanceof String) {
+                redisTemplate.opsForValue().set(key, value, expireTime, TimeUnit.SECONDS);
+            } else {
+                // 其他类型进行JSON序列化后存储
+                String jsonValue = JSON.toJSONString(value);
+                redisTemplate.opsForValue().set(key, jsonValue, expireTime, TimeUnit.SECONDS);
+            }
         }
-        redisTemplate.opsForValue().set(key, value, expireTime, TimeUnit.SECONDS);
     }
 
     // 获取数据
     public String get(String key) {
-
         Object obj = redisTemplate.opsForValue().get(key);
         if (ObjectUtil.isNull(obj)) {
             return null;
         } else {
+            // 如果对象是字符串，直接返回，避免JSON序列化
+            if (obj instanceof String) {
+                return (String) obj;
+            }
+            // 其他类型才进行JSON序列化
             return JSON.toJSONString(obj);
         }
     }
