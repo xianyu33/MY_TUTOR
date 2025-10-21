@@ -40,6 +40,10 @@ public class ParentServiceImpl implements ParentService {
             parent.setCreateAt(new Date());
         }
         parent.setDeleteFlag("0");
+        
+        String decryptedPassword = AESUtil.decryptBase64(parent.getPassword());
+        parent.setPassword(DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8)));
+
         return parentMapper.insert(parent) > 0;
     }
 

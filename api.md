@@ -88,7 +88,7 @@ https://www.volcengine.com/docs/82379/1298454  参照 响应参数-流式调用
 ```
 
 ### 2.注册
-
+#### 学生注册
 #### url
 
 ```
@@ -120,6 +120,53 @@ application/json
   "country": "CHN", //国家
   "email": "100049846@qq.com",  //email
   "grade": "9"//年级 
+}
+
+```
+
+#### 返回样例
+
+```json
+{
+  "code": 200,
+  "message": "注册成功",
+  "data": true
+}
+
+```
+#### 家长/老师注册
+#### url
+
+```
+39.106.32.28:9009/parent/add
+```
+
+#### 请求方式
+
+```
+POST
+```
+
+#### 请求格式
+
+```
+application/json
+```
+
+#### 入参样例
+
+```json
+{
+  "userAccount": "yy23", //用户账号
+  "username": "yy", //用户名
+  "sex": "1", //性别  1-男 2-女
+  "age": 10, //年龄
+  "password": "YI37nVty2I0MSPRCk1Nh4A==", //密码  aes加密
+  "tel": "15892333333", //电话
+  "country": "CHN", //国家
+  "email": "100049846@qq.com",  //email
+  "grade": "9"//年级 ,
+  "type": "0" //0-家长 1-老师
 }
 
 ```

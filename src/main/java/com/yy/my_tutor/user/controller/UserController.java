@@ -8,6 +8,7 @@ import com.yy.my_tutor.config.EmailUtil;
 import com.yy.my_tutor.config.GoDaddyEmailSender;
 import com.yy.my_tutor.config.RedisUtil;
 import com.yy.my_tutor.user.domain.User;
+import com.yy.my_tutor.user.service.StudentRegistrationService;
 import com.yy.my_tutor.user.service.UserService;
 import com.yy.my_tutor.util.CaptchaUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StudentRegistrationService studentRegistrationService;
 
     @Resource
     RedisUtil redisUtil;
@@ -166,9 +170,11 @@ public class UserController {
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
-        boolean result = userService.register(user);
+        
+        // 使用新的学生注册服务，自动分配课程和生成测试题
+        boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {
-            return RespResult.success("注册成功", true);
+            return RespResult.success("注册成功，已自动分配课程和生成测试题", true);
         }
         return RespResult.error("注册失败，用户可能已存在");
     }

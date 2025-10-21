@@ -100,4 +100,10 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         int result = learningProgressMapper.updateProgressStatus(userId, knowledgePointId, progressStatus);
         return result > 0;
     }
+    
+    @Override
+    public LearningProgress insertLearningProgress(LearningProgress learningProgress) {
+        int result = learningProgressMapper.insertLearningProgress(learningProgress);
+        return result > 0 ? learningProgress : null;
+    }
 }

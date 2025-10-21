@@ -48,4 +48,9 @@ public interface LearningProgressService {
      * 更新学习进度状态
      */
     boolean updateProgressStatus(Integer userId, Integer knowledgePointId, Integer progressStatus);
+    
+    /**
+     * 插入学习进度
+     */
+    LearningProgress insertLearningProgress(LearningProgress learningProgress);
 }

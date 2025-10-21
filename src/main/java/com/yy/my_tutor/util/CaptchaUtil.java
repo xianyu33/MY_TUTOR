@@ -36,3 +36,4 @@ public class CaptchaUtil {
         return inputCaptcha.equals(correctCaptcha);
     }
 }
+
