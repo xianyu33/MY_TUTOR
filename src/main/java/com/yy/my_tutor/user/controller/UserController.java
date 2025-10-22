@@ -75,16 +75,18 @@ public class UserController {
      */
     @PostMapping("/getLoginCaptcha")
     public RespResult<Map<String, String>> getLoginCaptcha() {
-        String captcha = CaptchaUtil.generateCaptcha();
+        String[] captchaData = CaptchaUtil.generateCaptchaWithImage();
+        String captcha = captchaData[0];
+        String captchaImage = captchaData[1];
         String captchaId = UUID.randomUUID().toString();
         String redisKey = "CAPTCHA:" + captchaId;
         // 验证码有效期5分钟
         redisUtil.set(redisKey, captcha, 5 * 60);
-        
+
         Map<String, String> result = new HashMap<>();
-        result.put("captcha", captcha);
         result.put("captchaId", captchaId);
-        
+        result.put("captchaImage", captchaImage);
+
         log.info("生成登录验证码: {}, ID: {}", captcha, captchaId);
         return RespResult.success("获取验证码成功", result);
     }
@@ -104,17 +106,17 @@ public class UserController {
         if (userVo.getCaptcha() == null || userVo.getCaptcha().isEmpty()) {
             throw new CustomException("验证码不能为空");
         }
-        
+
         String redisKey = "CAPTCHA:" + userVo.getCaptchaId();
         String storedCaptcha = redisUtil.get(redisKey);
         if (storedCaptcha == null) {
             throw new CustomException("验证码已过期，请重新获取");
         }
-        
+
         if (!CaptchaUtil.validateCaptcha(userVo.getCaptcha(), storedCaptcha)) {
             throw new CustomException("验证码错误");
         }
-        
+
         // 验证通过后删除验证码
         redisUtil.delete(redisKey);
 
@@ -170,7 +172,7 @@ public class UserController {
         // 解密密码
         String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
         user.setPassword(decryptedPassword);
-        
+
         // 使用新的学生注册服务，自动分配课程和生成测试题
         boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {

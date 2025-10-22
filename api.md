@@ -217,7 +217,8 @@ application/json
   "message": "获取验证码成功",
   "data": {
     "captcha": "1234",
-    "captchaId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    "captchaId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "captchaImage": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAAoCAYAAAA16j4lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAB2AAAAdgB+lymcgAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANCSURBVHic7Z1NaBNBFMefJ..."
   }
 }
 ```
@@ -225,8 +226,9 @@ application/json
 **说明：**
 - 验证码为4位数字
 - 验证码有效期为5分钟
-- `captcha`: 验证码值，用于显示给用户
+- `captcha`: 验证码值，用于后端验证
 - `captchaId`: 验证码唯一标识符，用于登录时验证
+- `captchaImage`: base64编码的验证码图片，用于前端显示
 - 验证码存储在Redis中，key格式为：`CAPTCHA:{captchaId}`
 
 ### 4.用户登录
