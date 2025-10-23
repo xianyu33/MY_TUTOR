@@ -48,6 +48,13 @@ public interface QuestionMapper {
     List<Question> findRandomQuestions(@Param("knowledgePointId") Integer knowledgePointId, @Param("limit") Integer limit);
     
     /**
+     * 根据年级和难度随机获取指定数量的题目
+     */
+    List<Question> findRandomQuestionsByGradeAndDifficulty(@Param("gradeId") Integer gradeId, 
+                                                          @Param("difficultyLevel") Integer difficultyLevel, 
+                                                          @Param("limit") Integer limit);
+    
+    /**
      * 插入问题
      */
     int insertQuestion(Question question);

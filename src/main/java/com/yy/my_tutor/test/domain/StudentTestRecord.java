@@ -23,6 +23,7 @@ public class StudentTestRecord implements Serializable {
     private Integer studentId;
     private Integer testId;
     private String testName;
+    private String testNameFr;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date startTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

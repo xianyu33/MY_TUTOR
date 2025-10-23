@@ -23,8 +23,11 @@ public class StudentTestAnswer implements Serializable {
     private Integer studentId;
     private Integer questionId;
     private String questionContent;
+    private String questionContentFr;
     private String correctAnswer;
+    private String correctAnswerFr;
     private String studentAnswer;
+    private String studentAnswerFr;
     private Integer isCorrect;
     private Integer points;
     private Integer earnedPoints;

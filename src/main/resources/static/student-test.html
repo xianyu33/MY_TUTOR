@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生测试系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .test-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .question {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+        .question-number {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .options {
+            margin-top: 10px;
+        }
+        .option {
+            margin-bottom: 8px;
+        }
+        .option input[type="radio"] {
+            margin-right: 8px;
+        }
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .history-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 4px solid #27ae60;
+        }
+        .history-item h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .history-meta {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .error {
+            color: #e74c3c;
+            background-color: #fdf2f2;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .success {
+            color: #27ae60;
+            background-color: #f0f9f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>学生测试系统</h1>
+        <p>支持随机题目生成、答题记录和历史查询</p>
+    </div>
+
+    <!-- 学生信息设置 -->
+    <div class="container">
+        <div class="section">
+            <h3>学生信息设置</h3>
+            <div class="form-group">
+                <label for="studentId">学生ID:</label>
+                <input type="number" id="studentId" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label for="gradeId">年级ID:</label>
+                <select id="gradeId">
+                    <option value="1">一年级</option>
+                    <option value="2">二年级</option>
+                    <option value="3">三年级</option>
+                    <option value="4">四年级</option>
+                    <option value="5">五年级</option>
+                    <option value="6">六年级</option>
+                    <option value="7">七年级</option>
+                    <option value="8">八年级</option>
+                    <option value="9" selected>九年级</option>
+                    <option value="10">高一</option>
+                    <option value="11">高二</option>
+                    <option value="12">高三</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 测试操作 -->
+    <div class="container">
+        <div class="section">
+            <h3>测试操作</h3>
+            <div class="form-group">
+                <label for="difficultyLevel">难度等级:</label>
+                <select id="difficultyLevel">
+                    <option value="1">简单</option>
+                    <option value="2" selected>中等</option>
+                    <option value="3">困难</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="questionCount">题目数量:</label>
+                <input type="number" id="questionCount" value="10" min="1" max="50">
+            </div>
+            <button onclick="generateRandomTest()">生成随机测试</button>
+            <button onclick="getOngoingTests()">查看进行中的测试</button>
+        </div>
+    </div>
+
+    <!-- 测试信息 -->
+    <div id="testInfo" class="container hidden">
+        <div class="section">
+            <h3>当前测试</h3>
+            <div id="testInfoContent" class="test-info"></div>
+            <button onclick="startTest()">开始测试</button>
+            <button onclick="completeTest()">完成测试</button>
+        </div>
+    </div>
+
+    <!-- 答题区域 -->
+    <div id="questionArea" class="container hidden">
+        <div class="section">
+            <h3>答题区域</h3>
+            <div id="questionsContainer"></div>
+            <button onclick="submitAllAnswers()">提交所有答案</button>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="container">
+        <div class="section">
+            <h3>统计信息</h3>
+            <button onclick="getStatistics()">获取统计报表</button>
+            <div id="statisticsContainer" class="statistics"></div>
+        </div>
+    </div>
+
+    <!-- 历史记录 -->
+    <div class="container">
+        <div class="section">
+            <h3>测试历史</h3>
+            <button onclick="getTestHistory()">查看历史记录</button>
+            <div id="historyContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentTestRecord = null;
+        let currentQuestions = [];
+        let studentAnswers = {};
+
+        // 生成随机测试
+        async function generateRandomTest() {
+            const studentId = document.getElementById('studentId').value;
+            const gradeId = document.getElementById('gradeId').value;
+            const difficultyLevel = document.getElementById('difficultyLevel').value;
+            const questionCount = document.getElementById('questionCount').value;
+
+            try {
+                const response = await fetch('/api/student-test/generate-random', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `studentId=${studentId}&gradeId=${gradeId}&difficultyLevel=${difficultyLevel}&questionCount=${questionCount}`
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    currentTestRecord = result.data;
+                    showTestInfo();
+                    showMessage('生成随机测试成功！', 'success');
+                } else {
+                    showMessage('生成测试失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('生成测试时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        // 显示测试信息
+        function showTestInfo() {
+            if (!currentTestRecord) return;
+
+            const testInfoDiv = document.getElementById('testInfoContent');
+            testInfoDiv.innerHTML = `
+                <h4>测试信息</h4>
+                <p><strong>测试名称:</strong> ${currentTestRecord.testName}</p>
+                <p><strong>测试ID:</strong> ${currentTestRecord.testId}</p>
+                <p><strong>记录ID:</strong> ${currentTestRecord.id}</p>
+                <p><strong>题目数量:</strong> ${currentTestRecord.totalQuestions}</p>
+                <p><strong>总分:</strong> ${currentTestRecord.totalPoints}</p>
+                <p><strong>状态:</strong> ${currentTestRecord.testStatus === 1 ? '进行中' : '已完成'}</p>
+            `;
+            document.getElementById('testInfo').classList.remove('hidden');
+        }
+
+        // 开始测试
+        async function startTest() {
+            if (!currentTestRecord) {
+                showMessage('请先生成测试', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/student-test/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `studentId=${currentTestRecord.studentId}&testId=${currentTestRecord.testId}`
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    currentTestRecord = result.data;
+                    showMessage('开始测试成功！', 'success');
+                    loadQuestions();
+                } else {
+                    showMessage('开始测试失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('开始测试时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        // 加载题目（模拟）
+        function loadQuestions() {
+            // 这里应该调用API获取测试的题目列表
+            // 为了演示，我们创建一些模拟题目
+            currentQuestions = [];
+            for (let i = 1; i <= currentTestRecord.totalQuestions; i++) {
+                currentQuestions.push({
+                    id: i,
+                    content: `题目 ${i}: 这是一道数学题，请选择正确答案。`,
+                    options: ['A', 'B', 'C', 'D'],
+                    correctAnswer: 'A'
+                });
+            }
+            displayQuestions();
+        }
+
+        // 显示题目
+        function displayQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            currentQuestions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <div class="question-number">第 ${index + 1} 题</div>
+                    <div>${question.content}</div>
+                    <div class="options">
+                        ${question.options.map(option => `
+                            <div class="option">
+                                <input type="radio" name="question_${question.id}" value="${option}" 
+                                       onchange="updateAnswer(${question.id}, '${option}')">
+                                <label>${option}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(questionDiv);
+            });
+
+            document.getElementById('questionArea').classList.remove('hidden');
+        }
+
+        // 更新答案
+        function updateAnswer(questionId, answer) {
+            studentAnswers[questionId] = answer;
+        }
+
+        // 提交所有答案
+        async function submitAllAnswers() {
+            if (!currentTestRecord) {
+                showMessage('没有进行中的测试', 'error');
+                return;
+            }
+
+            let submittedCount = 0;
+            for (const [questionId, answer] of Object.entries(studentAnswers)) {
+                try {
+                    const response = await fetch('/api/student-test/submit-answer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `testRecordId=${currentTestRecord.id}&questionId=${questionId}&studentAnswer=${answer}`
+                    });
+
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        submittedCount++;
+                    }
+                } catch (error) {
+                    console.error('提交答案失败:', error);
+                }
+            }
+
+            showMessage(`成功提交 ${submittedCount} 个答案`, 'success');
+        }
+
+        // 完成测试
+        async function completeTest() {
+            if (!currentTestRecord) {
+                showMessage('没有进行中的测试', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/student-test/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `testRecordId=${currentTestRecord.id}`
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    currentTestRecord = result.data;
+                    showTestInfo();
+                    showMessage('完成测试成功！', 'success');
+                    getStatistics(); // 自动刷新统计信息
+                } else {
+                    showMessage('完成测试失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('完成测试时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        // 获取统计信息
+        async function getStatistics() {
+            const studentId = document.getElementById('studentId').value;
+            const gradeId = document.getElementById('gradeId').value;
+
+            try {
+                const response = await fetch(`/api/student-test/statistics/${studentId}?gradeId=${gradeId}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    displayStatistics(result.data);
+                } else {
+                    showMessage('获取统计信息失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('获取统计信息时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        // 显示统计信息
+        function displayStatistics(stats) {
+            const container = document.getElementById('statisticsContainer');
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${stats.totalTests}</div>
+                    <div class="stat-label">总测试数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.completedTests}</div>
+                    <div class="stat-label">已完成测试</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.totalQuestions}</div>
+                    <div class="stat-label">总题目数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.correctAnswers}</div>
+                    <div class="stat-label">正确答题数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.averageScore}%</div>
+                    <div class="stat-label">平均得分</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.accuracyRate}%</div>
+                    <div class="stat-label">正确率</div>
+                </div>
+            `;
+        }
+
+        // 获取测试历史
+        async function getTestHistory() {
+            const studentId = document.getElementById('studentId').value;
+
+            try {
+                const response = await fetch(`/api/student-test/history/${studentId}?page=1&size=10`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    displayHistory(result.data);
+                } else {
+                    showMessage('获取历史记录失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('获取历史记录时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        // 显示历史记录
+        function displayHistory(history) {
+            const container = document.getElementById('historyContainer');
+            if (history.length === 0) {
+                container.innerHTML = '<p>暂无测试历史记录</p>';
+                return;
+            }
+
+            container.innerHTML = history.map(record => `
+                <div class="history-item">
+                    <h4>${record.testName}</h4>
+                    <div class="history-meta">
+                        <p>开始时间: ${record.startTime}</p>
+                        <p>结束时间: ${record.endTime || '未完成'}</p>
+                        <p>用时: ${record.timeSpent || 0} 分钟</p>
+                        <p>得分: ${record.earnedPoints || 0}/${record.totalPoints}</p>
+                        <p>得分率: ${record.scorePercentage || 0}%</p>
+                        <p>状态: ${record.testStatus === 1 ? '进行中' : record.testStatus === 2 ? '已完成' : '已超时'}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 获取进行中的测试
+        async function getOngoingTests() {
+            const studentId = document.getElementById('studentId').value;
+
+            try {
+                const response = await fetch(`/api/student-test/ongoing/${studentId}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    if (result.data.length > 0) {
+                        currentTestRecord = result.data[0];
+                        showTestInfo();
+                        showMessage(`找到进行中的测试: ${currentTestRecord.testName}`, 'success');
+                    } else {
+                        showMessage('没有进行中的测试', 'success');
+                    }
+                } else {
+                    showMessage('获取进行中测试失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('获取进行中测试时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            // 移除现有的消息
+            const existingMessage = document.querySelector('.error, .success');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            // 创建新消息
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            // 插入到页面顶部
+            document.body.insertBefore(messageDiv, document.body.firstChild);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // 页面加载时自动获取统计信息
+        window.onload = function() {
+            getStatistics();
+        };
+    </script>
+</body>
+</html>

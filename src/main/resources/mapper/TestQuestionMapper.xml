@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.test.mapper.TestQuestionMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.test.domain.TestQuestion">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="test_id" property="testId" jdbcType="INTEGER"/>
+        <result column="question_id" property="questionId" jdbcType="INTEGER"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="points" property="points" jdbcType="INTEGER"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, test_id, question_id, sort_order, points, create_at
+    </sql>
+
+    <select id="findTestQuestionsByTestId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_question
+        WHERE test_id = #{testId}
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="findTestQuestionByTestAndQuestion" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_question
+        WHERE test_id = #{testId} AND question_id = #{questionId}
+    </select>
+
+    <insert id="insertTestQuestion" parameterType="com.yy.my_tutor.test.domain.TestQuestion" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO test_question (test_id, question_id, sort_order, points, create_at)
+        VALUES (#{testId}, #{questionId}, #{sortOrder}, #{points}, #{createAt})
+    </insert>
+
+    <delete id="deleteTestQuestionsByTestId" parameterType="java.lang.Integer">
+        DELETE FROM test_question WHERE test_id = #{testId}
+    </delete>
+
+</mapper>

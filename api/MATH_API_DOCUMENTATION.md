@@ -2,20 +2,38 @@
 
 ## 系统概述
 
-本系统为数学知识点学习系统，支持不同年级的数学知识点管理、学习进度跟踪、题目练习和统计分析等功能。
+本系统为数学知识点学习系统，支持不同年级的数学知识点管理、学习进度跟踪、题目练习和统计分析等功能。**现已支持中法双语显示和知识点图标功能。**
+
+## 多语言支持
+
+### 支持的语言
+- `zh` - 中文（默认）
+- `fr` - 法语
+
+### 语言参数使用
+所有API接口都支持通过 `language` 参数指定语言：
+- 默认语言：中文 (`zh`)
+- 无效语言代码会自动回退到默认语言
+- 法语内容为空时自动回退到中文内容
+
+### 多语言API接口
+新增专门的多语言API接口，位于 `/api/multilingual/` 路径下，详见 [多语言API文档](#多语言api接口)。
 
 ## 数据库表结构
 
 ### 核心表说明
 
 1. **grade** - 年级表：管理不同年级信息
-2. **knowledge_category** - 知识点分类表：管理数学知识点分类（如数与代数、几何等）
-3. **knowledge_point** - 知识点表：存储具体的数学知识点内容
+2. **knowledge_category** - 知识点分类表：管理数学知识点分类（如数与代数、几何等），**支持中法双语**
+3. **knowledge_point** - 知识点表：存储具体的数学知识点内容，**支持中法双语和图标**
 4. **learning_progress** - 学习进度表：记录学生对知识点的学习进度
 5. **learning_content** - 学习内容记录表：记录具体的学习内容（视频、文档、练习等）
-6. **question** - 问题表：存储练习题和测试题
+6. **question** - 问题表：存储练习题和测试题，**支持中法双语**
 7. **student_answer** - 学生答题记录表：记录学生的答题情况
 8. **learning_statistics** - 学习统计表：统计学生的学习数据
+9. **test** - 测试表：存储测试信息，**支持中法双语**
+10. **student_test_record** - 学生测试记录表：记录学生测试过程，**支持中法双语**
+11. **student_test_answer** - 学生测试答题详情表：记录详细答题情况，**支持中法双语**
 
 ## API 接口文档
 
@@ -405,6 +423,189 @@ POST /api/math/statistics/mastery/calculate?userId=1&knowledgePointId=1
 GET /api/math/statistics/user/1
 ```
 
+## 多语言API接口
+
+### 1. 多语言知识点分类管理
+
+#### 1.1 获取分类列表（多语言）
+- **URL**: `GET /api/multilingual/categories`
+- **参数**: 
+  - `language` (可选) - 语言代码，默认 `zh`
+- **描述**: 获取知识点分类列表，支持中法双语和图标显示
+- **响应**: 返回对应语言的分类列表
+
+**示例请求**:
+```bash
+# 获取中文分类列表
+GET /api/multilingual/categories?language=zh
+
+# 获取法语分类列表
+GET /api/multilingual/categories?language=fr
+```
+
+**示例响应**:
+```json
+{
+  "code": 200,
+  "message": "获取分类列表成功",
+  "data": [
+    {
+      "id": 1,
+      "categoryCode": "NUM_ALG",
+      "categoryName": "数与代数",
+      "description": "数的认识、运算、代数式等",
+      "iconUrl": "/icons/category/numbers-algebra.png",
+      "iconClass": "icon-category-numbers",
+      "sortOrder": 1
+    }
+  ]
+}
+```
+
+#### 1.2 获取知识点列表（多语言）
+- **URL**: `GET /api/multilingual/knowledge-points`
+- **参数**: 
+  - `gradeId` (可选) - 年级ID
+  - `categoryId` (可选) - 分类ID
+  - `language` (可选) - 语言代码，默认 `zh`
+- **描述**: 获取知识点列表，支持中法双语和图标显示
+- **响应**: 返回对应语言的知识点列表
+
+**示例请求**:
+```bash
+# 获取一年级数学知识点（法语）
+GET /api/multilingual/knowledge-points?gradeId=1&language=fr
+```
+
+**示例响应**:
+```json
+{
+  "code": 200,
+  "message": "获取知识点列表成功",
+  "data": [
+    {
+      "id": 1,
+      "pointCode": "NUM_001",
+      "pointName": "Reconnaissance des nombres",
+      "description": "Reconnaissance des nombres de 1 à 100",
+      "content": "Apprendre la lecture, l'écriture et la comparaison des nombres de 1 à 100",
+      "learningObjectives": "Maîtriser les nombres de 1 à 100",
+      "iconUrl": "/icons/numbers.png",
+      "iconClass": "icon-numbers",
+      "difficultyLevel": 1,
+      "gradeId": 1,
+      "categoryId": 1
+    }
+  ]
+}
+```
+
+#### 1.3 获取题目列表（多语言）
+- **URL**: `GET /api/multilingual/questions`
+- **参数**: 
+  - `knowledgePointId` (可选) - 知识点ID
+  - `language` (可选) - 语言代码，默认 `zh`
+- **描述**: 获取题目列表，支持中法双语
+- **响应**: 返回对应语言的题目列表
+
+**示例请求**:
+```bash
+# 获取知识点1的题目（法语）
+GET /api/multilingual/questions?knowledgePointId=1&language=fr
+```
+
+**示例响应**:
+```json
+{
+  "code": 200,
+  "message": "获取题目列表成功",
+  "data": [
+    {
+      "id": 1,
+      "questionType": 1,
+      "questionTitle": "Reconnaissance des nombres",
+      "questionContent": "Quel est le plus grand nombre parmi les suivants ?",
+      "options": "[\"A. 15\", \"B. 25\", \"C. 35\", \"D. 45\"]",
+      "correctAnswer": "D",
+      "answerExplanation": "45 est le plus grand nombre",
+      "difficultyLevel": 1,
+      "points": 1,
+      "knowledgePointId": 1
+    }
+  ]
+}
+```
+
+#### 1.4 获取知识点详情（多语言）
+- **URL**: `GET /api/multilingual/knowledge-points/{id}`
+- **参数**: 
+  - `id` (必填) - 知识点ID
+  - `language` (可选) - 语言代码，默认 `zh`
+- **描述**: 获取知识点详细信息，包括关联题目
+- **响应**: 返回对应语言的知识点详情
+
+#### 1.5 获取题目详情（多语言）
+- **URL**: `GET /api/multilingual/questions/{id}`
+- **参数**: 
+  - `id` (必填) - 题目ID
+  - `language` (可选) - 语言代码，默认 `zh`
+- **描述**: 获取题目详细信息
+- **响应**: 返回对应语言的题目详情
+
+#### 1.6 获取支持的语言列表
+- **URL**: `GET /api/multilingual/languages`
+- **描述**: 获取系统支持的语言列表
+- **响应**: 返回支持的语言信息
+
+**示例响应**:
+```json
+{
+  "code": 200,
+  "message": "获取支持的语言列表成功",
+  "data": [
+    {
+      "code": "zh",
+      "name": "中文",
+      "nameEn": "Chinese"
+    },
+    {
+      "code": "fr",
+      "name": "Français",
+      "nameEn": "French"
+    }
+  ]
+}
+```
+
+### 2. 知识点图标功能
+
+#### 2.1 图标字段说明
+知识点和知识点分类表都支持图标相关字段：
+- `iconUrl` - 图标文件URL路径
+- `iconClass` - 图标CSS类名
+
+#### 2.2 图标使用方式
+- **图片图标**: 使用 `iconUrl` 字段存储图片路径
+- **CSS图标**: 使用 `iconClass` 字段存储CSS类名
+- **回退机制**: 优先使用图片图标，回退到CSS图标
+
+#### 2.3 图标示例
+**知识点分类图标：**
+```json
+{
+  "iconUrl": "/icons/category/numbers-algebra.png",
+  "iconClass": "icon-category-numbers"
+}
+```
+
+**知识点图标：**
+```json
+{
+  "iconUrl": "/icons/numbers.png",
+  "iconClass": "icon-numbers"
+}
+```
+
 ## 注意事项
 
 1. 所有API都支持跨域访问（CORS）
@@ -414,8 +615,14 @@ GET /api/math/statistics/user/1
 5. 分页查询可以根据需要添加分页参数
 6. 建议在生产环境中添加适当的权限验证和参数校验
 7. 学习进度、学习内容、答题记录、学习统计等表的外键都关联到 `user` 表（学生表）
+8. **多语言支持**: 所有多语言API都支持语言参数，无效语言会自动回退到默认语言
+9. **图标支持**: 知识点支持图标显示，提供更好的视觉体验
+10. **数据一致性**: 确保中法双语内容在语义上保持一致
 
 ## 相关模块
 
 - **家长/老师-学生关系管理**: 详见 `GUARDIAN_STUDENT_API_DOCUMENTATION.md`
 - **用户管理**: 使用现有的 `UserController` 和 `ParentController`
+- **学生测试功能**: 详见 `STUDENT_TEST_API_DOCUMENTATION.md`
+- **多语言支持**: 详见 `MULTILINGUAL_SUPPORT_README.md`
+- **知识点图标**: 详见 `KNOWLEDGE_POINT_ICONS_README.md`

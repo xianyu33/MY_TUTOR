@@ -41,6 +41,21 @@ public interface StudentTestAnswerMapper {
      * 删除答题详情（逻辑删除）
      */
     int deleteTestAnswer(@Param("id") Integer id);
+    
+    /**
+     * 根据测试记录ID和题目ID查询答题记录
+     */
+    StudentTestAnswer findAnswerByRecordAndQuestion(@Param("testRecordId") Integer testRecordId, @Param("questionId") Integer questionId);
+    
+    /**
+     * 插入答题详情（别名方法）
+     */
+    int insertAnswer(StudentTestAnswer testAnswer);
+    
+    /**
+     * 更新答题详情（别名方法）
+     */
+    int updateAnswer(StudentTestAnswer testAnswer);
 }
 
 

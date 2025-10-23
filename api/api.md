@@ -1,6 +1,38 @@
 
+# MY_TUTOR API 接口文档
 
-#### EX:
+## 系统概述
+
+MY_TUTOR 是一个智能数学学习系统，提供完整的数学知识点学习、测试、统计等功能。**现已支持中法双语显示和知识点图标功能。**
+
+## 多语言支持
+
+### 支持的语言
+- `zh` - 中文（默认）
+- `fr` - 法语
+
+### 多语言API接口
+系统提供专门的多语言API接口，位于 `/api/multilingual/` 路径下：
+- `GET /api/multilingual/categories` - 获取分类列表（多语言）
+- `GET /api/multilingual/knowledge-points` - 获取知识点列表（多语言）
+- `GET /api/multilingual/questions` - 获取题目列表（多语言）
+- `GET /api/multilingual/languages` - 获取支持的语言列表
+
+### 语言参数使用
+所有多语言API接口都支持通过 `language` 参数指定语言：
+- 默认语言：中文 (`zh`)
+- 无效语言代码会自动回退到默认语言
+- 法语内容为空时自动回退到中文内容
+
+### 知识点图标功能
+知识点支持图标显示：
+- `iconUrl` - 图标文件URL路径
+- `iconClass` - 图标CSS类名
+- 优先使用图片图标，回退到CSS图标
+
+## 接口说明
+
+### 认证说明
 
 ```json
 除登录注册外，所有接口需携带请求头：
@@ -948,3 +980,200 @@ POST
 }
 
 ```
+
+## 多语言API接口示例
+
+### 1. 获取知识点分类列表（多语言）
+
+#### url
+```
+GET /api/multilingual/categories?language=fr
+```
+
+#### 返回样例
+```json
+{
+  "code": 200,
+  "message": "获取分类列表成功",
+  "data": [
+    {
+      "id": 1,
+      "categoryCode": "NUM_ALG",
+      "categoryName": "Nombres et algèbre",
+      "description": "Reconnaissance des nombres, opérations, expressions algébriques, etc.",
+      "sortOrder": 1
+    }
+  ]
+}
+```
+
+### 2. 获取知识点列表（多语言）
+
+#### url
+```
+GET /api/multilingual/knowledge-points?gradeId=1&language=fr
+```
+
+#### 返回样例
+```json
+{
+  "code": 200,
+  "message": "获取知识点列表成功",
+  "data": [
+    {
+      "id": 1,
+      "pointCode": "NUM_001",
+      "pointName": "Reconnaissance des nombres",
+      "description": "Reconnaissance des nombres de 1 à 100",
+      "content": "Apprendre la lecture, l'écriture et la comparaison des nombres de 1 à 100",
+      "learningObjectives": "Maîtriser les nombres de 1 à 100",
+      "iconUrl": "/icons/numbers.png",
+      "iconClass": "icon-numbers",
+      "difficultyLevel": 1,
+      "gradeId": 1,
+      "categoryId": 1
+    }
+  ]
+}
+```
+
+### 3. 获取题目列表（多语言）
+
+#### url
+```
+GET /api/multilingual/questions?knowledgePointId=1&language=fr
+```
+
+#### 返回样例
+```json
+{
+  "code": 200,
+  "message": "获取题目列表成功",
+  "data": [
+    {
+      "id": 1,
+      "questionType": 1,
+      "questionTitle": "Reconnaissance des nombres",
+      "questionContent": "Quel est le plus grand nombre parmi les suivants ?",
+      "options": "[\"A. 15\", \"B. 25\", \"C. 35\", \"D. 45\"]",
+      "correctAnswer": "D",
+      "answerExplanation": "45 est le plus grand nombre",
+      "difficultyLevel": 1,
+      "points": 1,
+      "knowledgePointId": 1
+    }
+  ]
+}
+```
+
+### 4. 获取支持的语言列表
+
+#### url
+```
+GET /api/multilingual/languages
+```
+
+#### 返回样例
+```json
+{
+  "code": 200,
+  "message": "获取支持的语言列表成功",
+  "data": [
+    {
+      "code": "zh",
+      "name": "中文",
+      "nameEn": "Chinese"
+    },
+    {
+      "code": "fr",
+      "name": "Français",
+      "nameEn": "French"
+    }
+  ]
+}
+```
+
+## 学生测试功能（多语言）
+
+### 1. 生成随机测试（多语言）
+
+#### url
+```
+POST /api/student-test/generate-random
+```
+
+#### 请求参数
+```
+studentId=1&gradeId=9&difficultyLevel=2&questionCount=15&language=fr
+```
+
+#### 返回样例
+```json
+{
+  "code": 200,
+  "message": "生成随机测试成功",
+  "data": {
+    "id": 1,
+    "studentId": 1,
+    "testId": 1,
+    "testName": "Test aléatoire_1703123456789",
+    "testNameFr": "Test aléatoire_1703123456789",
+    "startTime": "2023-12-21 10:30:00",
+    "totalQuestions": 15,
+    "totalPoints": 15,
+    "testStatus": 1
+  }
+}
+```
+
+### 2. 提交答案（多语言）
+
+#### url
+```
+POST /api/student-test/submit-answer
+```
+
+#### 请求参数
+```
+testRecordId=1&questionId=1&studentAnswer=A&language=fr
+```
+
+#### 返回样例
+```json
+{
+  "code": 200,
+  "message": "提交答案成功",
+  "data": {
+    "id": 1,
+    "testRecordId": 1,
+    "questionId": 1,
+    "questionContent": "Quel est le plus grand nombre ?",
+    "questionContentFr": "Quel est le plus grand nombre ?",
+    "correctAnswer": "D",
+    "correctAnswerFr": "D",
+    "studentAnswer": "A",
+    "studentAnswerFr": "A",
+    "isCorrect": 0,
+    "points": 1,
+    "earnedPoints": 0,
+    "answerTime": "2023-12-21 10:35:00"
+  }
+}
+```
+
+## 注意事项
+
+1. **多语言支持**: 所有多语言API都支持 `language` 参数，无效语言会自动回退到默认语言
+2. **数据一致性**: 确保中法双语内容在语义上保持一致
+3. **图标支持**: 知识点支持图标显示，提供更好的视觉体验
+4. **回退机制**: 法语内容为空时自动回退到中文内容
+5. **性能考虑**: 多语言字段会增加存储空间，建议合理使用索引
+6. **扩展性**: 可以轻松添加其他语言支持（如英语、西班牙语等）
+
+## 相关文档
+
+- **数学知识点API**: 详见 `MATH_API_DOCUMENTATION.md`
+- **学生测试功能API**: 详见 `STUDENT_TEST_API_DOCUMENTATION.md`
+- **多语言支持**: 详见 `MULTILINGUAL_SUPPORT_README.md`
+- **知识点图标**: 详见 `KNOWLEDGE_POINT_ICONS_README.md`
+- **数据库架构**: 详见 `DATABASE_SCHEMA_README.md`

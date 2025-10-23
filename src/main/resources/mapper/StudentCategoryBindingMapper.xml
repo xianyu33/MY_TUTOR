@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.user.mapper.StudentCategoryBindingMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.user.domain.StudentCategoryBinding">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="student_id" property="studentId" jdbcType="INTEGER"/>
+        <result column="category_id" property="categoryId" jdbcType="INTEGER"/>
+        <result column="grade_id" property="gradeId" jdbcType="INTEGER"/>
+        <result column="binding_status" property="bindingStatus" jdbcType="TINYINT"/>
+        <result column="overall_progress" property="overallProgress" jdbcType="DECIMAL"/>
+        <result column="total_knowledge_points" property="totalKnowledgePoints" jdbcType="INTEGER"/>
+        <result column="completed_knowledge_points" property="completedKnowledgePoints" jdbcType="INTEGER"/>
+        <result column="in_progress_knowledge_points" property="inProgressKnowledgePoints" jdbcType="INTEGER"/>
+        <result column="not_started_knowledge_points" property="notStartedKnowledgePoints" jdbcType="INTEGER"/>
+        <result column="total_study_duration" property="totalStudyDuration" jdbcType="INTEGER"/>
+        <result column="last_study_time" property="lastStudyTime" jdbcType="TIMESTAMP"/>
+        <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="complete_time" property="completeTime" jdbcType="TIMESTAMP"/>
+        <result column="notes" property="notes" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, student_id, category_id, grade_id, binding_status, overall_progress, 
+        total_knowledge_points, completed_knowledge_points, in_progress_knowledge_points, 
+        not_started_knowledge_points, total_study_duration, last_study_time, 
+        start_time, complete_time, notes, create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <insert id="insertStudentCategoryBinding" parameterType="com.yy.my_tutor.user.domain.StudentCategoryBinding">
+        INSERT INTO student_category_binding (
+            student_id, category_id, grade_id, binding_status, overall_progress,
+            total_knowledge_points, completed_knowledge_points, in_progress_knowledge_points,
+            not_started_knowledge_points, total_study_duration, last_study_time,
+            start_time, complete_time, notes, create_at, create_by, update_at, update_by, delete_flag
+        ) VALUES (
+            #{studentId}, #{categoryId}, #{gradeId}, #{bindingStatus}, #{overallProgress},
+            #{totalKnowledgePoints}, #{completedKnowledgePoints}, #{inProgressKnowledgePoints},
+            #{notStartedKnowledgePoints}, #{totalStudyDuration}, #{lastStudyTime},
+            #{startTime}, #{completeTime}, #{notes}, #{createAt}, #{createBy}, #{updateAt}, #{updateBy}, #{deleteFlag}
+        )
+    </insert>
+
+    <update id="updateStudentCategoryBinding" parameterType="com.yy.my_tutor.user.domain.StudentCategoryBinding">
+        UPDATE student_category_binding
+        SET student_id = #{studentId},
+            category_id = #{categoryId},
+            grade_id = #{gradeId},
+            binding_status = #{bindingStatus},
+            overall_progress = #{overallProgress},
+            total_knowledge_points = #{totalKnowledgePoints},
+            completed_knowledge_points = #{completedKnowledgePoints},
+            in_progress_knowledge_points = #{inProgressKnowledgePoints},
+            not_started_knowledge_points = #{notStartedKnowledgePoints},
+            total_study_duration = #{totalStudyDuration},
+            last_study_time = #{lastStudyTime},
+            start_time = #{startTime},
+            complete_time = #{completeTime},
+            notes = #{notes},
+            update_at = #{updateAt},
+            update_by = #{updateBy}
+        WHERE id = #{id} AND delete_flag = 'N'
+    </update>
+
+    <select id="findStudentCategoryBindingById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_category_binding
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findStudentCategoryBindingByStudentAndCategory" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_category_binding
+        WHERE student_id = #{studentId} AND category_id = #{categoryId} AND delete_flag = 'N'
+    </select>
+
+    <select id="findStudentCategoryBindingsByStudentId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_category_binding
+        WHERE student_id = #{studentId} AND delete_flag = 'N'
+        ORDER BY create_at ASC
+    </select>
+
+    <select id="findStudentCategoryBindingsByStudentAndGrade" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_category_binding
+        WHERE student_id = #{studentId} AND grade_id = #{gradeId} AND delete_flag = 'N'
+        ORDER BY create_at ASC
+    </select>
+
+    <select id="findStudentCategoryBindingsByCategoryId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_category_binding
+        WHERE category_id = #{categoryId} AND delete_flag = 'N'
+        ORDER BY create_at ASC
+    </select>
+
+    <select id="findStudentCategoryBindingsByStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_category_binding
+        WHERE student_id = #{studentId} AND binding_status = #{bindingStatus} AND delete_flag = 'N'
+        ORDER BY create_at ASC
+    </select>
+
+    <update id="updateBindingStatus">
+        UPDATE student_category_binding
+        SET binding_status = #{bindingStatus},
+            update_at = NOW()
+        WHERE student_id = #{studentId} AND category_id = #{categoryId} AND delete_flag = 'N'
+    </update>
+
+    <update id="updateOverallProgress">
+        UPDATE student_category_binding
+        SET overall_progress = #{overallProgress},
+            update_at = NOW()
+        WHERE student_id = #{studentId} AND category_id = #{categoryId} AND delete_flag = 'N'
+    </update>
+
+    <update id="updateStudyStatistics" parameterType="com.yy.my_tutor.user.domain.StudentCategoryBinding">
+        UPDATE student_category_binding
+        SET total_knowledge_points = #{totalKnowledgePoints},
+            completed_knowledge_points = #{completedKnowledgePoints},
+            in_progress_knowledge_points = #{inProgressKnowledgePoints},
+            not_started_knowledge_points = #{notStartedKnowledgePoints},
+            total_study_duration = #{totalStudyDuration},
+            last_study_time = #{lastStudyTime},
+            overall_progress = #{overallProgress},
+            update_at = NOW()
+        WHERE student_id = #{studentId} AND category_id = #{categoryId} AND delete_flag = 'N'
+    </update>
+
+    <update id="deleteStudentCategoryBinding" parameterType="java.lang.Integer">
+        UPDATE student_category_binding
+        SET delete_flag = 'Y',
+            update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

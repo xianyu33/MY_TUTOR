@@ -5,8 +5,13 @@
     <resultMap id="BaseResultMap" type="com.yy.my_tutor.math.domain.KnowledgeCategory">
         <id column="id" property="id" jdbcType="INTEGER"/>
         <result column="category_name" property="categoryName" jdbcType="VARCHAR"/>
+        <result column="category_name_fr" property="categoryNameFr" jdbcType="VARCHAR"/>
         <result column="category_code" property="categoryCode" jdbcType="VARCHAR"/>
         <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="description_fr" property="descriptionFr" jdbcType="VARCHAR"/>
+        <result column="grade_id" property="gradeId" jdbcType="INTEGER"/>
+        <result column="icon_url" property="iconUrl" jdbcType="VARCHAR"/>
+        <result column="icon_class" property="iconClass" jdbcType="VARCHAR"/>
         <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
         <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
         <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
@@ -16,7 +21,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, category_name, category_code, description, sort_order, create_at, create_by, update_at, update_by, delete_flag
+        id, category_name, category_name_fr, category_code, description, description_fr, grade_id, icon_url, icon_class, sort_order, create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
     <select id="findAllCategories" resultMap="BaseResultMap">
@@ -39,6 +44,14 @@
         <include refid="Base_Column_List"/>
         FROM knowledge_category
         WHERE category_code = #{categoryCode} AND delete_flag = 'N'
+    </select>
+
+    <select id="findKnowledgeCategoriesByGradeId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_category
+        WHERE grade_id = #{gradeId} AND delete_flag = 'N'
+        ORDER BY sort_order ASC
     </select>
 
     <insert id="insertCategory" parameterType="com.yy.my_tutor.math.domain.KnowledgeCategory" useGeneratedKeys="true" keyProperty="id">

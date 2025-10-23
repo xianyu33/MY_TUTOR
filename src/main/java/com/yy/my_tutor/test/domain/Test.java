@@ -23,6 +23,7 @@ import java.util.List;
 public class Test implements Serializable {
     private Integer id;
     private String testName;
+    private String testNameFr;
     private Integer gradeId;
     private String knowledgePointIds;
     private Integer totalQuestions;

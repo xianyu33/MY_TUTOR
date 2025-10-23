@@ -34,6 +34,11 @@ public class KnowledgeCategoryServiceImpl implements KnowledgeCategoryService {
     }
     
     @Override
+    public List<KnowledgeCategory> findKnowledgeCategoriesByGradeId(Integer gradeId) {
+        return knowledgeCategoryMapper.findKnowledgeCategoriesByGradeId(gradeId);
+    }
+    
+    @Override
     public KnowledgeCategory addCategory(KnowledgeCategory category) {
         Date now = new Date();
         category.setCreateAt(now);

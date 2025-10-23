@@ -92,6 +92,20 @@
         WHERE id = #{id}
     </update>
 
+    <select id="findTestRecordById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE id = #{id} AND delete_flag = 'N'
+    </select>
+
+    <select id="findTestRecordsByStudentIdWithPagination" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE student_id = #{studentId} AND delete_flag = 'N'
+        ORDER BY create_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
 </mapper>
 
 

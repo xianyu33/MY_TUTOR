@@ -21,10 +21,15 @@ public class Question implements Serializable {
     private Integer knowledgePointId;
     private Integer questionType;
     private String questionTitle;
+    private String questionTitleFr;
     private String questionContent;
+    private String questionContentFr;
     private String options;
+    private String optionsFr;
     private String correctAnswer;
+    private String correctAnswerFr;
     private String answerExplanation;
+    private String answerExplanationFr;
     private Integer difficultyLevel;
     private Integer points;
     private Integer sortOrder;

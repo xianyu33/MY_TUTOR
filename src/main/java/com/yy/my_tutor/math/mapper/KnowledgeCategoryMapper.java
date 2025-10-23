@@ -28,6 +28,11 @@ public interface KnowledgeCategoryMapper {
     KnowledgeCategory findCategoryByCode(@Param("categoryCode") String categoryCode);
     
     /**
+     * 根据年级ID查询分类列表
+     */
+    List<KnowledgeCategory> findKnowledgeCategoriesByGradeId(@Param("gradeId") Integer gradeId);
+    
+    /**
      * 插入分类
      */
     int insertCategory(KnowledgeCategory category);

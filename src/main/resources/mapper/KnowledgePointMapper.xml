@@ -7,13 +7,19 @@
         <result column="grade_id" property="gradeId" jdbcType="INTEGER"/>
         <result column="category_id" property="categoryId" jdbcType="INTEGER"/>
         <result column="point_name" property="pointName" jdbcType="VARCHAR"/>
+        <result column="point_name_fr" property="pointNameFr" jdbcType="VARCHAR"/>
         <result column="point_code" property="pointCode" jdbcType="VARCHAR"/>
         <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="description_fr" property="descriptionFr" jdbcType="VARCHAR"/>
         <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="content_fr" property="contentFr" jdbcType="VARCHAR"/>
+        <result column="icon_url" property="iconUrl" jdbcType="VARCHAR"/>
+        <result column="icon_class" property="iconClass" jdbcType="VARCHAR"/>
         <result column="difficulty_level" property="difficultyLevel" jdbcType="TINYINT"/>
         <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
         <result column="prerequisite_points" property="prerequisitePoints" jdbcType="VARCHAR"/>
         <result column="learning_objectives" property="learningObjectives" jdbcType="VARCHAR"/>
+        <result column="learning_objectives_fr" property="learningObjectivesFr" jdbcType="VARCHAR"/>
         <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
         <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
         <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
@@ -22,8 +28,9 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, grade_id, category_id, point_name, point_code, description, content, difficulty_level, 
-        sort_order, prerequisite_points, learning_objectives, create_at, create_by, update_at, update_by, delete_flag
+        id, grade_id, category_id, point_name, point_name_fr, point_code, description, description_fr, content, content_fr, 
+        icon_url, icon_class, difficulty_level, sort_order, prerequisite_points, learning_objectives, learning_objectives_fr, 
+        create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
     <select id="findAllKnowledgePoints" resultMap="BaseResultMap">

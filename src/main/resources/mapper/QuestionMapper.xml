@@ -7,10 +7,15 @@
         <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
         <result column="question_type" property="questionType" jdbcType="TINYINT"/>
         <result column="question_title" property="questionTitle" jdbcType="VARCHAR"/>
+        <result column="question_title_fr" property="questionTitleFr" jdbcType="VARCHAR"/>
         <result column="question_content" property="questionContent" jdbcType="VARCHAR"/>
+        <result column="question_content_fr" property="questionContentFr" jdbcType="VARCHAR"/>
         <result column="options" property="options" jdbcType="VARCHAR"/>
+        <result column="options_fr" property="optionsFr" jdbcType="VARCHAR"/>
         <result column="correct_answer" property="correctAnswer" jdbcType="VARCHAR"/>
+        <result column="correct_answer_fr" property="correctAnswerFr" jdbcType="VARCHAR"/>
         <result column="answer_explanation" property="answerExplanation" jdbcType="VARCHAR"/>
+        <result column="answer_explanation_fr" property="answerExplanationFr" jdbcType="VARCHAR"/>
         <result column="difficulty_level" property="difficultyLevel" jdbcType="TINYINT"/>
         <result column="points" property="points" jdbcType="INTEGER"/>
         <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
@@ -22,8 +27,9 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, knowledge_point_id, question_type, question_title, question_content, options, correct_answer,
-        answer_explanation, difficulty_level, points, sort_order, create_at, create_by, update_at, update_by, delete_flag
+        id, knowledge_point_id, question_type, question_title, question_title_fr, question_content, question_content_fr, 
+        options, options_fr, correct_answer, correct_answer_fr, answer_explanation, answer_explanation_fr, 
+        difficulty_level, points, sort_order, create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
     <select id="findAllQuestions" resultMap="BaseResultMap">
@@ -78,6 +84,19 @@
         <include refid="Base_Column_List"/>
         FROM question
         WHERE knowledge_point_id = #{knowledgePointId} AND delete_flag = 'N'
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <select id="findRandomQuestionsByGradeAndDifficulty" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question q
+        INNER JOIN knowledge_point kp ON q.knowledge_point_id = kp.id
+        WHERE kp.grade_id = #{gradeId} 
+        AND q.difficulty_level = #{difficultyLevel} 
+        AND q.delete_flag = 'N'
+        AND kp.delete_flag = 'N'
         ORDER BY RAND()
         LIMIT #{limit}
     </select>

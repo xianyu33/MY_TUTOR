@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生课程分配测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-title {
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-value {
+            font-size: 24px;
+            color: #007bff;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>学生课程分配测试</h1>
+        
+        <!-- 课程分配表单 -->
+        <div class="form-group">
+            <label for="userId">学生ID:</label>
+            <input type="number" id="userId" value="1" min="1">
+        </div>
+        
+        <div class="form-group">
+            <label for="gradeLevel">年级等级:</label>
+            <select id="gradeLevel">
+                <option value="1">1年级</option>
+                <option value="2">2年级</option>
+                <option value="3">3年级</option>
+                <option value="4">4年级</option>
+                <option value="5">5年级</option>
+                <option value="6">6年级</option>
+                <option value="7">7年级（初一）</option>
+                <option value="8">8年级（初二）</option>
+                <option value="9" selected>9年级（初三）</option>
+                <option value="10">10年级（高一）</option>
+                <option value="11">11年级（高二）</option>
+                <option value="12">12年级（高三）</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="forceUpdate"> 强制更新（删除现有进度重新分配）
+            </label>
+        </div>
+        
+        <button onclick="assignCourses()">分配课程</button>
+        
+        <!-- 学习进度统计 -->
+        <h2>学习进度统计</h2>
+        <button onclick="getProgressStats()">获取学习进度统计</button>
+        
+        <div id="result"></div>
+        <div id="statsContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        
+        async function assignCourses() {
+            const userId = document.getElementById('userId').value;
+            const gradeLevel = document.getElementById('gradeLevel').value;
+            const forceUpdate = document.getElementById('forceUpdate').checked;
+            
+            if (!userId) {
+                showResult('请输入学生ID', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/student/course/assign?userId=${userId}&gradeLevel=${gradeLevel}&forceUpdate=${forceUpdate}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showResult(`课程分配成功！\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`课程分配失败：${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`请求失败：${error.message}`, 'error');
+            }
+        }
+        
+        async function getProgressStats() {
+            const userId = document.getElementById('userId').value;
+            
+            if (!userId) {
+                showResult('请输入学生ID', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/student/course/progress-stats/${userId}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showResult(`获取学习进度统计成功！\n${JSON.stringify(result, null, 2)}`, 'success');
+                    displayStats(result.data);
+                } else {
+                    showResult(`获取学习进度统计失败：${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`请求失败：${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+        }
+        
+        function displayStats(stats) {
+            const container = document.getElementById('statsContainer');
+            
+            if (!stats) {
+                container.innerHTML = '<p>无统计数据</p>';
+                return;
+            }
+            
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">学生ID</div>
+                        <div class="stat-value">${stats.userId || 'N/A'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">年级</div>
+                        <div class="stat-value">${stats.gradeName || 'N/A'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">总知识点</div>
+                        <div class="stat-value">${stats.totalKnowledgePoints || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">未开始</div>
+                        <div class="stat-value">${stats.notStartedCount || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">学习中</div>
+                        <div class="stat-value">${stats.inProgressCount || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">已完成</div>
+                        <div class="stat-value">${stats.completedCount || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">完成百分比</div>
+                        <div class="stat-value">${stats.overallCompletionPercentage || 0}%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">学习时长</div>
+                        <div class="stat-value">${stats.totalStudyDuration || 0}分钟</div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // 页面加载时自动获取统计信息
+        window.onload = function() {
+            getProgressStats();
+        };
+    </script>
+</body>
+</html>

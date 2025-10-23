@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识点分类图标测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .category-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #007bff;
+        }
+        .category-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .icon-image {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        .icon-css {
+            font-size: 32px;
+            color: white;
+        }
+        .category-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .category-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+        .category-code {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+        .language-selector {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .language-selector button {
+            margin: 0 5px;
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .language-selector button.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        /* CSS图标样式 */
+        .icon-category-numbers::before {
+            content: "🔢";
+        }
+        .icon-category-geometry::before {
+            content: "📐";
+        }
+        .icon-category-statistics::before {
+            content: "📊";
+        }
+        .icon-category-comprehensive::before {
+            content: "🎯";
+        }
+        .icon-default::before {
+            content: "📚";
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>知识点分类图标测试</h1>
+        
+        <div class="language-selector">
+            <button onclick="loadCategories('zh')" class="active" id="btn-zh">中文</button>
+            <button onclick="loadCategories('fr')" id="btn-fr">Français</button>
+        </div>
+        
+        <div id="categoryGrid" class="category-grid">
+            <!-- 分类卡片将在这里动态生成 -->
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let currentLanguage = 'zh';
+        
+        // 页面加载时获取分类列表
+        window.onload = function() {
+            loadCategories('zh');
+        };
+        
+        async function loadCategories(language) {
+            currentLanguage = language;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.language-selector button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${language}`).classList.add('active');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/multilingual/categories?language=${language}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    displayCategories(result.data);
+                    showResult(`获取${language === 'zh' ? '中文' : '法语'}分类列表成功！`, 'success');
+                } else {
+                    showResult(`获取分类列表失败：${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`请求失败：${error.message}`, 'error');
+                // 显示模拟数据
+                displayMockCategories();
+            }
+        }
+        
+        function displayCategories(categories) {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+            
+            categories.forEach(category => {
+                const card = createCategoryCard(category);
+                grid.appendChild(card);
+            });
+        }
+        
+        function createCategoryCard(category) {
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            
+            const iconHtml = createIconHtml(category);
+            const name = currentLanguage === 'fr' && category.categoryNameFr ? category.categoryNameFr : category.categoryName;
+            const description = currentLanguage === 'fr' && category.descriptionFr ? category.descriptionFr : category.description;
+            
+            card.innerHTML = `
+                <div class="category-icon">
+                    ${iconHtml}
+                </div>
+                <div class="category-name">${name}</div>
+                <div class="category-description">${description}</div>
+                <div class="category-code">${category.categoryCode}</div>
+            `;
+            
+            card.onclick = () => {
+                showCategoryDetails(category);
+            };
+            
+            return card;
+        }
+        
+        function createIconHtml(category) {
+            // 优先使用图片图标
+            if (category.iconUrl) {
+                return `<img src="${category.iconUrl}" alt="${category.categoryName}" class="icon-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                         <i class="icon-css ${category.iconClass || 'icon-default'}" style="display:none;"></i>`;
+            }
+            
+            // 回退到CSS图标
+            if (category.iconClass) {
+                return `<i class="icon-css ${category.iconClass}"></i>`;
+            }
+            
+            // 默认图标
+            return `<i class="icon-css icon-default"></i>`;
+        }
+        
+        function showCategoryDetails(category) {
+            const details = `
+分类详情：
+- ID: ${category.id}
+- 编码: ${category.categoryCode}
+- 中文名称: ${category.categoryName}
+- 法语名称: ${category.categoryNameFr || 'N/A'}
+- 中文描述: ${category.description}
+- 法语描述: ${category.descriptionFr || 'N/A'}
+- 图标URL: ${category.iconUrl || 'N/A'}
+- 图标类名: ${category.iconClass || 'N/A'}
+- 排序: ${category.sortOrder}
+            `;
+            showResult(details, 'success');
+        }
+        
+        function displayMockCategories() {
+            const mockCategories = [
+                {
+                    id: 1,
+                    categoryCode: 'NUM_ALG',
+                    categoryName: '数与代数',
+                    categoryNameFr: 'Nombres et Algèbre',
+                    description: '数的认识、运算、代数式等',
+                    descriptionFr: 'Reconnaissance des nombres, opérations, expressions algébriques, etc.',
+                    iconUrl: '/icons/category/numbers-algebra.png',
+                    iconClass: 'icon-category-numbers',
+                    sortOrder: 1
+                },
+                {
+                    id: 2,
+                    categoryCode: 'GEOMETRY',
+                    categoryName: '几何',
+                    categoryNameFr: 'Géométrie',
+                    description: '图形认识、测量、变换等',
+                    descriptionFr: 'Reconnaissance des formes, mesure, transformation, etc.',
+                    iconUrl: '/icons/category/geometry.png',
+                    iconClass: 'icon-category-geometry',
+                    sortOrder: 2
+                },
+                {
+                    id: 3,
+                    categoryCode: 'STAT_PROB',
+                    categoryName: '统计与概率',
+                    categoryNameFr: 'Statistiques et Probabilité',
+                    description: '数据收集、整理、分析等',
+                    descriptionFr: 'Collecte, organisation et analyse de données, etc.',
+                    iconUrl: '/icons/category/statistics.png',
+                    iconClass: 'icon-category-statistics',
+                    sortOrder: 3
+                },
+                {
+                    id: 4,
+                    categoryCode: 'COMPREHENSIVE',
+                    categoryName: '综合与实践',
+                    categoryNameFr: 'Compréhension et Pratique',
+                    description: '综合运用数学知识解决实际问题',
+                    descriptionFr: 'Application intégrée des connaissances mathématiques pour résoudre des problèmes pratiques',
+                    iconUrl: '/icons/category/comprehensive.png',
+                    iconClass: 'icon-category-comprehensive',
+                    sortOrder: 4
+                }
+            ];
+            
+            displayCategories(mockCategories);
+            showResult('使用模拟数据展示分类图标功能', 'success');
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+        }
+    </script>
+</body>
+</html>

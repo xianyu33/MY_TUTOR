@@ -21,6 +21,7 @@ public class LearningProgress implements Serializable {
     private Integer id;
     private Integer userId;
     private Integer knowledgePointId;
+    private Integer knowledgeCategoryId;
     private Integer progressStatus;
     private BigDecimal completionPercentage;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -41,4 +42,5 @@ public class LearningProgress implements Serializable {
     
     // 关联对象
     private KnowledgePoint knowledgePoint;
+    private KnowledgeCategory knowledgeCategory;
 }

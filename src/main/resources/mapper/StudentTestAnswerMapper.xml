@@ -73,6 +73,33 @@
         DELETE FROM student_test_answer WHERE id = #{id}
     </update>
 
+    <select id="findAnswerByRecordAndQuestion" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_answer
+        WHERE test_record_id = #{testRecordId} AND question_id = #{questionId}
+        ORDER BY answer_time DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insertAnswer" parameterType="com.yy.my_tutor.test.domain.StudentTestAnswer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student_test_answer (test_record_id, student_id, question_id, question_content,
+                                        correct_answer, student_answer, is_correct, points, earned_points,
+                                        answer_time, time_spent, create_at)
+        VALUES (#{testRecordId}, #{studentId}, #{questionId}, #{questionContent},
+                #{correctAnswer}, #{studentAnswer}, #{isCorrect}, #{points}, #{earnedPoints},
+                #{answerTime}, #{timeSpent}, NOW())
+    </insert>
+
+    <update id="updateAnswer" parameterType="com.yy.my_tutor.test.domain.StudentTestAnswer">
+        UPDATE student_test_answer
+        SET student_answer = #{studentAnswer},
+            is_correct = #{isCorrect},
+            earned_points = #{earnedPoints},
+            answer_time = #{answerTime},
+            time_spent = #{timeSpent}
+        WHERE id = #{id}
+    </update>
+
 </mapper>
 
 

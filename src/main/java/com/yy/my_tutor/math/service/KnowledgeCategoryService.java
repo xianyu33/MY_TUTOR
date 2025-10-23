@@ -25,6 +25,11 @@ public interface KnowledgeCategoryService {
     KnowledgeCategory findCategoryByCode(String categoryCode);
     
     /**
+     * 根据年级ID查询分类列表
+     */
+    List<KnowledgeCategory> findKnowledgeCategoriesByGradeId(Integer gradeId);
+    
+    /**
      * 新增分类
      */
     KnowledgeCategory addCategory(KnowledgeCategory category);

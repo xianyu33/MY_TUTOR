@@ -21,13 +21,19 @@ public class KnowledgePoint implements Serializable {
     private Integer gradeId;
     private Integer categoryId;
     private String pointName;
+    private String pointNameFr;
     private String pointCode;
     private String description;
+    private String descriptionFr;
     private String content;
+    private String contentFr;
+    private String iconUrl;
+    private String iconClass;
     private Integer difficultyLevel;
     private Integer sortOrder;
     private String prerequisitePoints;
     private String learningObjectives;
+    private String learningObjectivesFr;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createAt;
     private String createBy;
