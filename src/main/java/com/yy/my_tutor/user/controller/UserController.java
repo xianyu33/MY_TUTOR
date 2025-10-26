@@ -7,6 +7,7 @@ import com.yy.my_tutor.config.CustomException;
 import com.yy.my_tutor.config.EmailUtil;
 import com.yy.my_tutor.config.GoDaddyEmailSender;
 import com.yy.my_tutor.config.RedisUtil;
+import com.yy.my_tutor.user.domain.StudentSearchRequest;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.service.StudentRegistrationService;
 import com.yy.my_tutor.user.service.UserService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -235,5 +237,18 @@ public class UserController {
         log.info("修改用户信息: {}", JSON.toJSONString(user));
         userService.edit(user);
         return RespResult.success("更新成功");
+    }
+
+    /**
+     * 根据名称动态查询学生列表（POST请求）
+     * @param request 搜索请求参数
+     * @return 学生列表
+     */
+    @PostMapping("/search/students")
+    public RespResult<List<User>> searchStudents(@RequestBody User user) {
+        log.info("搜索学生，关键字: {}", user);
+
+        List<User> students = userService.findStudentsByName(user.getUsername());
+        return RespResult.success(students);
     }
 }

@@ -23,6 +23,11 @@ public interface TestAnalysisReportMapper {
     List<TestAnalysisReport> findReportsByTestRecordId(@Param("testRecordId") Integer testRecordId);
     
     /**
+     * 根据测试记录ID查询单个报告（默认类型）
+     */
+    TestAnalysisReport findByTestRecordId(@Param("testRecordId") Integer testRecordId);
+    
+    /**
      * 根据测试记录ID和报告类型查询报告
      */
     TestAnalysisReport findReportByRecordAndType(@Param("testRecordId") Integer testRecordId, @Param("reportType") Integer reportType);

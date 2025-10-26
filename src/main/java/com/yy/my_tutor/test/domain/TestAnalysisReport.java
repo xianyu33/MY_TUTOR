@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -28,6 +29,22 @@ public class TestAnalysisReport implements Serializable {
     private Long fileSize;
     private Integer downloadCount;
     private String analysisData;
+    
+    // Enhanced fields for knowledge point analysis
+    private String reportTitleFr;
+    private String strongKnowledgePoints;  // JSON array of point IDs
+    private String needsImprovementPoints;  // JSON array of point IDs
+    private String weakKnowledgePoints;  // JSON array of point IDs
+    private BigDecimal overallScore;
+    private Integer totalPoints;
+    private Integer earnedPoints;
+    private BigDecimal accuracyRate;
+    private String strongPointsSummary;
+    private String needsImprovementSummary;
+    private String weakPointsSummary;
+    private String recommendations;
+    private String recommendationsFr;
+    
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createAt;
     private String createBy;

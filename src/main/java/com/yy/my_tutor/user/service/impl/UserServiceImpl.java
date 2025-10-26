@@ -161,4 +161,14 @@ public class UserServiceImpl implements UserService {
         }
         return true;
     }
+    
+    @Override
+    public List<User> findStudentsByName(String name) {
+        // 隐藏敏感信息
+        List<User> students = userMapper.findStudentsByName(name);
+        if (students != null) {
+            students.forEach(student -> student.setPassword(null));
+        }
+        return students;
+    }
 }

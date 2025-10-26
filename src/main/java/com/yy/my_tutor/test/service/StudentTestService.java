@@ -105,4 +105,11 @@ public interface StudentTestService {
      * @return 测试详情（包含题目列表）
      */
     com.yy.my_tutor.test.domain.TestWithQuestionsDTO getTestWithQuestions(Integer testRecordId);
+    
+    /**
+     * 批量提交答案并生成分析报告
+     * @param request 批量答题请求
+     * @return 测试分析结果（包含总得分、各知识点得分和分析）
+     */
+    com.yy.my_tutor.test.domain.TestAnalysisResult batchSubmitAnswersAndAnalyze(com.yy.my_tutor.test.domain.BatchAnswerRequest request);
 }

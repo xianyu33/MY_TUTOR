@@ -1,9 +1,11 @@
 package com.yy.my_tutor.test.controller;
 
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.test.domain.BatchAnswerRequest;
 import com.yy.my_tutor.test.domain.GenerateTestRequest;
 import com.yy.my_tutor.test.domain.StudentTestAnswer;
 import com.yy.my_tutor.test.domain.StudentTestRecord;
+import com.yy.my_tutor.test.domain.TestAnalysisResult;
 import com.yy.my_tutor.test.domain.TestWithQuestionsDTO;
 import com.yy.my_tutor.test.service.StudentTestService;
 import lombok.extern.slf4j.Slf4j;
@@ -174,5 +176,37 @@ public class StudentTestController {
         
         List<StudentTestRecord> ongoingTests = studentTestService.getOngoingTests(studentId);
         return RespResult.success(ongoingTests);
+    }
+    
+    /**
+     * 批量提交答案并生成分析报告
+     * @param request 批量答题请求
+     * @return 测试分析结果（包含知识点得分和分析）
+     */
+    @PostMapping("/batch-submit")
+    public RespResult<TestAnalysisResult> batchSubmitAnswers(@RequestBody BatchAnswerRequest request) {
+        log.info("批量提交答案，测试记录ID: {}, 答题数量: {}", 
+                request.getTestRecordId(), 
+                request.getAnswers() != null ? request.getAnswers().size() : 0);
+        
+        if (request.getTestRecordId() == null) {
+            return RespResult.error("测试记录ID不能为空");
+        }
+        
+        if (request.getAnswers() == null || request.getAnswers().isEmpty()) {
+            return RespResult.error("答题列表不能为空");
+        }
+        
+        try {
+            TestAnalysisResult result = studentTestService.batchSubmitAnswersAndAnalyze(request);
+            if (result != null) {
+                return RespResult.success("提交成功并生成分析报告", result);
+            } else {
+                return RespResult.error("提交失败");
+            }
+        } catch (Exception e) {
+            log.error("批量提交答案时发生异常: {}", e.getMessage(), e);
+            return RespResult.error("提交失败: " + e.getMessage());
+        }
     }
 }

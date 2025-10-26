@@ -37,4 +37,11 @@ public interface UserMapper {
     void update(User user);
 
     void updateParent(User user);
+    
+    /**
+     * 根据名称动态查询学生列表
+     * @param name 学生姓名（模糊查询）
+     * @return 学生列表
+     */
+    List<User> findStudentsByName(@Param("name") String name);
 }

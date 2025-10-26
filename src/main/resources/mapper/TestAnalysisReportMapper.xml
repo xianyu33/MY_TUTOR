@@ -9,11 +9,24 @@
         <result column="test_id" property="testId"/>
         <result column="report_type" property="reportType"/>
         <result column="report_title" property="reportTitle"/>
+        <result column="report_title_fr" property="reportTitleFr"/>
         <result column="report_content" property="reportContent"/>
         <result column="file_path" property="filePath"/>
         <result column="file_size" property="fileSize"/>
         <result column="download_count" property="downloadCount"/>
         <result column="analysis_data" property="analysisData"/>
+        <result column="strong_knowledge_points" property="strongKnowledgePoints"/>
+        <result column="needs_improvement_points" property="needsImprovementPoints"/>
+        <result column="weak_knowledge_points" property="weakKnowledgePoints"/>
+        <result column="overall_score" property="overallScore"/>
+        <result column="total_points" property="totalPoints"/>
+        <result column="earned_points" property="earnedPoints"/>
+        <result column="accuracy_rate" property="accuracyRate"/>
+        <result column="strong_points_summary" property="strongPointsSummary"/>
+        <result column="needs_improvement_summary" property="needsImprovementSummary"/>
+        <result column="weak_points_summary" property="weakPointsSummary"/>
+        <result column="recommendations" property="recommendations"/>
+        <result column="recommendations_fr" property="recommendationsFr"/>
         <result column="create_at" property="createAt"/>
         <result column="create_by" property="createBy"/>
         <result column="update_at" property="updateAt"/>
@@ -22,9 +35,13 @@
     </resultMap>
 
     <sql id="Base_Columns">
-        id, test_record_id, student_id, test_id, report_type, report_title, report_content,
-        file_path, file_size, download_count, analysis_data, create_at, create_by,
-        update_at, update_by, delete_flag
+        id, test_record_id, student_id, test_id, report_type, report_title, report_title_fr, 
+        report_content, file_path, file_size, download_count, analysis_data,
+        strong_knowledge_points, needs_improvement_points, weak_knowledge_points,
+        overall_score, total_points, earned_points, accuracy_rate,
+        strong_points_summary, needs_improvement_summary, weak_points_summary,
+        recommendations, recommendations_fr,
+        create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
     <select id="findReportsByStudentId" resultMap="BaseResultMap">
@@ -41,6 +58,13 @@
         ORDER BY create_at DESC
     </select>
 
+    <select id="findByTestRecordId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM test_analysis_report
+        WHERE test_record_id = #{testRecordId} AND delete_flag = 'N'
+        LIMIT 1
+    </select>
+
     <select id="findReportByRecordAndType" resultMap="BaseResultMap">
         SELECT <include refid="Base_Columns"/>
         FROM test_analysis_report
@@ -49,21 +73,46 @@
     </select>
 
     <insert id="insertAnalysisReport" parameterType="com.yy.my_tutor.test.domain.TestAnalysisReport" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO test_analysis_report (test_record_id, student_id, test_id, report_type, report_title,
-                                         report_content, file_path, file_size, download_count, analysis_data,
-                                         create_at, create_by, update_at, update_by, delete_flag)
-        VALUES (#{testRecordId}, #{studentId}, #{testId}, #{reportType}, #{reportTitle},
-                #{reportContent}, #{filePath}, #{fileSize}, #{downloadCount}, #{analysisData},
-                NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
+        INSERT INTO test_analysis_report (
+            test_record_id, student_id, test_id, report_type, report_title, report_title_fr,
+            report_content, file_path, file_size, download_count, analysis_data,
+            strong_knowledge_points, needs_improvement_points, weak_knowledge_points,
+            overall_score, total_points, earned_points, accuracy_rate,
+            strong_points_summary, needs_improvement_summary, weak_points_summary,
+            recommendations, recommendations_fr,
+            create_at, create_by, update_at, update_by, delete_flag
+        )
+        VALUES (
+            #{testRecordId}, #{studentId}, #{testId}, #{reportType}, #{reportTitle}, #{reportTitleFr},
+            #{reportContent}, #{filePath}, #{fileSize}, #{downloadCount}, #{analysisData},
+            #{strongKnowledgePoints}, #{needsImprovementPoints}, #{weakKnowledgePoints},
+            #{overallScore}, #{totalPoints}, #{earnedPoints}, #{accuracyRate},
+            #{strongPointsSummary}, #{needsImprovementSummary}, #{weakPointsSummary},
+            #{recommendations}, #{recommendationsFr},
+            NOW(), #{createBy}, NOW(), #{updateBy}, 'N'
+        )
     </insert>
 
     <update id="updateAnalysisReport" parameterType="com.yy.my_tutor.test.domain.TestAnalysisReport">
         UPDATE test_analysis_report
         SET report_title = #{reportTitle},
+            report_title_fr = #{reportTitleFr},
             report_content = #{reportContent},
             file_path = #{filePath},
             file_size = #{fileSize},
             analysis_data = #{analysisData},
+            strong_knowledge_points = #{strongKnowledgePoints},
+            needs_improvement_points = #{needsImprovementPoints},
+            weak_knowledge_points = #{weakKnowledgePoints},
+            overall_score = #{overallScore},
+            total_points = #{totalPoints},
+            earned_points = #{earnedPoints},
+            accuracy_rate = #{accuracyRate},
+            strong_points_summary = #{strongPointsSummary},
+            needs_improvement_summary = #{needsImprovementSummary},
+            weak_points_summary = #{weakPointsSummary},
+            recommendations = #{recommendations},
+            recommendations_fr = #{recommendationsFr},
             update_at = NOW(),
             update_by = #{updateBy}
         WHERE id = #{id} AND delete_flag = 'N'

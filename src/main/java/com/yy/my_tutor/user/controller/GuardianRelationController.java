@@ -22,6 +22,19 @@ public class GuardianRelationController {
         return RespResult.success(relService.listByGuardian(guardianId, guardianType));
     }
     
+    /**
+     * 根据家长/老师ID和类型查询绑定的学生详细信息（POST请求）
+     * @param guardianId 家长/老师ID
+     * @param guardianType 类型：0-家长，1-老师
+     * @return 学生详细信息列表
+     */
+    @PostMapping("/guardian/{guardianId}/type/{guardianType}")
+    public RespResult<List<com.yy.my_tutor.user.domain.StudentDetailDTO>> getStudentsByGuardian(
+            @PathVariable Integer guardianId,
+            @PathVariable Integer guardianType) {
+        return RespResult.success(relService.getStudentsWithDetailsByGuardian(guardianId, guardianType));
+    }
+    
     @GetMapping("/guardian/{guardianId}/type/{guardianType}/details")
     public RespResult<List<GuardianStudentRel>> listByGuardianWithDetails(@PathVariable Integer guardianId,
                                                                           @PathVariable Integer guardianType) {

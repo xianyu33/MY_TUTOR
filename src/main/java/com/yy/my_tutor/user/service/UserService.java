@@ -46,4 +46,11 @@ public interface UserService {
     User find(User user);
 
     User edit(User user);
+    
+    /**
+     * 根据名称动态查询学生列表
+     * @param name 学生姓名（模糊查询，可选）
+     * @return 学生列表
+     */
+    List<User> findStudentsByName(String name);
 }

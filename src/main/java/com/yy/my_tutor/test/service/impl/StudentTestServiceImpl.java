@@ -1,19 +1,22 @@
 package com.yy.my_tutor.test.service.impl;
 
-import com.yy.my_tutor.math.domain.Grade;
 import com.yy.my_tutor.math.domain.KnowledgePoint;
 import com.yy.my_tutor.math.domain.Question;
 import com.yy.my_tutor.math.service.GradeService;
 import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.math.mapper.QuestionMapper;
+import com.yy.my_tutor.test.domain.BatchAnswerRequest;
 import com.yy.my_tutor.test.domain.StudentTestAnswer;
 import com.yy.my_tutor.test.domain.StudentTestRecord;
 import com.yy.my_tutor.test.domain.Test;
+import com.yy.my_tutor.test.domain.TestAnalysisReport;
+import com.yy.my_tutor.test.domain.TestAnalysisResult;
 import com.yy.my_tutor.test.domain.TestQuestion;
 import com.yy.my_tutor.test.domain.TestQuestionDetail;
 import com.yy.my_tutor.test.domain.TestWithQuestionsDTO;
 import com.yy.my_tutor.test.mapper.StudentTestAnswerMapper;
 import com.yy.my_tutor.test.mapper.StudentTestRecordMapper;
+import com.yy.my_tutor.test.mapper.TestAnalysisReportMapper;
 import com.yy.my_tutor.test.mapper.TestMapper;
 import com.yy.my_tutor.test.mapper.TestQuestionMapper;
 import com.yy.my_tutor.test.service.StudentTestService;
@@ -53,6 +56,9 @@ public class StudentTestServiceImpl implements StudentTestService {
     
     @Autowired
     private KnowledgePointService knowledgePointService;
+    
+    @Autowired
+    private TestAnalysisReportMapper testAnalysisReportMapper;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -593,6 +599,331 @@ public class StudentTestServiceImpl implements StudentTestService {
             
         } catch (Exception e) {
             log.error("获取测试详情时发生异常: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public TestAnalysisResult batchSubmitAnswersAndAnalyze(BatchAnswerRequest request) {
+        try {
+            Integer testRecordId = request.getTestRecordId();
+            Integer studentId = request.getStudentId();
+            
+            // 1. 获取测试记录
+            StudentTestRecord record = studentTestRecordMapper.findTestRecordById(testRecordId);
+            if (record == null) {
+                log.error("测试记录不存在: {}", testRecordId);
+                return null;
+            }
+            
+            // 2. 获取测试信息
+            Test test = testMapper.findTestById(record.getTestId());
+            if (test == null) {
+                log.error("测试不存在: {}", record.getTestId());
+                return null;
+            }
+            
+            // 3. 获取测试题目
+            List<TestQuestion> testQuestions = testQuestionMapper.findTestQuestionsByTestId(test.getId());
+            if (testQuestions == null || testQuestions.isEmpty()) {
+                log.error("测试没有题目: {}", test.getId());
+                return null;
+            }
+            
+            // 4. 创建答案映射
+            Map<Integer, BatchAnswerRequest.AnswerItem> answerMap = request.getAnswers().stream()
+                .collect(Collectors.toMap(BatchAnswerRequest.AnswerItem::getQuestionId, item -> item));
+            
+            // 5. 批量保存答案并计算得分
+            int earnedPoints = 0;
+            int correctAnswers = 0;
+            int answeredQuestions = 0;
+            Map<Integer, Integer> knowledgePointStats = new HashMap<>(); // 知识点正确数
+            Map<Integer, Integer> knowledgePointTotals = new HashMap<>(); // 知识点总题数
+            
+            for (TestQuestion tq : testQuestions) {
+                Question question = questionMapper.findQuestionById(tq.getQuestionId());
+                if (question == null) {
+                    continue;
+                }
+                
+                BatchAnswerRequest.AnswerItem answerItem = answerMap.get(tq.getQuestionId());
+                
+                // 创建答题记录
+                StudentTestAnswer answer = new StudentTestAnswer();
+                answer.setTestRecordId(testRecordId);
+                answer.setStudentId(studentId);
+                answer.setQuestionId(question.getId());
+                answer.setQuestionContent(question.getQuestionContent());
+                answer.setQuestionContentFr(question.getQuestionContentFr());
+                answer.setCorrectAnswer(question.getCorrectAnswer());
+                answer.setCorrectAnswerFr(question.getCorrectAnswerFr());
+                answer.setPoints(tq.getPoints());
+                answer.setAnswerTime(new Date());
+                
+                if (answerItem != null && answerItem.getStudentAnswer() != null) {
+                    answer.setStudentAnswer(answerItem.getStudentAnswer());
+                    answer.setTimeSpent(answerItem.getTimeSpent());
+                    answeredQuestions++;
+                    
+                    // 判断是否正确
+                    boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answerItem.getStudentAnswer());
+                    answer.setIsCorrect(isCorrect ? 1 : 0);
+                    
+                    if (isCorrect) {
+                        correctAnswers++;
+                        earnedPoints += tq.getPoints();
+                        // 统计知识点正确数
+                        knowledgePointStats.merge(question.getKnowledgePointId(), 1, Integer::sum);
+                    } else {
+                        answer.setEarnedPoints(0);
+                    }
+                    
+                    if (isCorrect) {
+                        answer.setEarnedPoints(tq.getPoints());
+                    } else {
+                        answer.setEarnedPoints(0);
+                    }
+                } else {
+                    answer.setIsCorrect(0);
+                    answer.setEarnedPoints(0);
+                }
+                
+                // 统计知识点总题数
+                knowledgePointTotals.merge(question.getKnowledgePointId(), 1, Integer::sum);
+                
+                // 保存答题记录
+                studentTestAnswerMapper.insertTestAnswer(answer);
+            }
+            
+            // 6. 更新测试记录
+            Date endTime = new Date();
+            int timeSpent = (int) ((endTime.getTime() - record.getStartTime().getTime()) / (1000 * 60)); // 分钟
+            
+            BigDecimal scorePercentage = BigDecimal.ZERO;
+            if (record.getTotalPoints() > 0) {
+                scorePercentage = new BigDecimal(earnedPoints)
+                    .divide(new BigDecimal(record.getTotalPoints()), 4, BigDecimal.ROUND_HALF_UP)
+                    .multiply(new BigDecimal(100));
+            }
+            
+            record.setEndTime(endTime);
+            record.setSubmitTime(endTime);
+            record.setTimeSpent(timeSpent);
+            record.setAnsweredQuestions(answeredQuestions);
+            record.setCorrectAnswers(correctAnswers);
+            record.setEarnedPoints(earnedPoints);
+            record.setScorePercentage(scorePercentage);
+            record.setTestStatus(2); // 已完成
+            record.setUpdateAt(new Date());
+            
+            studentTestRecordMapper.updateTestRecord(record);
+            
+            // 7. 计算各知识点得分和分析
+            List<TestAnalysisResult.KnowledgePointScore> kpScores = new ArrayList<>();
+            List<Integer> strongPoints = new ArrayList<>();
+            List<Integer> needsImprovementPoints = new ArrayList<>();
+            List<Integer> weakPoints = new ArrayList<>();
+            
+            for (Integer kpId : knowledgePointTotals.keySet()) {
+                KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                if (kp == null) {
+                    continue;
+                }
+                
+                int total = knowledgePointTotals.get(kpId);
+                int correct = knowledgePointStats.getOrDefault(kpId, 0);
+                
+                // 计算知识点得分
+                int kpTotalPoints = 0;
+                int kpEarnedPoints = 0;
+                for (TestQuestion tq : testQuestions) {
+                    Question q = questionMapper.findQuestionById(tq.getQuestionId());
+                    if (q != null && q.getKnowledgePointId().equals(kpId)) {
+                        kpTotalPoints += tq.getPoints();
+                        BatchAnswerRequest.AnswerItem item = answerMap.get(q.getId());
+                        if (item != null) {
+                            boolean isCorrect = q.getCorrectAnswer().equalsIgnoreCase(item.getStudentAnswer());
+                            if (isCorrect) {
+                                kpEarnedPoints += tq.getPoints();
+                            }
+                        }
+                    }
+                }
+                
+                BigDecimal kpScoreRate = BigDecimal.ZERO;
+                if (kpTotalPoints > 0) {
+                    kpScoreRate = new BigDecimal(kpEarnedPoints)
+                        .divide(new BigDecimal(kpTotalPoints), 4, BigDecimal.ROUND_HALF_UP)
+                        .multiply(new BigDecimal(100));
+                }
+                
+                TestAnalysisResult.KnowledgePointScore score = new TestAnalysisResult.KnowledgePointScore();
+                score.setKnowledgePointId(kpId);
+                score.setKnowledgePointName(kp.getPointName());
+                score.setKnowledgePointNameFr(kp.getPointNameFr());
+                score.setTotalPoints(kpTotalPoints);
+                score.setEarnedPoints(kpEarnedPoints);
+                score.setScoreRate(kpScoreRate);
+                score.setQuestionCount(total);
+                score.setCorrectCount(correct);
+                
+                kpScores.add(score);
+                
+                // 分类知识点
+                if (kpScoreRate.compareTo(new BigDecimal(80)) >= 0) {
+                    strongPoints.add(kpId);
+                } else if (kpScoreRate.compareTo(new BigDecimal(50)) >= 0) {
+                    needsImprovementPoints.add(kpId);
+                } else {
+                    weakPoints.add(kpId);
+                }
+            }
+            
+            // 8. 构建知识点分析
+            TestAnalysisResult.KnowledgePointAnalysis analysis = new TestAnalysisResult.KnowledgePointAnalysis();
+            analysis.setStrongPoints(strongPoints);
+            analysis.setNeedsImprovementPoints(needsImprovementPoints);
+            analysis.setWeakPoints(weakPoints);
+            
+            // 生成分析摘要
+            String strongSummary = strongPoints.isEmpty() ? "无" : 
+                knowledgePointService.findKnowledgePointsByCategoryIds(strongPoints).stream()
+                    .map(KnowledgePoint::getPointName)
+                    .collect(Collectors.joining(", "));
+            
+            String needsSummary = needsImprovementPoints.isEmpty() ? "无" :
+                knowledgePointService.findKnowledgePointsByCategoryIds(needsImprovementPoints).stream()
+                    .map(KnowledgePoint::getPointName)
+                    .collect(Collectors.joining(", "));
+            
+            String weakSummary = weakPoints.isEmpty() ? "无" :
+                knowledgePointService.findKnowledgePointsByCategoryIds(weakPoints).stream()
+                    .map(KnowledgePoint::getPointName)
+                    .collect(Collectors.joining(", "));
+            
+            analysis.setStrongSummary(strongSummary);
+            analysis.setNeedsImprovementSummary(needsSummary);
+            analysis.setWeakSummary(weakSummary);
+            
+            // 9. 构建返回结果
+            TestAnalysisResult result = new TestAnalysisResult();
+            result.setTestRecordId(testRecordId);
+            result.setStudentId(studentId);
+            result.setTestId(test.getId());
+            result.setTotalPoints(record.getTotalPoints());
+            result.setEarnedPoints(earnedPoints);
+            result.setScoreRate(scorePercentage);
+            result.setAccuracyRate(new BigDecimal(correctAnswers)
+                .divide(new BigDecimal(answeredQuestions), 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(new BigDecimal(100)));
+            result.setTotalQuestions(record.getTotalQuestions());
+            result.setCorrectAnswers(correctAnswers);
+            result.setKnowledgePointScores(kpScores);
+            result.setKnowledgePointAnalysis(analysis);
+            result.setCreateAt(new Date());
+            
+            // 生成总体评价
+            if (scorePercentage.compareTo(new BigDecimal(80)) >= 0) {
+                result.setOverallComment("表现优秀！");
+                result.setOverallCommentFr("Excellent travail !");
+            } else if (scorePercentage.compareTo(new BigDecimal(60)) >= 0) {
+                result.setOverallComment("表现良好");
+                result.setOverallCommentFr("Bon travail");
+            } else if (scorePercentage.compareTo(new BigDecimal(40)) >= 0) {
+                result.setOverallComment("需要继续努力");
+                result.setOverallCommentFr("Continuez vos efforts");
+            } else {
+                result.setOverallComment("需要加强学习");
+                result.setOverallCommentFr("Renforcez votre apprentissage");
+            }
+            
+            // 生成学习建议
+            StringBuilder recommendations = new StringBuilder();
+            recommendations.append("总体得分: ").append(scorePercentage).append("%\n\n");
+            
+            if (!strongPoints.isEmpty()) {
+                recommendations.append("掌握较好: ").append(strongSummary).append("\n");
+            }
+            if (!needsImprovementPoints.isEmpty()) {
+                recommendations.append("需要改进: ").append(needsSummary).append("\n");
+            }
+            if (!weakPoints.isEmpty()) {
+                recommendations.append("薄弱环节: ").append(weakSummary).append("\n");
+            }
+            
+            result.setRecommendations(recommendations.toString());
+            result.setRecommendationsFr(recommendations.toString()); // 简化处理，实际应该翻译
+            
+            // 10. 保存分析报告到数据库
+            TestAnalysisReport analysisReport = new TestAnalysisReport();
+            analysisReport.setTestRecordId(testRecordId);
+            analysisReport.setStudentId(studentId);
+            analysisReport.setTestId(test.getId());
+            analysisReport.setReportType(1); // 1-分析报告
+            analysisReport.setReportTitle("测试分析报告_" + testRecordId);
+            analysisReport.setReportTitleFr("Rapport d'analyse de test_" + testRecordId);
+            
+            // 将分析结果转换为JSON存储
+            String reportContent = String.format(
+                "{\"overallComment\":\"%s\",\"recommendations\":\"%s\"}",
+                result.getOverallComment(), result.getRecommendations()
+            );
+            analysisReport.setReportContent(reportContent);
+            
+            // 保存知识点分类（JSON数组）
+            analysisReport.setStrongKnowledgePoints("[" + strongPoints.stream()
+                .map(String::valueOf).collect(Collectors.joining(",")) + "]");
+            analysisReport.setNeedsImprovementPoints("[" + needsImprovementPoints.stream()
+                .map(String::valueOf).collect(Collectors.joining(",")) + "]");
+            analysisReport.setWeakKnowledgePoints("[" + weakPoints.stream()
+                .map(String::valueOf).collect(Collectors.joining(",")) + "]");
+            
+            // 保存统计信息
+            analysisReport.setOverallScore(scorePercentage);
+            analysisReport.setTotalPoints(record.getTotalPoints());
+            analysisReport.setEarnedPoints(earnedPoints);
+            analysisReport.setAccuracyRate(result.getAccuracyRate());
+            
+            // 保存摘要
+            analysisReport.setStrongPointsSummary(strongSummary);
+            analysisReport.setNeedsImprovementSummary(needsSummary);
+            analysisReport.setWeakPointsSummary(weakSummary);
+            
+            // 保存建议
+            analysisReport.setRecommendations(recommendations.toString());
+            analysisReport.setRecommendationsFr(recommendations.toString());
+            
+            // 保存analysisData（完整JSON数据）
+            String analysisData = String.format(
+                "{\"strongPoints\":[%s],\"needsImprovementPoints\":[%s],\"weakPoints\":[%s],\"overallScore\":%s}",
+                strongPoints.stream().map(String::valueOf).collect(Collectors.joining(",")),
+                needsImprovementPoints.stream().map(String::valueOf).collect(Collectors.joining(",")),
+                weakPoints.stream().map(String::valueOf).collect(Collectors.joining(",")),
+                scorePercentage
+            );
+            analysisReport.setAnalysisData(analysisData);
+            
+            analysisReport.setCreateAt(new Date());
+            analysisReport.setDeleteFlag("N");
+            
+            // 检查是否已存在报告
+            TestAnalysisReport existingReport = testAnalysisReportMapper.findByTestRecordId(testRecordId);
+            if (existingReport != null) {
+                analysisReport.setId(existingReport.getId());
+                testAnalysisReportMapper.updateAnalysisReport(analysisReport);
+                log.info("更新分析报告成功，测试记录: {}", testRecordId);
+            } else {
+                testAnalysisReportMapper.insertAnalysisReport(analysisReport);
+                log.info("保存分析报告成功，测试记录: {}", testRecordId);
+            }
+            
+            log.info("批量提交答案成功，测试记录: {}, 得分: {}/{}", testRecordId, earnedPoints, record.getTotalPoints());
+            return result;
+            
+        } catch (Exception e) {
+            log.error("批量提交答案时发生异常: {}", e.getMessage(), e);
             return null;
         }
     }

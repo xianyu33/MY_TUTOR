@@ -45,7 +45,6 @@
             <result column="student_country" property="country"/>
             <result column="student_email" property="email"/>
             <result column="student_grade" property="grade"/>
-            <result column="student_role" property="role"/>
             <result column="student_create_at" property="createAt"/>
             <result column="student_create_by" property="createBy"/>
             <result column="student_update_at" property="updateAt"/>
@@ -69,8 +68,8 @@
     </select>
 
     <select id="findByGuardianWithDetails" resultMap="DetailResultMap">
-        SELECT 
-            gsr.id, gsr.guardian_id, gsr.guardian_type, gsr.student_id, gsr.relation, 
+        SELECT
+            gsr.id, gsr.guardian_id, gsr.guardian_type, gsr.student_id, gsr.relation,
             gsr.start_at, gsr.end_at, gsr.create_at, gsr.create_by, gsr.update_at, gsr.update_by, gsr.delete_flag,
             -- 家长/老师信息
             p.id as guardian_id,
@@ -98,7 +97,6 @@
             u.country as student_country,
             u.email as student_email,
             u.grade as student_grade,
-            u.role as student_role,
             u.create_at as student_create_at,
             u.create_by as student_create_by,
             u.update_at as student_update_at,
