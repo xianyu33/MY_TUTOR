@@ -58,4 +58,9 @@ public interface KnowledgePointService {
      * 删除知识点
      */
     boolean deleteKnowledgePoint(Integer id);
+    
+    /**
+     * 根据分类ID列表查询知识点
+     */
+    List<KnowledgePoint> findKnowledgePointsByCategoryIds(List<Integer> categoryIds);
 }

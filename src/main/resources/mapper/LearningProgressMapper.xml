@@ -6,6 +6,7 @@
         <id column="id" property="id" jdbcType="INTEGER"/>
         <result column="user_id" property="userId" jdbcType="INTEGER"/>
         <result column="knowledge_point_id" property="knowledgePointId" jdbcType="INTEGER"/>
+        <result column="knowledge_category_id" property="knowledgeCategoryId" jdbcType="INTEGER"/>
         <result column="progress_status" property="progressStatus" jdbcType="TINYINT"/>
         <result column="completion_percentage" property="completionPercentage" jdbcType="DECIMAL"/>
         <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
@@ -21,7 +22,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_id, knowledge_point_id, progress_status, completion_percentage, start_time, complete_time,
+        id, user_id, knowledge_point_id,knowledge_category_id, progress_status, completion_percentage, start_time, complete_time,
         study_duration, last_study_time, notes, create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
@@ -57,10 +58,10 @@
     </select>
 
     <insert id="insertLearningProgress" parameterType="com.yy.my_tutor.math.domain.LearningProgress" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO learning_progress (user_id, knowledge_point_id, progress_status, completion_percentage, 
+        INSERT INTO learning_progress (user_id, knowledge_point_id, knowledge_category_id,progress_status, completion_percentage,
                                      start_time, complete_time, study_duration, last_study_time, notes,
                                      create_at, create_by, update_at, update_by, delete_flag)
-        VALUES (#{userId}, #{knowledgePointId}, #{progressStatus}, #{completionPercentage}, 
+        VALUES (#{userId}, #{knowledgePointId}, #{knowledgeCategoryId},#{progressStatus}, #{completionPercentage},
                 #{startTime}, #{completeTime}, #{studyDuration}, #{lastStudyTime}, #{notes},
                 NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
     </insert>

@@ -10,6 +10,8 @@ import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.math.service.LearningProgressService;
 import com.yy.my_tutor.test.domain.Test;
 import com.yy.my_tutor.test.service.TestService;
+import com.yy.my_tutor.user.domain.CategoryWithProgress;
+import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import com.yy.my_tutor.user.domain.LearningProgressStats;
 import com.yy.my_tutor.user.domain.StudentCategoryBinding;
 import com.yy.my_tutor.user.domain.User;
@@ -21,10 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.DigestUtils;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -557,6 +557,281 @@ public class StudentRegistrationServiceImpl implements StudentRegistrationServic
         } catch (Exception e) {
             log.error("获取学生分类学习进度详情过程中发生异常: {}", e.getMessage(), e);
             return null;
+        }
+    }
+
+    @Override
+    public List<CategoryWithProgress> getStudentBoundCategoriesWithProgress(Integer userId) {
+        try {
+            // 1. 获取学生的分类绑定关系
+            List<StudentCategoryBinding> bindings = studentCategoryBindingService.getStudentCategoryProgressDetails(userId);
+            if (bindings == null || bindings.isEmpty()) {
+                log.warn("学生 {} 没有分类绑定关系", userId);
+                return new ArrayList<>();
+            }
+
+            // 2. 为每个分类创建增强信息对象
+            List<CategoryWithProgress> result = new ArrayList<>();
+            for (StudentCategoryBinding binding : bindings) {
+                CategoryWithProgress categoryWithProgress = new CategoryWithProgress();
+                
+                // 获取分类基本信息
+                KnowledgeCategory category = knowledgeCategoryService.findCategoryById(binding.getCategoryId());
+                if (category == null) {
+                    log.warn("分类 {} 不存在", binding.getCategoryId());
+                    continue;
+                }
+                
+                // 设置分类基本信息
+                categoryWithProgress.setId(category.getId());
+                categoryWithProgress.setCategoryName(category.getCategoryName());
+                categoryWithProgress.setCategoryNameFr(category.getCategoryNameFr());
+                categoryWithProgress.setCategoryCode(category.getCategoryCode());
+                categoryWithProgress.setDescription(category.getDescription());
+                categoryWithProgress.setDescriptionFr(category.getDescriptionFr());
+                categoryWithProgress.setGradeId(category.getGradeId());
+                categoryWithProgress.setIconUrl(category.getIconUrl());
+                categoryWithProgress.setIconClass(category.getIconClass());
+                categoryWithProgress.setSortOrder(category.getSortOrder());
+                
+                // 设置学习进度统计
+                categoryWithProgress.setTotalKnowledgePoints(binding.getTotalKnowledgePoints());
+                categoryWithProgress.setCompletedKnowledgePoints(binding.getCompletedKnowledgePoints());
+                categoryWithProgress.setInProgressKnowledgePoints(binding.getInProgressKnowledgePoints());
+                categoryWithProgress.setNotStartedKnowledgePoints(binding.getNotStartedKnowledgePoints());
+                categoryWithProgress.setOverallProgress(binding.getOverallProgress());
+                categoryWithProgress.setTotalStudyDuration(binding.getTotalStudyDuration());
+                categoryWithProgress.setLastStudyTime(binding.getLastStudyTime());
+                categoryWithProgress.setStartTime(binding.getStartTime());
+                categoryWithProgress.setCompleteTime(binding.getCompleteTime());
+                categoryWithProgress.setBindingStatus(binding.getBindingStatus());
+                
+                // 计算难度分布
+                calculateDifficultyDistribution(categoryWithProgress, userId, category.getId());
+                
+                // 设置创建和更新时间
+                categoryWithProgress.setCreateAt(binding.getCreateAt());
+                categoryWithProgress.setUpdateAt(binding.getUpdateAt());
+                
+                result.add(categoryWithProgress);
+            }
+            
+            // 3. 按sortOrder排序
+            result.sort(Comparator.comparing(CategoryWithProgress::getSortOrder));
+            
+            log.info("获取学生 {} 的分类列表成功，共 {} 个分类", userId, result.size());
+            return result;
+            
+        } catch (Exception e) {
+            log.error("获取学生绑定分类过程发生异常: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 计算分类下的难度分布
+     */
+    private void calculateDifficultyDistribution(CategoryWithProgress categoryWithProgress, Integer userId, Integer categoryId) {
+        try {
+            // 获取分类下的所有知识点
+            List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryId(categoryId);
+            
+            if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+                categoryWithProgress.setEasyCount(0);
+                categoryWithProgress.setMediumCount(0);
+                categoryWithProgress.setHardCount(0);
+                categoryWithProgress.setAverageDifficulty(BigDecimal.ZERO);
+                return;
+            }
+            
+            // 创建知识点ID到难度的映射
+            Map<Integer, Integer> pointDifficultyMap = knowledgePoints.stream()
+                .collect(Collectors.toMap(
+                    KnowledgePoint::getId, 
+                    kp -> kp.getDifficultyLevel() != null ? kp.getDifficultyLevel() : 1
+                ));
+            
+            // 统计难度分布
+            int easyCount = 0;
+            int mediumCount = 0;
+            int hardCount = 0;
+            int totalDifficulty = 0;
+            int countedPoints = 0;
+            
+            for (KnowledgePoint kp : knowledgePoints) {
+                Integer difficulty = pointDifficultyMap.get(kp.getId());
+                if (difficulty == null) {
+                    difficulty = 1;
+                }
+                
+                switch (difficulty) {
+                    case 1:
+                        easyCount++;
+                        break;
+                    case 2:
+                        mediumCount++;
+                        break;
+                    case 3:
+                        hardCount++;
+                        break;
+                }
+                
+                totalDifficulty += difficulty;
+                countedPoints++;
+            }
+            
+            categoryWithProgress.setEasyCount(easyCount);
+            categoryWithProgress.setMediumCount(mediumCount);
+            categoryWithProgress.setHardCount(hardCount);
+            
+            // 计算平均难度
+            if (countedPoints > 0) {
+                BigDecimal avgDifficulty = new BigDecimal(totalDifficulty)
+                    .divide(new BigDecimal(countedPoints), 2, BigDecimal.ROUND_HALF_UP);
+                categoryWithProgress.setAverageDifficulty(avgDifficulty);
+            } else {
+                categoryWithProgress.setAverageDifficulty(BigDecimal.ZERO);
+            }
+            
+        } catch (Exception e) {
+            log.error("计算难度分布时发生异常: {}", e.getMessage());
+            categoryWithProgress.setEasyCount(0);
+            categoryWithProgress.setMediumCount(0);
+            categoryWithProgress.setHardCount(0);
+            categoryWithProgress.setAverageDifficulty(BigDecimal.ZERO);
+        }
+    }
+    
+    @Override
+    public List<KnowledgePointWithProgress> getKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId) {
+        try {
+            // 1. 获取知识点列表
+            List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByGradeAndCategory(gradeId, categoryId);
+            if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+                log.warn("年级 {} 分类 {} 没有找到知识点", gradeId, categoryId);
+                return new ArrayList<>();
+            }
+            
+            // 2. 获取分类信息
+            KnowledgeCategory category = knowledgeCategoryService.findCategoryById(categoryId);
+            if (category == null) {
+                log.error("分类 {} 不存在", categoryId);
+                return new ArrayList<>();
+            }
+            
+            // 3. 获取年级信息
+            Grade grade = gradeService.findGradeById(gradeId);
+            if (grade == null) {
+                log.error("年级 {} 不存在", gradeId);
+                return new ArrayList<>();
+            }
+            
+            // 4. 获取学生的学习进度
+            Map<Integer, LearningProgress> progressMap = new HashMap<>();
+            if (userId != null) {
+                List<LearningProgress> progressList = learningProgressService.findLearningProgressByUserId(userId);
+                if (progressList != null) {
+                    progressMap = progressList.stream()
+                        .filter(p -> p.getKnowledgePointId() != null)
+                        .collect(Collectors.toMap(LearningProgress::getKnowledgePointId, p -> p));
+                }
+            }
+            
+            // 5. 构建包含学习进度的知识点列表
+            List<KnowledgePointWithProgress> result = new ArrayList<>();
+            for (KnowledgePoint kp : knowledgePoints) {
+                KnowledgePointWithProgress kpWithProgress = new KnowledgePointWithProgress();
+                
+                // 设置基本信息
+                kpWithProgress.setId(kp.getId());
+                kpWithProgress.setGradeId(kp.getGradeId());
+                kpWithProgress.setCategoryId(kp.getCategoryId());
+                kpWithProgress.setPointName(kp.getPointName());
+                kpWithProgress.setPointNameFr(kp.getPointNameFr());
+                kpWithProgress.setPointCode(kp.getPointCode());
+                kpWithProgress.setDescription(kp.getDescription());
+                kpWithProgress.setDescriptionFr(kp.getDescriptionFr());
+                kpWithProgress.setContent(kp.getContent());
+                kpWithProgress.setContentFr(kp.getContentFr());
+                kpWithProgress.setIconUrl(kp.getIconUrl());
+                kpWithProgress.setIconClass(kp.getIconClass());
+                kpWithProgress.setDifficultyLevel(kp.getDifficultyLevel());
+                kpWithProgress.setSortOrder(kp.getSortOrder());
+                kpWithProgress.setLearningObjectives(kp.getLearningObjectives());
+                kpWithProgress.setLearningObjectivesFr(kp.getLearningObjectivesFr());
+                kpWithProgress.setCreateAt(kp.getCreateAt());
+                kpWithProgress.setUpdateAt(kp.getUpdateAt());
+                
+                // 设置分类信息
+                kpWithProgress.setCategoryName(category.getCategoryName());
+                kpWithProgress.setCategoryNameFr(category.getCategoryNameFr());
+                kpWithProgress.setCategoryCode(category.getCategoryCode());
+                
+                // 设置年级信息
+                kpWithProgress.setGradeName(grade.getGradeName());
+                kpWithProgress.setGradeLevel(grade.getGradeLevel());
+                
+                // 设置学习进度
+                LearningProgress progress = progressMap.get(kp.getId());
+                if (progress != null) {
+                    kpWithProgress.setProgressStatus(progress.getProgressStatus());
+                    kpWithProgress.setCompletionPercentage(progress.getCompletionPercentage());
+                    kpWithProgress.setStartTime(progress.getStartTime());
+                    kpWithProgress.setCompleteTime(progress.getCompleteTime());
+                    kpWithProgress.setStudyDuration(progress.getStudyDuration());
+                    kpWithProgress.setLastStudyTime(progress.getLastStudyTime());
+                    kpWithProgress.setNotes(progress.getNotes());
+                } else {
+                    // 如果没有学习进度，设置为未开始
+                    kpWithProgress.setProgressStatus(1);
+                    kpWithProgress.setCompletionPercentage(BigDecimal.ZERO);
+                    kpWithProgress.setStudyDuration(0);
+                }
+                
+                // 设置难度信息
+                setDifficultyInfo(kpWithProgress, kp.getDifficultyLevel());
+                
+                result.add(kpWithProgress);
+            }
+            
+            // 6. 按排序字段排序
+            result.sort(Comparator.comparing(KnowledgePointWithProgress::getSortOrder));
+            
+            log.info("获取学生 {} 年级 {} 分类 {} 的知识点列表成功，共 {} 条", userId, gradeId, categoryId, result.size());
+            return result;
+            
+        } catch (Exception e) {
+            log.error("获取知识点详情过程中发生异常: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 设置难度信息
+     */
+    private void setDifficultyInfo(KnowledgePointWithProgress kpWithProgress, Integer difficultyLevel) {
+        if (difficultyLevel == null) {
+            kpWithProgress.setDifficultyName("未知");
+            kpWithProgress.setDifficultyDescription("难度等级未设置");
+            return;
+        }
+        
+        switch (difficultyLevel) {
+            case 1:
+                kpWithProgress.setDifficultyName("简单");
+                kpWithProgress.setDifficultyDescription("基础概念，容易理解和掌握");
+                break;
+            case 2:
+                kpWithProgress.setDifficultyName("中等");
+                kpWithProgress.setDifficultyDescription("需要一定练习才能掌握的难度");
+                break;
+            case 3:
+                kpWithProgress.setDifficultyName("困难");
+                kpWithProgress.setDifficultyDescription("高级概念，需要付出较多努力");
+                break;
+            default:
+                kpWithProgress.setDifficultyName("未知");
+                kpWithProgress.setDifficultyDescription("难度等级超出范围");
         }
     }
 }

@@ -84,4 +84,25 @@ public interface StudentTestService {
      * @return 正在进行的测试记录
      */
     List<StudentTestRecord> getOngoingTests(Integer studentId);
+    
+    /**
+     * 为学生生成随机测试（支持难度均匀分配和知识点分类筛选）
+     * @param studentId 学生ID
+     * @param gradeId 年级ID
+     * @param categoryIds 知识点分类ID列表（可选）
+     * @param questionCount 题目数量
+     * @param equalDistribution 是否均匀分配难度（简单、中等、困难）
+     * @return 测试记录
+     */
+    StudentTestRecord generateRandomTestWithDistribution(Integer studentId, Integer gradeId, 
+                                                       List<Integer> categoryIds, 
+                                                       Integer questionCount, 
+                                                       boolean equalDistribution);
+    
+    /**
+     * 获取测试详情（包含题目列表）
+     * @param testRecordId 测试记录ID
+     * @return 测试详情（包含题目列表）
+     */
+    com.yy.my_tutor.test.domain.TestWithQuestionsDTO getTestWithQuestions(Integer testRecordId);
 }

@@ -77,4 +77,27 @@ public class KnowledgePointServiceImpl implements KnowledgePointService {
         int result = knowledgePointMapper.deleteKnowledgePoint(id);
         return result > 0;
     }
+    
+    @Override
+    public List<KnowledgePoint> findKnowledgePointsByCategoryIds(List<Integer> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return knowledgePointMapper.findAllKnowledgePoints();
+        }
+        
+        // 如果只有一个分类ID，使用原有方法
+        if (categoryIds.size() == 1) {
+            return knowledgePointMapper.findKnowledgePointsByCategoryId(categoryIds.get(0));
+        }
+        
+        // 多个分类ID，需要合并结果
+        List<KnowledgePoint> allPoints = new java.util.ArrayList<>();
+        for (Integer categoryId : categoryIds) {
+            List<KnowledgePoint> points = knowledgePointMapper.findKnowledgePointsByCategoryId(categoryId);
+            if (points != null) {
+                allPoints.addAll(points);
+            }
+        }
+        
+        return allPoints;
+    }
 }

@@ -27,8 +27,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, knowledge_point_id, question_type, question_title, question_title_fr, question_content, question_content_fr, 
-        options, options_fr, correct_answer, correct_answer_fr, answer_explanation, answer_explanation_fr, 
+        id, knowledge_point_id, question_type, question_title, question_title_fr, question_content, question_content_fr,
+        options, options_fr, correct_answer, correct_answer_fr, answer_explanation, answer_explanation_fr,
         difficulty_level, points, sort_order, create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
@@ -90,11 +90,13 @@
 
     <select id="findRandomQuestionsByGradeAndDifficulty" resultMap="BaseResultMap">
         SELECT
-        <include refid="Base_Column_List"/>
+            q.id, q.knowledge_point_id, q.question_type, q.question_title, q.question_title_fr, q.question_content, q.question_content_fr,
+            q.options, q.options_fr, q.correct_answer, q.correct_answer_fr, q.answer_explanation, q.answer_explanation_fr,
+            q.difficulty_level, q.points, q.sort_order, q.create_at, q.create_by, q.update_at, q.update_by, q.delete_flag
         FROM question q
         INNER JOIN knowledge_point kp ON q.knowledge_point_id = kp.id
-        WHERE kp.grade_id = #{gradeId} 
-        AND q.difficulty_level = #{difficultyLevel} 
+        WHERE kp.grade_id = #{gradeId}
+        AND q.difficulty_level = #{difficultyLevel}
         AND q.delete_flag = 'N'
         AND kp.delete_flag = 'N'
         ORDER BY RAND()

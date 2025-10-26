@@ -10,6 +10,8 @@ import com.yy.my_tutor.test.domain.StudentTestAnswer;
 import com.yy.my_tutor.test.domain.StudentTestRecord;
 import com.yy.my_tutor.test.domain.Test;
 import com.yy.my_tutor.test.domain.TestQuestion;
+import com.yy.my_tutor.test.domain.TestQuestionDetail;
+import com.yy.my_tutor.test.domain.TestWithQuestionsDTO;
 import com.yy.my_tutor.test.mapper.StudentTestAnswerMapper;
 import com.yy.my_tutor.test.mapper.StudentTestRecordMapper;
 import com.yy.my_tutor.test.mapper.TestMapper;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 学生测试服务实现类
@@ -344,5 +347,253 @@ public class StudentTestServiceImpl implements StudentTestService {
     @Override
     public List<StudentTestRecord> getOngoingTests(Integer studentId) {
         return studentTestRecordMapper.findOngoingTestRecords(studentId);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public StudentTestRecord generateRandomTestWithDistribution(Integer studentId, Integer gradeId, 
+                                                              List<Integer> categoryIds, 
+                                                              Integer questionCount, 
+                                                              boolean equalDistribution) {
+        try {
+            List<Question> allQuestions = new ArrayList<>();
+            
+            if (equalDistribution) {
+                // 均匀分配难度：1/3简单，1/3中等，1/3困难
+                int easyCount = (int) Math.ceil(questionCount / 3.0);
+                int mediumCount = questionCount / 3;
+                int hardCount = questionCount - easyCount - mediumCount;
+                
+                log.info("难度分配：简单={}, 中等={}, 困难={}", easyCount, mediumCount, hardCount);
+                
+                // 获取简单题
+                if (easyCount > 0) {
+                    List<Question> easyQuestions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
+                        gradeId, 1, easyCount);
+                    if (easyQuestions != null) {
+                        allQuestions.addAll(easyQuestions);
+                    }
+                }
+                
+                // 获取中等题
+                if (mediumCount > 0) {
+                    List<Question> mediumQuestions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
+                        gradeId, 2, mediumCount);
+                    if (mediumQuestions != null) {
+                        allQuestions.addAll(mediumQuestions);
+                    }
+                }
+                
+                // 获取困难题
+                if (hardCount > 0) {
+                    List<Question> hardQuestions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
+                        gradeId, 3, hardCount);
+                    if (hardQuestions != null) {
+                        allQuestions.addAll(hardQuestions);
+                    }
+                }
+            } else {
+                // 不均匀分配，随机选择
+                List<Question> questions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
+                    gradeId, 2, questionCount);
+                if (questions != null) {
+                    allQuestions.addAll(questions);
+                }
+            }
+            
+            // 如果指定了知识点分类，进行过滤
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                List<KnowledgePoint> kpList = knowledgePointService.findKnowledgePointsByCategoryIds(categoryIds);
+                Set<Integer> kpIds = kpList.stream()
+                    .map(KnowledgePoint::getId)
+                    .collect(java.util.stream.Collectors.toSet());
+                
+                allQuestions = allQuestions.stream()
+                    .filter(q -> kpIds.contains(q.getKnowledgePointId()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            if (allQuestions.isEmpty()) {
+                log.warn("没有找到符合条件的题目，年级ID: {}, 分类: {}", gradeId, categoryIds);
+                return null;
+            }
+            
+            // 打乱题目顺序
+            Collections.shuffle(allQuestions);
+            
+            // 只取前questionCount道题
+            if (allQuestions.size() > questionCount) {
+                allQuestions = allQuestions.subList(0, questionCount);
+            }
+            
+            // 创建测试
+            Test test = new Test();
+            test.setTestName("随机测试_" + new Date().getTime());
+            test.setGradeId(gradeId);
+            test.setTotalQuestions(allQuestions.size());
+            test.setTotalPoints(allQuestions.size()); // 默认每题1分
+            test.setTimeLimit(60); // 默认60分钟
+            test.setTestType(1); // 练习测试
+            test.setStatus(1); // 启用
+            test.setCreateAt(new Date());
+            test.setUpdateAt(new Date());
+            test.setDeleteFlag("N");
+            
+            int testResult = testMapper.insertTest(test);
+            if (testResult <= 0) {
+                log.error("创建测试失败");
+                return null;
+            }
+            
+            // 创建测试题目关联
+            for (int i = 0; i < allQuestions.size(); i++) {
+                TestQuestion testQuestion = new TestQuestion();
+                testQuestion.setTestId(test.getId());
+                testQuestion.setQuestionId(allQuestions.get(i).getId());
+                testQuestion.setSortOrder(i + 1);
+                testQuestion.setPoints(1);
+                testQuestion.setCreateAt(new Date());
+                
+                testQuestionMapper.insertTestQuestion(testQuestion);
+            }
+            
+            // 创建学生测试记录
+            StudentTestRecord record = new StudentTestRecord();
+            record.setStudentId(studentId);
+            record.setTestId(test.getId());
+            record.setTestName(test.getTestName());
+            record.setStartTime(new Date());
+            record.setTotalQuestions(allQuestions.size());
+            record.setTotalPoints(allQuestions.size());
+            record.setTestStatus(1); // 进行中
+            record.setCreateAt(new Date());
+            record.setUpdateAt(new Date());
+            record.setDeleteFlag("N");
+            
+            int recordResult = studentTestRecordMapper.insertTestRecord(record);
+            if (recordResult <= 0) {
+                log.error("创建测试记录失败");
+                return null;
+            }
+            
+            log.info("为学生 {} 生成随机测试成功，测试ID: {}, 记录ID: {}, 难度分配: {}", 
+                    studentId, test.getId(), record.getId(), equalDistribution);
+            return record;
+            
+        } catch (Exception e) {
+            log.error("生成随机测试时发生异常: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    @Override
+    public TestWithQuestionsDTO getTestWithQuestions(Integer testRecordId) {
+        try {
+            // 1. 获取测试记录
+            StudentTestRecord record = studentTestRecordMapper.findTestRecordById(testRecordId);
+            if (record == null) {
+                log.error("测试记录不存在: {}", testRecordId);
+                return null;
+            }
+            
+            // 2. 获取测试信息
+            Test test = testMapper.findTestById(record.getTestId());
+            if (test == null) {
+                log.error("测试不存在: {}", record.getTestId());
+                return null;
+            }
+            
+            // 3. 获取测试题目关联
+            List<TestQuestion> testQuestions = testQuestionMapper.findTestQuestionsByTestId(test.getId());
+            if (testQuestions == null || testQuestions.isEmpty()) {
+                log.warn("测试 {} 没有题目", test.getId());
+                return null;
+            }
+            
+            // 4. 构建题目详情列表
+            List<TestQuestionDetail> questionDetails = new ArrayList<>();
+            int easyCount = 0;
+            int mediumCount = 0;
+            int hardCount = 0;
+            
+            for (TestQuestion tq : testQuestions) {
+                Question question = questionMapper.findQuestionById(tq.getQuestionId());
+                if (question != null) {
+                    TestQuestionDetail detail = new TestQuestionDetail();
+                    
+                    // 设置题目基本信息
+                    detail.setQuestionId(question.getId());
+                    detail.setSortOrder(tq.getSortOrder());
+                    detail.setPoints(tq.getPoints());
+                    detail.setQuestionTitle(question.getQuestionTitle());
+                    detail.setQuestionTitleFr(question.getQuestionTitleFr());
+                    detail.setQuestionContent(question.getQuestionContent());
+                    detail.setQuestionContentFr(question.getQuestionContentFr());
+                    detail.setOptions(question.getOptions());
+                    detail.setOptionsFr(question.getOptionsFr());
+                    detail.setCorrectAnswer(question.getCorrectAnswer());
+                    detail.setCorrectAnswerFr(question.getCorrectAnswerFr());
+                    detail.setAnswerExplanation(question.getAnswerExplanation());
+                    detail.setAnswerExplanationFr(question.getAnswerExplanationFr());
+                    detail.setDifficultyLevel(question.getDifficultyLevel());
+                    
+                    // 设置知识点信息
+                    detail.setKnowledgePointId(question.getKnowledgePointId());
+                    KnowledgePoint kp = knowledgePointService.findKnowledgePointById(question.getKnowledgePointId());
+                    if (kp != null) {
+                        detail.setKnowledgePointName(kp.getPointName());
+                        detail.setKnowledgePointNameFr(kp.getPointNameFr());
+                    }
+                    
+                    // 统计难度分布
+                    Integer difficulty = question.getDifficultyLevel();
+                    if (difficulty != null) {
+                        switch (difficulty) {
+                            case 1:
+                                easyCount++;
+                                break;
+                            case 2:
+                                mediumCount++;
+                                break;
+                            case 3:
+                                hardCount++;
+                                break;
+                        }
+                    }
+                    
+                    questionDetails.add(detail);
+                }
+            }
+            
+            // 按排序字段排序
+            questionDetails.sort(Comparator.comparing(TestQuestionDetail::getSortOrder));
+            
+            // 5. 构建返回DTO
+            TestWithQuestionsDTO dto = new TestWithQuestionsDTO();
+            dto.setId(record.getId());
+            dto.setStudentId(record.getStudentId());
+            dto.setTestId(record.getTestId());
+            dto.setTestName(record.getTestName());
+            dto.setTestNameFr(record.getTestNameFr());
+            dto.setStartTime(record.getStartTime());
+            dto.setEndTime(record.getEndTime());
+            dto.setTimeLimit(test.getTimeLimit());
+            dto.setTotalQuestions(record.getTotalQuestions());
+            dto.setTotalPoints(record.getTotalPoints());
+            dto.setAnsweredQuestions(record.getAnsweredQuestions());
+            dto.setTestStatus(record.getTestStatus());
+            dto.setCreateAt(record.getCreateAt());
+            dto.setQuestions(questionDetails);
+            dto.setEasyCount(easyCount);
+            dto.setMediumCount(mediumCount);
+            dto.setHardCount(hardCount);
+            
+            log.info("获取测试详情成功，测试记录ID: {}, 题目数量: {}", testRecordId, questionDetails.size());
+            return dto;
+            
+        } catch (Exception e) {
+            log.error("获取测试详情时发生异常: {}", e.getMessage(), e);
+            return null;
+        }
     }
 }

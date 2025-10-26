@@ -1,8 +1,10 @@
 package com.yy.my_tutor.test.controller;
 
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.test.domain.GenerateTestRequest;
 import com.yy.my_tutor.test.domain.StudentTestAnswer;
 import com.yy.my_tutor.test.domain.StudentTestRecord;
+import com.yy.my_tutor.test.domain.TestWithQuestionsDTO;
 import com.yy.my_tutor.test.service.StudentTestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +27,36 @@ public class StudentTestController {
     
     /**
      * 为学生生成随机测试
+     * @param request 生成测试请求（包含学生ID、年级ID、知识点分类、题目数量等）
+     * @return 测试记录
      */
     @PostMapping("/generate-random")
-    public RespResult<StudentTestRecord> generateRandomTest(
-            @RequestParam Integer studentId,
-            @RequestParam Integer gradeId,
-            @RequestParam(defaultValue = "2") Integer difficultyLevel,
-            @RequestParam(defaultValue = "10") Integer questionCount) {
+    public RespResult<TestWithQuestionsDTO> generateRandomTest(@RequestBody GenerateTestRequest request) {
         
-        log.info("为学生 {} 生成随机测试，年级: {}, 难度: {}, 题目数: {}", studentId, gradeId, difficultyLevel, questionCount);
+        if (request.getStudentId() == null || request.getGradeId() == null) {
+            return RespResult.error("学生ID和年级ID不能为空");
+        }
         
-        StudentTestRecord record = studentTestService.generateRandomTestForStudent(studentId, gradeId, difficultyLevel, questionCount);
+        if (request.getQuestionCount() == null || request.getQuestionCount() <= 0) {
+            return RespResult.error("题目数量必须大于0");
+        }
+        
+        log.info("为学生 {} 生成随机测试，年级: {}, 分类: {}, 题目数: {}, 均匀难度分配: {}", 
+                request.getStudentId(), request.getGradeId(), request.getCategoryIds(), 
+                request.getQuestionCount(), request.getEqualDifficultyDistribution());
+        
+        StudentTestRecord record = studentTestService.generateRandomTestWithDistribution(
+                request.getStudentId(), 
+                request.getGradeId(), 
+                request.getCategoryIds(),
+                request.getQuestionCount(),
+                request.getEqualDifficultyDistribution() != null && request.getEqualDifficultyDistribution()
+        );
+        
         if (record != null) {
-            return RespResult.success("生成随机测试成功", record);
+            // 获取测试详情（包含题目列表）
+            TestWithQuestionsDTO testDetails = studentTestService.getTestWithQuestions(record.getId());
+            return RespResult.success("生成随机测试成功", testDetails);
         } else {
             return RespResult.error("生成随机测试失败");
         }

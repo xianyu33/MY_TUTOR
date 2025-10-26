@@ -2,6 +2,8 @@ package com.yy.my_tutor.user.controller;
 
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.math.domain.KnowledgeCategory;
+import com.yy.my_tutor.user.domain.CategoryWithProgress;
+import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import com.yy.my_tutor.user.domain.LearningProgressStats;
 import com.yy.my_tutor.user.domain.StudentCategoryBinding;
 import com.yy.my_tutor.user.service.StudentRegistrationService;
@@ -111,6 +113,24 @@ public class StudentCourseController {
     }
     
     /**
+     * 获取学生绑定的知识点分类列表（包含学习进度统计和难度分布）
+     * @param userId 学生ID
+     * @return 学生绑定的知识点分类列表（包含学习进度）
+     */
+    @GetMapping("/bound-categories-with-progress/{userId}")
+    public RespResult<List<CategoryWithProgress>> getStudentBoundCategoriesWithProgress(@PathVariable Integer userId) {
+        log.info("获取学生 {} 绑定的知识点分类列表（包含学习进度）", userId);
+        
+        try {
+            List<CategoryWithProgress> categories = studentRegistrationService.getStudentBoundCategoriesWithProgress(userId);
+            return RespResult.success("获取学生绑定分类列表成功", categories);
+        } catch (Exception e) {
+            log.error("获取学生绑定分类过程中发生异常: {}", e.getMessage(), e);
+            return RespResult.error("获取学生绑定分类失败: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 根据年级获取知识点分类列表
      * @param gradeId 年级ID
      * @return 知识点分类列表
@@ -168,6 +188,30 @@ public class StudentCourseController {
         } catch (Exception e) {
             log.error("获取学生分类学习进度详情过程中发生异常: {}", e.getMessage(), e);
             return RespResult.error("获取学生分类学习进度详情失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据知识点分类和年级查询知识点详情（包含学生学习进度）
+     * @param userId 学生ID
+     * @param gradeId 年级ID
+     * @param categoryId 分类ID
+     * @return 知识点详情列表（包含学习进度）
+     */
+    @GetMapping("/knowledge-points/{userId}/grade/{gradeId}/category/{categoryId}")
+    public RespResult<List<KnowledgePointWithProgress>> getKnowledgePointsWithProgress(
+            @PathVariable Integer userId,
+            @PathVariable Integer gradeId,
+            @PathVariable Integer categoryId) {
+        log.info("获取学生 {} 年级 {} 分类 {} 的知识点详情", userId, gradeId, categoryId);
+        
+        try {
+            List<KnowledgePointWithProgress> knowledgePoints = 
+                studentRegistrationService.getKnowledgePointsWithProgress(userId, gradeId, categoryId);
+            return RespResult.success("获取知识点详情成功", knowledgePoints);
+        } catch (Exception e) {
+            log.error("获取知识点详情过程中发生异常: {}", e.getMessage(), e);
+            return RespResult.error("获取知识点详情失败: " + e.getMessage());
         }
     }
 }
