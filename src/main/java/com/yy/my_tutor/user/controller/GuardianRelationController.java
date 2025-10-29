@@ -21,7 +21,7 @@ public class GuardianRelationController {
                                                                @PathVariable Integer guardianType) {
         return RespResult.success(relService.listByGuardian(guardianId, guardianType));
     }
-    
+
     /**
      * 根据家长/老师ID和类型查询绑定的学生详细信息（POST请求）
      * @param guardianId 家长/老师ID
@@ -34,7 +34,7 @@ public class GuardianRelationController {
             @PathVariable Integer guardianType) {
         return RespResult.success(relService.getStudentsWithDetailsByGuardian(guardianId, guardianType));
     }
-    
+
     @GetMapping("/guardian/{guardianId}/type/{guardianType}/details")
     public RespResult<List<GuardianStudentRel>> listByGuardianWithDetails(@PathVariable Integer guardianId,
                                                                           @PathVariable Integer guardianType) {
@@ -67,7 +67,7 @@ public class GuardianRelationController {
         return RespResult.error("更新失败");
     }
 
-    @DeleteMapping("/{id}")
+    @GetMapping("/delete/{id}")
     public RespResult<String> unbind(@PathVariable Long id) {
         boolean ok = relService.unbind(id);
         return ok ? RespResult.success("解绑成功") : RespResult.error("解绑失败");
