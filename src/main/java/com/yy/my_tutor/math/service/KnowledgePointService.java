@@ -1,6 +1,7 @@
 package com.yy.my_tutor.math.service;
 
 import com.yy.my_tutor.math.domain.KnowledgePoint;
+import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 
 import java.util.List;
 
@@ -43,6 +44,11 @@ public interface KnowledgePointService {
      * 根据难度等级查询知识点
      */
     List<KnowledgePoint> findKnowledgePointsByDifficulty(Integer difficultyLevel);
+    
+    /**
+     * 根据学生ID、年级ID和分类ID查询知识点列表（包含学习进度）
+     */
+    List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId);
     
     /**
      * 新增知识点

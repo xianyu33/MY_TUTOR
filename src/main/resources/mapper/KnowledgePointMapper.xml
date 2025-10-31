@@ -120,4 +120,99 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 知识点包含学习进度的结果映射 -->
+    <resultMap id="KnowledgePointWithProgressMap" type="com.yy.my_tutor.user.domain.KnowledgePointWithProgress">
+        <!-- 知识点基本信息 -->
+        <id column="kp_id" property="id" jdbcType="INTEGER"/>
+        <result column="kp_grade_id" property="gradeId" jdbcType="INTEGER"/>
+        <result column="kp_category_id" property="categoryId" jdbcType="INTEGER"/>
+        <result column="kp_point_name" property="pointName" jdbcType="VARCHAR"/>
+        <result column="kp_point_name_fr" property="pointNameFr" jdbcType="VARCHAR"/>
+        <result column="kp_point_code" property="pointCode" jdbcType="VARCHAR"/>
+        <result column="kp_description" property="description" jdbcType="VARCHAR"/>
+        <result column="kp_description_fr" property="descriptionFr" jdbcType="VARCHAR"/>
+        <result column="kp_content" property="content" jdbcType="VARCHAR"/>
+        <result column="kp_content_fr" property="contentFr" jdbcType="VARCHAR"/>
+        <result column="kp_icon_url" property="iconUrl" jdbcType="VARCHAR"/>
+        <result column="kp_icon_class" property="iconClass" jdbcType="VARCHAR"/>
+        <result column="kp_difficulty_level" property="difficultyLevel" jdbcType="TINYINT"/>
+        <result column="kp_sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="kp_learning_objectives" property="learningObjectives" jdbcType="VARCHAR"/>
+        <result column="kp_learning_objectives_fr" property="learningObjectivesFr" jdbcType="VARCHAR"/>
+        <result column="kp_create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="kp_update_at" property="updateAt" jdbcType="TIMESTAMP"/>
+        
+        <!-- 分类信息 -->
+        <result column="kc_category_name" property="categoryName" jdbcType="VARCHAR"/>
+        <result column="kc_category_name_fr" property="categoryNameFr" jdbcType="VARCHAR"/>
+        <result column="kc_category_code" property="categoryCode" jdbcType="VARCHAR"/>
+        
+        <!-- 年级信息 -->
+        <result column="g_grade_name" property="gradeName" jdbcType="VARCHAR"/>
+        <result column="g_grade_level" property="gradeLevel" jdbcType="INTEGER"/>
+        
+        <!-- 学习进度信息 -->
+        <result column="lp_progress_status" property="progressStatus" jdbcType="TINYINT"/>
+        <result column="lp_completion_percentage" property="completionPercentage" jdbcType="DECIMAL"/>
+        <result column="lp_start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="lp_complete_time" property="completeTime" jdbcType="TIMESTAMP"/>
+        <result column="lp_study_duration" property="studyDuration" jdbcType="INTEGER"/>
+        <result column="lp_last_study_time" property="lastStudyTime" jdbcType="TIMESTAMP"/>
+        <result column="lp_notes" property="notes" jdbcType="VARCHAR"/>
+        
+        <!-- 难度信息（通过CASE WHEN转换） -->
+        <result column="difficulty_name" property="difficultyName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 根据学生ID、年级ID和分类ID查询知识点列表（包含学习进度） -->
+    <select id="findKnowledgePointsWithProgress" resultMap="KnowledgePointWithProgressMap">
+        SELECT 
+            kp.id AS kp_id,
+            kp.grade_id AS kp_grade_id,
+            kp.category_id AS kp_category_id,
+            kp.point_name AS kp_point_name,
+            kp.point_name_fr AS kp_point_name_fr,
+            kp.point_code AS kp_point_code,
+            kp.description AS kp_description,
+            kp.description_fr AS kp_description_fr,
+            kp.content AS kp_content,
+            kp.content_fr AS kp_content_fr,
+            kp.icon_url AS kp_icon_url,
+            kp.icon_class AS kp_icon_class,
+            kp.difficulty_level AS kp_difficulty_level,
+            kp.sort_order AS kp_sort_order,
+            kp.learning_objectives AS kp_learning_objectives,
+            kp.learning_objectives_fr AS kp_learning_objectives_fr,
+            kp.create_at AS kp_create_at,
+            kp.update_at AS kp_update_at,
+            kc.category_name AS kc_category_name,
+            kc.category_name_fr AS kc_category_name_fr,
+            kc.category_code AS kc_category_code,
+            g.grade_name AS g_grade_name,
+            g.grade_level AS g_grade_level,
+            COALESCE(lp.progress_status, 1) AS lp_progress_status,
+            COALESCE(lp.completion_percentage, 0.00) AS lp_completion_percentage,
+            lp.start_time AS lp_start_time,
+            lp.complete_time AS lp_complete_time,
+            COALESCE(lp.study_duration, 0) AS lp_study_duration,
+            lp.last_study_time AS lp_last_study_time,
+            lp.notes AS lp_notes,
+            CASE kp.difficulty_level
+                WHEN 1 THEN '简单'
+                WHEN 2 THEN '中等'
+                WHEN 3 THEN '困难'
+                ELSE '未知'
+            END AS difficulty_name
+        FROM knowledge_point kp
+        INNER JOIN knowledge_category kc ON kp.category_id = kc.id AND kc.delete_flag = 'N'
+        INNER JOIN grade g ON kp.grade_id = g.id AND g.delete_flag = 'N'
+        LEFT JOIN learning_progress lp ON kp.id = lp.knowledge_point_id 
+            AND (lp.user_id = #{userId} OR #{userId} IS NULL)
+            AND lp.delete_flag = 'N'
+        WHERE kp.delete_flag = 'N'
+            AND kp.grade_id = #{gradeId}
+            AND kp.category_id = #{categoryId}
+        ORDER BY kp.sort_order ASC, kp.id ASC
+    </select>
+
 </mapper>

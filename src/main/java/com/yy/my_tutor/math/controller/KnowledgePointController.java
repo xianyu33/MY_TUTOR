@@ -2,7 +2,9 @@ package com.yy.my_tutor.math.controller;
 
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.math.domain.KnowledgePoint;
+import com.yy.my_tutor.math.domain.KnowledgePointQueryRequest;
 import com.yy.my_tutor.math.service.KnowledgePointService;
+import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,6 +68,17 @@ public class KnowledgePointController {
     public RespResult<List<KnowledgePoint>> findKnowledgePointsByGradeAndCategory(
             @PathVariable Integer gradeId, @PathVariable Integer categoryId) {
         List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByGradeAndCategory(gradeId, categoryId);
+        return RespResult.success(knowledgePoints);
+    }
+    
+    /**
+     * 根据学生、年级和分类查询知识点列表（包含学习进度）
+     */
+    @PostMapping("/query-with-progress")
+    public RespResult<List<KnowledgePointWithProgress>> findKnowledgePointsWithProgress(
+            @RequestBody KnowledgePointQueryRequest request) {
+        List<KnowledgePointWithProgress> knowledgePoints = knowledgePointService.findKnowledgePointsWithProgress(
+                request.getStudentId(), request.getGradeId(), request.getCategoryId());
         return RespResult.success(knowledgePoints);
     }
     

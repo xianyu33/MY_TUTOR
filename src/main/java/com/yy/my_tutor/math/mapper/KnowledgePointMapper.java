@@ -1,6 +1,7 @@
 package com.yy.my_tutor.math.mapper;
 
 import com.yy.my_tutor.math.domain.KnowledgePoint;
+import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -46,6 +47,14 @@ public interface KnowledgePointMapper {
      * 根据难度等级查询知识点
      */
     List<KnowledgePoint> findKnowledgePointsByDifficulty(@Param("difficultyLevel") Integer difficultyLevel);
+    
+    /**
+     * 根据学生ID、年级ID和分类ID查询知识点列表（包含学习进度）
+     */
+    List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(
+            @Param("userId") Integer userId, 
+            @Param("gradeId") Integer gradeId, 
+            @Param("categoryId") Integer categoryId);
     
     /**
      * 插入知识点

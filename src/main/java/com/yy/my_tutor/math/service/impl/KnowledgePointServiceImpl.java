@@ -3,6 +3,7 @@ package com.yy.my_tutor.math.service.impl;
 import com.yy.my_tutor.math.domain.KnowledgePoint;
 import com.yy.my_tutor.math.mapper.KnowledgePointMapper;
 import com.yy.my_tutor.math.service.KnowledgePointService;
+import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,11 @@ public class KnowledgePointServiceImpl implements KnowledgePointService {
     @Override
     public List<KnowledgePoint> findKnowledgePointsByDifficulty(Integer difficultyLevel) {
         return knowledgePointMapper.findKnowledgePointsByDifficulty(difficultyLevel);
+    }
+    
+    @Override
+    public List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId) {
+        return knowledgePointMapper.findKnowledgePointsWithProgress(userId, gradeId, categoryId);
     }
     
     @Override
