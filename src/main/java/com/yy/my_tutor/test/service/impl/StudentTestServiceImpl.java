@@ -364,59 +364,73 @@ public class StudentTestServiceImpl implements StudentTestService {
         try {
             List<Question> allQuestions = new ArrayList<>();
             
+            // 先根据年级和分类筛选出符合条件的题目池
             if (equalDistribution) {
                 // 均匀分配难度：1/3简单，1/3中等，1/3困难
                 int easyCount = (int) Math.ceil(questionCount / 3.0);
                 int mediumCount = questionCount / 3;
                 int hardCount = questionCount - easyCount - mediumCount;
                 
-                log.info("难度分配：简单={}, 中等={}, 困难={}", easyCount, mediumCount, hardCount);
+                log.info("难度分配：简单={}, 中等={}, 困难={}，年级ID: {}, 分类: {}", 
+                        easyCount, mediumCount, hardCount, gradeId, categoryIds);
                 
-                // 获取简单题
+                // 从符合条件的题目池中获取简单题
                 if (easyCount > 0) {
-                    List<Question> easyQuestions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
-                        gradeId, 1, easyCount);
-                    if (easyQuestions != null) {
-                        allQuestions.addAll(easyQuestions);
+                    List<Question> easyQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                        gradeId, categoryIds, 1);
+                    if (easyQuestionPool != null && !easyQuestionPool.isEmpty()) {
+                        // 打乱顺序后取指定数量
+                        Collections.shuffle(easyQuestionPool);
+                        int actualEasyCount = Math.min(easyCount, easyQuestionPool.size());
+                        allQuestions.addAll(easyQuestionPool.subList(0, actualEasyCount));
+                        log.info("从题目池中获取简单题: 需要{}, 实际获取{}", easyCount, actualEasyCount);
+                    } else {
+                        log.warn("没有找到符合条件的简单题，年级ID: {}, 分类: {}", gradeId, categoryIds);
                     }
                 }
                 
-                // 获取中等题
+                // 从符合条件的题目池中获取中等题
                 if (mediumCount > 0) {
-                    List<Question> mediumQuestions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
-                        gradeId, 2, mediumCount);
-                    if (mediumQuestions != null) {
-                        allQuestions.addAll(mediumQuestions);
+                    List<Question> mediumQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                        gradeId, categoryIds, 2);
+                    if (mediumQuestionPool != null && !mediumQuestionPool.isEmpty()) {
+                        // 打乱顺序后取指定数量
+                        Collections.shuffle(mediumQuestionPool);
+                        int actualMediumCount = Math.min(mediumCount, mediumQuestionPool.size());
+                        allQuestions.addAll(mediumQuestionPool.subList(0, actualMediumCount));
+                        log.info("从题目池中获取中等题: 需要{}, 实际获取{}", mediumCount, actualMediumCount);
+                    } else {
+                        log.warn("没有找到符合条件的中等题，年级ID: {}, 分类: {}", gradeId, categoryIds);
                     }
                 }
                 
-                // 获取困难题
+                // 从符合条件的题目池中获取困难题
                 if (hardCount > 0) {
-                    List<Question> hardQuestions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
-                        gradeId, 3, hardCount);
-                    if (hardQuestions != null) {
-                        allQuestions.addAll(hardQuestions);
+                    List<Question> hardQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                        gradeId, categoryIds, 3);
+                    if (hardQuestionPool != null && !hardQuestionPool.isEmpty()) {
+                        // 打乱顺序后取指定数量
+                        Collections.shuffle(hardQuestionPool);
+                        int actualHardCount = Math.min(hardCount, hardQuestionPool.size());
+                        allQuestions.addAll(hardQuestionPool.subList(0, actualHardCount));
+                        log.info("从题目池中获取困难题: 需要{}, 实际获取{}", hardCount, actualHardCount);
+                    } else {
+                        log.warn("没有找到符合条件的困难题，年级ID: {}, 分类: {}", gradeId, categoryIds);
                     }
                 }
             } else {
-                // 不均匀分配，随机选择
-                List<Question> questions = questionMapper.findRandomQuestionsByGradeAndDifficulty(
-                    gradeId, 2, questionCount);
-                if (questions != null) {
-                    allQuestions.addAll(questions);
+                // 不均匀分配，从符合条件的题目池中随机选择（不限制难度）
+                List<Question> questionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                    gradeId, categoryIds, null);
+                if (questionPool != null && !questionPool.isEmpty()) {
+                    // 打乱顺序后取指定数量
+                    Collections.shuffle(questionPool);
+                    int actualCount = Math.min(questionCount, questionPool.size());
+                    allQuestions.addAll(questionPool.subList(0, actualCount));
+                    log.info("从题目池中随机获取题目: 需要{}, 实际获取{}", questionCount, actualCount);
+                } else {
+                    log.warn("没有找到符合条件的题目，年级ID: {}, 分类: {}", gradeId, categoryIds);
                 }
-            }
-            
-            // 如果指定了知识点分类，进行过滤
-            if (categoryIds != null && !categoryIds.isEmpty()) {
-                List<KnowledgePoint> kpList = knowledgePointService.findKnowledgePointsByCategoryIds(categoryIds);
-                Set<Integer> kpIds = kpList.stream()
-                    .map(KnowledgePoint::getId)
-                    .collect(java.util.stream.Collectors.toSet());
-                
-                allQuestions = allQuestions.stream()
-                    .filter(q -> kpIds.contains(q.getKnowledgePointId()))
-                    .collect(java.util.stream.Collectors.toList());
             }
             
             if (allQuestions.isEmpty()) {
@@ -424,13 +438,8 @@ public class StudentTestServiceImpl implements StudentTestService {
                 return null;
             }
             
-            // 打乱题目顺序
+            // 最终打乱所有题目顺序
             Collections.shuffle(allQuestions);
-            
-            // 只取前questionCount道题
-            if (allQuestions.size() > questionCount) {
-                allQuestions = allQuestions.subList(0, questionCount);
-            }
             
             // 创建测试
             Test test = new Test();

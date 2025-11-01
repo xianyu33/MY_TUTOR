@@ -55,6 +55,13 @@ public interface QuestionMapper {
                                                           @Param("limit") Integer limit);
     
     /**
+     * 根据年级、分类ID和难度筛选符合条件的题目（不限制数量，用于获取题目池）
+     */
+    List<Question> findQuestionsByGradeCategoryAndDifficulty(@Param("gradeId") Integer gradeId,
+                                                             @Param("categoryIds") List<Integer> categoryIds,
+                                                             @Param("difficultyLevel") Integer difficultyLevel);
+    
+    /**
      * 插入问题
      */
     int insertQuestion(Question question);

@@ -30,3 +30,4 @@ public class KnowledgePointQueryRequest implements Serializable {
     private Integer categoryId;
 }
 
+

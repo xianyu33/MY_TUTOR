@@ -103,6 +103,28 @@
         LIMIT #{limit}
     </select>
 
+    <select id="findQuestionsByGradeCategoryAndDifficulty" resultMap="BaseResultMap">
+        SELECT
+            q.id, q.knowledge_point_id, q.question_type, q.question_title, q.question_title_fr, q.question_content, q.question_content_fr,
+            q.options, q.options_fr, q.correct_answer, q.correct_answer_fr, q.answer_explanation, q.answer_explanation_fr,
+            q.difficulty_level, q.points, q.sort_order, q.create_at, q.create_by, q.update_at, q.update_by, q.delete_flag
+        FROM question q
+        INNER JOIN knowledge_point kp ON q.knowledge_point_id = kp.id
+        WHERE kp.grade_id = #{gradeId}
+        AND q.delete_flag = 'N'
+        AND kp.delete_flag = 'N'
+        <if test="categoryIds != null and categoryIds.size() > 0">
+            AND kp.category_id IN
+            <foreach collection="categoryIds" item="categoryId" open="(" separator="," close=")">
+                #{categoryId}
+            </foreach>
+        </if>
+        <if test="difficultyLevel != null">
+            AND q.difficulty_level = #{difficultyLevel}
+        </if>
+        ORDER BY RAND()
+    </select>
+
     <insert id="insertQuestion" parameterType="com.yy.my_tutor.math.domain.Question" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO question (knowledge_point_id, question_type, question_title, question_content, options,
                              correct_answer, answer_explanation, difficulty_level, points, sort_order,
