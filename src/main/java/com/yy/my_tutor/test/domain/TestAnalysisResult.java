@@ -176,14 +176,29 @@ public class TestAnalysisResult implements Serializable {
         private String strongSummary;
         
         /**
+         * 掌握较好的知识点摘要（法语）
+         */
+        private String strongSummaryFr;
+        
+        /**
          * 需要改进的知识点摘要
          */
         private String needsImprovementSummary;
         
         /**
+         * 需要改进的知识点摘要（法语）
+         */
+        private String needsImprovementSummaryFr;
+        
+        /**
          * 薄弱知识点摘要
          */
         private String weakSummary;
+        
+        /**
+         * 薄弱知识点摘要（法语）
+         */
+        private String weakSummaryFr;
     }
 }
 

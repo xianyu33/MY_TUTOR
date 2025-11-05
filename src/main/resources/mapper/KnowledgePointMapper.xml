@@ -28,8 +28,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, grade_id, category_id, point_name, point_name_fr, point_code, description, description_fr, content, content_fr, 
-        icon_url, icon_class, difficulty_level, sort_order, prerequisite_points, learning_objectives, learning_objectives_fr, 
+        id, grade_id, category_id, point_name, point_name_fr, point_code, description, description_fr, content, content_fr,
+        icon_url, icon_class, difficulty_level, sort_order, prerequisite_points, learning_objectives, learning_objectives_fr,
         create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
@@ -52,7 +52,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM knowledge_point
-        WHERE grade_id = #{gradeId} AND delete_flag = 'N'
+        WHERE id = #{gradeId} AND delete_flag = 'N'
         ORDER BY sort_order ASC
     </select>
 
@@ -60,7 +60,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM knowledge_point
-        WHERE category_id = #{categoryId} AND delete_flag = 'N'
+        WHERE id = #{categoryId} AND delete_flag = 'N'
         ORDER BY grade_id, sort_order ASC
     </select>
 
@@ -88,11 +88,11 @@
     </select>
 
     <insert id="insertKnowledgePoint" parameterType="com.yy.my_tutor.math.domain.KnowledgePoint" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO knowledge_point (grade_id, category_id, point_name, point_code, description, content, 
-                                   difficulty_level, sort_order, prerequisite_points, learning_objectives, 
+        INSERT INTO knowledge_point (grade_id, category_id, point_name, point_code, description, content,
+                                   difficulty_level, sort_order, prerequisite_points, learning_objectives,
                                    create_at, create_by, update_at, update_by, delete_flag)
-        VALUES (#{gradeId}, #{categoryId}, #{pointName}, #{pointCode}, #{description}, #{content}, 
-                #{difficultyLevel}, #{sortOrder}, #{prerequisitePoints}, #{learningObjectives}, 
+        VALUES (#{gradeId}, #{categoryId}, #{pointName}, #{pointCode}, #{description}, #{content},
+                #{difficultyLevel}, #{sortOrder}, #{prerequisitePoints}, #{learningObjectives},
                 NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
     </insert>
 
@@ -141,16 +141,16 @@
         <result column="kp_learning_objectives_fr" property="learningObjectivesFr" jdbcType="VARCHAR"/>
         <result column="kp_create_at" property="createAt" jdbcType="TIMESTAMP"/>
         <result column="kp_update_at" property="updateAt" jdbcType="TIMESTAMP"/>
-        
+
         <!-- 分类信息 -->
         <result column="kc_category_name" property="categoryName" jdbcType="VARCHAR"/>
         <result column="kc_category_name_fr" property="categoryNameFr" jdbcType="VARCHAR"/>
         <result column="kc_category_code" property="categoryCode" jdbcType="VARCHAR"/>
-        
+
         <!-- 年级信息 -->
         <result column="g_grade_name" property="gradeName" jdbcType="VARCHAR"/>
         <result column="g_grade_level" property="gradeLevel" jdbcType="INTEGER"/>
-        
+
         <!-- 学习进度信息 -->
         <result column="lp_progress_status" property="progressStatus" jdbcType="TINYINT"/>
         <result column="lp_completion_percentage" property="completionPercentage" jdbcType="DECIMAL"/>
@@ -159,14 +159,14 @@
         <result column="lp_study_duration" property="studyDuration" jdbcType="INTEGER"/>
         <result column="lp_last_study_time" property="lastStudyTime" jdbcType="TIMESTAMP"/>
         <result column="lp_notes" property="notes" jdbcType="VARCHAR"/>
-        
+
         <!-- 难度信息（通过CASE WHEN转换） -->
         <result column="difficulty_name" property="difficultyName" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 根据学生ID、年级ID和分类ID查询知识点列表（包含学习进度） -->
     <select id="findKnowledgePointsWithProgress" resultMap="KnowledgePointWithProgressMap">
-        SELECT 
+        SELECT
             kp.id AS kp_id,
             kp.grade_id AS kp_grade_id,
             kp.category_id AS kp_category_id,
@@ -206,7 +206,7 @@
         FROM knowledge_point kp
         INNER JOIN knowledge_category kc ON kp.category_id = kc.id AND kc.delete_flag = 'N'
         INNER JOIN grade g ON kp.grade_id = g.id AND g.delete_flag = 'N'
-        LEFT JOIN learning_progress lp ON kp.id = lp.knowledge_point_id 
+        LEFT JOIN learning_progress lp ON kp.id = lp.knowledge_point_id
             AND (lp.user_id = #{userId} OR #{userId} IS NULL)
             AND lp.delete_flag = 'N'
         WHERE kp.delete_flag = 'N'

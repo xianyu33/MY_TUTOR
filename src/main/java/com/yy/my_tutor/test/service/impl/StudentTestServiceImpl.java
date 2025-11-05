@@ -796,25 +796,71 @@ public class StudentTestServiceImpl implements StudentTestService {
             analysis.setNeedsImprovementPoints(needsImprovementPoints);
             analysis.setWeakPoints(weakPoints);
             
-            // 生成分析摘要
+            // 生成分析摘要（中文）
             String strongSummary = strongPoints.isEmpty() ? "无" : 
-                knowledgePointService.findKnowledgePointsByCategoryIds(strongPoints).stream()
-                    .map(KnowledgePoint::getPointName)
+                strongPoints.stream()
+                    .map(kpId -> {
+                        KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                        return kp != null ? kp.getPointName() : "";
+                    })
+                    .filter(name -> !name.isEmpty())
                     .collect(Collectors.joining(", "));
             
             String needsSummary = needsImprovementPoints.isEmpty() ? "无" :
-                knowledgePointService.findKnowledgePointsByCategoryIds(needsImprovementPoints).stream()
-                    .map(KnowledgePoint::getPointName)
+                needsImprovementPoints.stream()
+                    .map(kpId -> {
+                        KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                        return kp != null ? kp.getPointName() : "";
+                    })
+                    .filter(name -> !name.isEmpty())
                     .collect(Collectors.joining(", "));
             
             String weakSummary = weakPoints.isEmpty() ? "无" :
-                knowledgePointService.findKnowledgePointsByCategoryIds(weakPoints).stream()
-                    .map(KnowledgePoint::getPointName)
+                weakPoints.stream()
+                    .map(kpId -> {
+                        KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                        return kp != null ? kp.getPointName() : "";
+                    })
+                    .filter(name -> !name.isEmpty())
+                    .collect(Collectors.joining(", "));
+            
+            // 生成分析摘要（法语）
+            String strongSummaryFr = strongPoints.isEmpty() ? "Aucun" : 
+                strongPoints.stream()
+                    .map(kpId -> {
+                        KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                        return kp != null && kp.getPointNameFr() != null ? kp.getPointNameFr() : 
+                               (kp != null ? kp.getPointName() : "");
+                    })
+                    .filter(name -> !name.isEmpty())
+                    .collect(Collectors.joining(", "));
+            
+            String needsSummaryFr = needsImprovementPoints.isEmpty() ? "Aucun" :
+                needsImprovementPoints.stream()
+                    .map(kpId -> {
+                        KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                        return kp != null && kp.getPointNameFr() != null ? kp.getPointNameFr() : 
+                               (kp != null ? kp.getPointName() : "");
+                    })
+                    .filter(name -> !name.isEmpty())
+                    .collect(Collectors.joining(", "));
+            
+            String weakSummaryFr = weakPoints.isEmpty() ? "Aucun" :
+                weakPoints.stream()
+                    .map(kpId -> {
+                        KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                        return kp != null && kp.getPointNameFr() != null ? kp.getPointNameFr() : 
+                               (kp != null ? kp.getPointName() : "");
+                    })
+                    .filter(name -> !name.isEmpty())
                     .collect(Collectors.joining(", "));
             
             analysis.setStrongSummary(strongSummary);
+            analysis.setStrongSummaryFr(strongSummaryFr);
             analysis.setNeedsImprovementSummary(needsSummary);
+            analysis.setNeedsImprovementSummaryFr(needsSummaryFr);
             analysis.setWeakSummary(weakSummary);
+            analysis.setWeakSummaryFr(weakSummaryFr);
             
             // 9. 构建返回结果
             TestAnalysisResult result = new TestAnalysisResult();
