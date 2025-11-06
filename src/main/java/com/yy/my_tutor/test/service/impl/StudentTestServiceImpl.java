@@ -443,7 +443,7 @@ public class StudentTestServiceImpl implements StudentTestService {
 
             // 创建测试
             Test test = new Test();
-            test.setTestName("随机测试_" + new Date().getTime());
+            test.setTestName("test_" + new Date().getTime());
             test.setGradeId(gradeId);
             test.setTotalQuestions(allQuestions.size());
             test.setTotalPoints(allQuestions.size()); // 默认每题1分
