@@ -14,4 +14,20 @@ public interface ParentMapper {
     int update(Parent parent);
     int deleteById(Integer id);
     List<Parent> findByUserAccount(String userAccount);
+    
+    /**
+     * 查询未审批的老师（支持名称、电话、邮箱查询）
+     * @param name 名称（模糊查询）
+     * @param tel 电话（模糊查询）
+     * @param email 邮箱（模糊查询）
+     * @return 未审批的老师列表
+     */
+    List<Parent> findUnapprovedTeachers(@Param("name") String name, @Param("tel") String tel, @Param("email") String email);
+    
+    /**
+     * 审批通过老师
+     * @param id 老师ID
+     * @return 影响行数
+     */
+    int approveTeacher(Integer id);
 } 

@@ -47,6 +47,14 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
+        // 如果是老师（type=1），检查审批状态
+        if (user.getType() != null && user.getType() == 1) {
+            if (user.getApprovalStatus() == null || user.getApprovalStatus() == 0) {
+                log.info("老师账号未审批，无法登录: {}", userAccount);
+                return null;
+            }
+        }
+
         // 隐藏敏感信息
         user.setPassword(null);
         //增加 token

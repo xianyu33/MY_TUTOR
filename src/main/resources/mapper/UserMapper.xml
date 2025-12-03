@@ -13,16 +13,19 @@
         <result column="country" property="country" jdbcType="VARCHAR"/>
         <result column="email" property="email" jdbcType="VARCHAR"/>
         <result column="grade" property="grade" jdbcType="VARCHAR"/>
+        <result column="school" property="school" jdbcType="VARCHAR"/>
         <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
         <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
         <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
         <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
         <result column="delete_flag" property="deleteFlag" jdbcType="VARCHAR"/>
         <result column="role" property="role"  jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="TINYINT"/>
+        <result column="approval_status" property="approvalStatus" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_account, username, sex, age, password, tel, country, email, grade,
+        id, user_account, username, sex, age, password, tel, country, email, grade, school,
         create_at, create_by, update_at, update_by, delete_flag
     </sql>
     <update id="update">
@@ -36,6 +39,7 @@
             <if test="country != null">country = #{country},</if>
             <if test="email != null">email = #{email},</if>
             <if test="grade != null">grade = #{grade},</if>
+            <if test="school != null">school = #{school},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
         </set>
@@ -52,6 +56,7 @@
             <if test="country != null">country = #{country},</if>
             <if test="email != null">email = #{email},</if>
             <if test="grade != null">grade = #{grade},</if>
+            <if test="school != null">school = #{school},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
         </set>
@@ -60,12 +65,13 @@
 
     <select id="findByUserAccount" resultMap="BaseResultMap" parameterType="java.lang.String">
         select
-        <include refid="Base_Column_List"/>,"S" AS role
+        <include refid="Base_Column_List"/>,"S" AS role, NULL AS type, NULL AS approval_status
         from user
         where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
         UNION
         select
-        <include refid="Base_Column_List"/>,"P" AS role
+        id, user_account, username, sex, age, password, tel, country, email, grade, school,
+        create_at, create_by, update_at, update_by, delete_flag,"P" AS role, type, approval_status
         from parent
         where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
     </select>
@@ -77,24 +83,25 @@
         where id = #{id} and delete_flag = '0'
     </select>
     <select id="findChild" resultType="com.yy.my_tutor.user.domain.User">
-        SELECT id, user_account, username, sex, age, password, tel, country, email, grade,
+        SELECT id, user_account, username, sex, age, password, tel, country, email, grade, school,
                create_at, create_by, update_at, update_by, delete_flag
         FROM user where parent_id = #{id} AND delete_flag = 0
     </select>
     <select id="findParentById" resultType="com.yy.my_tutor.user.domain.User">
         select
-        <include refid="Base_Column_List"/>
+        id, user_account, username, sex, age, password, tel, country, email, grade, school,
+        create_at, create_by, update_at, update_by, delete_flag
         from parent
         where id = #{id} and delete_flag = '0'
     </select>
 
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.User">
         insert into user (
-            user_account, username, sex, age, password, tel, country, email, grade,
+            user_account, username, sex, age, password, tel, country, email, grade, school,
             create_at, create_by, update_at, update_by, delete_flag, parent_id
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
-            #{country}, #{email}, #{grade}, #{createAt}, #{createBy}, #{updateAt},
+            #{country}, #{email}, #{grade}, #{school}, #{createAt}, #{createBy}, #{updateAt},
             #{updateBy}, #{deleteFlag}, #{parentId}
         )
     </insert>

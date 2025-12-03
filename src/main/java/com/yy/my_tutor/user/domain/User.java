@@ -27,6 +27,7 @@ public class User implements Serializable {
     private String country;
     private String email;
     private String grade;
+    private String school;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createAt;
     private String createBy;
@@ -57,6 +58,16 @@ public class User implements Serializable {
      * P-家长  S-学生
      */
     private String role;
+
+    /**
+     * 类型：0-家长，1-老师（仅用于 parent 表查询）
+     */
+    private Integer type;
+
+    /**
+     * 审批状态：0-未审批，1-已审批（仅用于老师）
+     */
+    private Integer approvalStatus;
 
     private List<ChatMessage> chatMessages;
 

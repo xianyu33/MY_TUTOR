@@ -22,10 +22,15 @@ public class Parent implements Serializable {
     private String country;
     private String email;
     private String grade;
+    private String school;
     /**
      * 0-家长 1-老师
      */
     private Integer type;
+    /**
+     * 审批状态：0-未审批，1-已审批
+     */
+    private Integer approvalStatus;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createAt;
     private String createBy;

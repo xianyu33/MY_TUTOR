@@ -9,6 +9,7 @@ import com.yy.my_tutor.config.GoDaddyEmailSender;
 import com.yy.my_tutor.config.RedisUtil;
 import com.yy.my_tutor.user.domain.StudentSearchRequest;
 import com.yy.my_tutor.user.domain.User;
+import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.StudentRegistrationService;
 import com.yy.my_tutor.user.service.UserService;
 import com.yy.my_tutor.util.CaptchaUtil;
@@ -33,6 +34,9 @@ public class UserController {
 
     @Autowired
     private StudentRegistrationService studentRegistrationService;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Resource
     RedisUtil redisUtil;
@@ -132,7 +136,15 @@ public class UserController {
             return RespResult.success("login success", user);
         }
 
-        return RespResult.error("Incorrect username or password");
+        // 检查是否是未审批的老师
+        User checkUser = userMapper.findByUserAccount(userVo.getUserAccount());
+        if (checkUser != null && checkUser.getType() != null && checkUser.getType() == 1) {
+            if (checkUser.getApprovalStatus() == null || checkUser.getApprovalStatus() == 0) {
+                return RespResult.error("您的账号尚未通过审批，请等待管理员审批");
+            }
+        }
+
+        return RespResult.error("用户名或密码错误");
     }
 
 

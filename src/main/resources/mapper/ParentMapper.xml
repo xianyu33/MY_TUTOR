@@ -13,6 +13,9 @@
         <result column="country" property="country" jdbcType="VARCHAR"/>
         <result column="email" property="email" jdbcType="VARCHAR"/>
         <result column="grade" property="grade" jdbcType="VARCHAR"/>
+        <result column="school" property="school" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="TINYINT"/>
+        <result column="approval_status" property="approvalStatus" jdbcType="TINYINT"/>
         <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
         <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
         <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
@@ -21,7 +24,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_account, username, sex, age, password, tel, country, email, grade,
+        id, user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status,
         create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
@@ -42,11 +45,11 @@
 
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.Parent" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
         insert into parent (
-            user_account, username, sex, age, password, tel, country, email, grade,
+            user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status,
             create_at, create_by, update_at, update_by, delete_flag
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
-            #{country}, #{email}, #{grade}, #{createAt}, #{createBy}, #{updateAt},
+            #{country}, #{email}, #{grade}, #{school}, #{type}, #{approvalStatus}, #{createAt}, #{createBy}, #{updateAt},
             #{updateBy}, #{deleteFlag}
         )
     </insert>
@@ -62,6 +65,9 @@
             <if test="country != null">country = #{country},</if>
             <if test="email != null">email = #{email},</if>
             <if test="grade != null">grade = #{grade},</if>
+            <if test="school != null">school = #{school},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="approvalStatus != null">approval_status = #{approvalStatus},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
         </set>
@@ -78,5 +84,28 @@
         from parent
         where user_account = #{userAccount} and delete_flag = '0'
     </select>
+
+    <select id="findUnapprovedTeachers" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from parent
+        where type = 1 and approval_status = 0 and delete_flag = '0'
+        <if test="name != null and name != ''">
+            and (username like concat('%', #{name}, '%') or user_account like concat('%', #{name}, '%'))
+        </if>
+        <if test="tel != null and tel != ''">
+            and tel like concat('%', #{tel}, '%')
+        </if>
+        <if test="email != null and email != ''">
+            and email like concat('%', #{email}, '%')
+        </if>
+        order by create_at desc
+    </select>
+
+    <update id="approveTeacher" parameterType="java.lang.Integer">
+        update parent
+        set approval_status = 1, update_at = NOW()
+        where id = #{id} and type = 1 and delete_flag = '0'
+    </update>
 
 </mapper>

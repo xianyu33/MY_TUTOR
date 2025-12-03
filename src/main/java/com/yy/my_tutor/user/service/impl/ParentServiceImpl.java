@@ -41,6 +41,11 @@ public class ParentServiceImpl implements ParentService {
         }
         parent.setDeleteFlag("0");
         
+        // 如果是老师（type=1），设置审批状态为0-未审批
+        if (parent.getType() != null && parent.getType() == 1) {
+            parent.setApprovalStatus(0);
+        }
+        
         String decryptedPassword = AESUtil.decryptBase64(parent.getPassword());
         parent.setPassword(DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8)));
 
@@ -71,6 +76,12 @@ public class ParentServiceImpl implements ParentService {
         }
         parent.setCreateAt(new Date());
         parent.setDeleteFlag("0");
+        
+        // 如果是老师（type=1），设置审批状态为0-未审批
+        if (parent.getType() != null && parent.getType() == 1) {
+            parent.setApprovalStatus(0);
+        }
+        
         String decryptedPassword = AESUtil.decryptBase64(parent.getPassword());
         parent.setPassword(DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8)));
         parentMapper.insert(parent);
@@ -93,5 +104,15 @@ public class ParentServiceImpl implements ParentService {
     @Override
     public List<User> findChild(Parent parent) {
         return userMapper.findChild(parent.getId());
+    }
+
+    @Override
+    public List<Parent> findUnapprovedTeachers(String name, String tel, String email) {
+        return parentMapper.findUnapprovedTeachers(name, tel, email);
+    }
+
+    @Override
+    public boolean approveTeacher(Integer id) {
+        return parentMapper.approveTeacher(id) > 0;
     }
 }
