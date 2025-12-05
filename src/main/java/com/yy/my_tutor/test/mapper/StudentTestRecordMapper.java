@@ -58,6 +58,13 @@ public interface StudentTestRecordMapper {
     List<StudentTestRecord> findTestRecordsByStudentIdWithPagination(@Param("studentId") Integer studentId, 
                                                                      @Param("offset") Integer offset, 
                                                                      @Param("limit") Integer limit);
+    
+    /**
+     * 根据学生ID和知识点ID列表查询测试记录
+     * 查询包含指定知识点的测试记录
+     */
+    List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(@Param("studentId") Integer studentId,
+                                                                           @Param("knowledgePointIds") List<Integer> knowledgePointIds);
 }
 
 

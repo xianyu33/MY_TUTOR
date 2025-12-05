@@ -25,9 +25,14 @@ public class GenerateTestRequest {
     private Integer gradeId;
     
     /**
-     * 知识点分类ID列表（可选）
+     * 知识点分类ID列表（可选，已废弃，建议使用knowledgePointIds）
      */
     private List<Integer> categoryIds;
+    
+    /**
+     * 知识点ID列表（可选，优先使用）
+     */
+    private List<Integer> knowledgePointIds;
     
     /**
      * 题目数量

@@ -125,6 +125,23 @@
         ORDER BY RAND()
     </select>
 
+    <select id="findQuestionsByKnowledgePointIdsAndDifficulty" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM question
+        WHERE delete_flag = 'N'
+        <if test="knowledgePointIds != null and knowledgePointIds.size() > 0">
+            AND knowledge_point_id IN
+            <foreach collection="knowledgePointIds" item="knowledgePointId" open="(" separator="," close=")">
+                #{knowledgePointId}
+            </foreach>
+        </if>
+        <if test="difficultyLevel != null">
+            AND difficulty_level = #{difficultyLevel}
+        </if>
+        ORDER BY RAND()
+    </select>
+
     <insert id="insertQuestion" parameterType="com.yy.my_tutor.math.domain.Question" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO question (knowledge_point_id, question_type, question_title, question_content, options,
                              correct_answer, answer_explanation, difficulty_level, points, sort_order,

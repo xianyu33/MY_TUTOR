@@ -358,26 +358,34 @@ public class StudentTestServiceImpl implements StudentTestService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public StudentTestRecord generateRandomTestWithDistribution(Integer studentId, Integer gradeId,
+                                                              List<Integer> knowledgePointIds,
                                                               List<Integer> categoryIds,
                                                               Integer questionCount,
                                                               boolean equalDistribution) {
         try {
             List<Question> allQuestions = new ArrayList<>();
+            boolean useKnowledgePoints = (knowledgePointIds != null && !knowledgePointIds.isEmpty());
 
-            // 先根据年级和分类筛选出符合条件的题目池
+            // 先根据知识点ID或分类筛选出符合条件的题目池
             if (equalDistribution) {
                 // 均匀分配难度：1/3简单，1/3中等，1/3困难
                 int easyCount = (int) Math.ceil(questionCount / 3.0);
                 int mediumCount = questionCount / 3;
                 int hardCount = questionCount - easyCount - mediumCount;
 
-                log.info("难度分配：简单={}, 中等={}, 困难={}，年级ID: {}, 分类: {}",
-                        easyCount, mediumCount, hardCount, gradeId, categoryIds);
+                log.info("难度分配：简单={}, 中等={}, 困难={}，年级ID: {}, 知识点: {}, 分类: {}",
+                        easyCount, mediumCount, hardCount, gradeId, knowledgePointIds, categoryIds);
 
                 // 从符合条件的题目池中获取简单题
                 if (easyCount > 0) {
-                    List<Question> easyQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
-                        gradeId, categoryIds, 1);
+                    List<Question> easyQuestionPool;
+                    if (useKnowledgePoints) {
+                        easyQuestionPool = questionMapper.findQuestionsByKnowledgePointIdsAndDifficulty(
+                            knowledgePointIds, 1);
+                    } else {
+                        easyQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                            gradeId, categoryIds, 1);
+                    }
                     if (easyQuestionPool != null && !easyQuestionPool.isEmpty()) {
                         // 打乱顺序后取指定数量
                         Collections.shuffle(easyQuestionPool);
@@ -385,14 +393,21 @@ public class StudentTestServiceImpl implements StudentTestService {
                         allQuestions.addAll(easyQuestionPool.subList(0, actualEasyCount));
                         log.info("从题目池中获取简单题: 需要{}, 实际获取{}", easyCount, actualEasyCount);
                     } else {
-                        log.warn("没有找到符合条件的简单题，年级ID: {}, 分类: {}", gradeId, categoryIds);
+                        log.warn("没有找到符合条件的简单题，年级ID: {}, 知识点: {}, 分类: {}", 
+                                gradeId, knowledgePointIds, categoryIds);
                     }
                 }
 
                 // 从符合条件的题目池中获取中等题
                 if (mediumCount > 0) {
-                    List<Question> mediumQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
-                        gradeId, categoryIds, 2);
+                    List<Question> mediumQuestionPool;
+                    if (useKnowledgePoints) {
+                        mediumQuestionPool = questionMapper.findQuestionsByKnowledgePointIdsAndDifficulty(
+                            knowledgePointIds, 2);
+                    } else {
+                        mediumQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                            gradeId, categoryIds, 2);
+                    }
                     if (mediumQuestionPool != null && !mediumQuestionPool.isEmpty()) {
                         // 打乱顺序后取指定数量
                         Collections.shuffle(mediumQuestionPool);
@@ -400,14 +415,21 @@ public class StudentTestServiceImpl implements StudentTestService {
                         allQuestions.addAll(mediumQuestionPool.subList(0, actualMediumCount));
                         log.info("从题目池中获取中等题: 需要{}, 实际获取{}", mediumCount, actualMediumCount);
                     } else {
-                        log.warn("没有找到符合条件的中等题，年级ID: {}, 分类: {}", gradeId, categoryIds);
+                        log.warn("没有找到符合条件的中等题，年级ID: {}, 知识点: {}, 分类: {}", 
+                                gradeId, knowledgePointIds, categoryIds);
                     }
                 }
 
                 // 从符合条件的题目池中获取困难题
                 if (hardCount > 0) {
-                    List<Question> hardQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
-                        gradeId, categoryIds, 3);
+                    List<Question> hardQuestionPool;
+                    if (useKnowledgePoints) {
+                        hardQuestionPool = questionMapper.findQuestionsByKnowledgePointIdsAndDifficulty(
+                            knowledgePointIds, 3);
+                    } else {
+                        hardQuestionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                            gradeId, categoryIds, 3);
+                    }
                     if (hardQuestionPool != null && !hardQuestionPool.isEmpty()) {
                         // 打乱顺序后取指定数量
                         Collections.shuffle(hardQuestionPool);
@@ -415,13 +437,20 @@ public class StudentTestServiceImpl implements StudentTestService {
                         allQuestions.addAll(hardQuestionPool.subList(0, actualHardCount));
                         log.info("从题目池中获取困难题: 需要{}, 实际获取{}", hardCount, actualHardCount);
                     } else {
-                        log.warn("没有找到符合条件的困难题，年级ID: {}, 分类: {}", gradeId, categoryIds);
+                        log.warn("没有找到符合条件的困难题，年级ID: {}, 知识点: {}, 分类: {}", 
+                                gradeId, knowledgePointIds, categoryIds);
                     }
                 }
             } else {
                 // 不均匀分配，从符合条件的题目池中随机选择（不限制难度）
-                List<Question> questionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
-                    gradeId, categoryIds, null);
+                List<Question> questionPool;
+                if (useKnowledgePoints) {
+                    questionPool = questionMapper.findQuestionsByKnowledgePointIdsAndDifficulty(
+                        knowledgePointIds, null);
+                } else {
+                    questionPool = questionMapper.findQuestionsByGradeCategoryAndDifficulty(
+                        gradeId, categoryIds, null);
+                }
                 if (questionPool != null && !questionPool.isEmpty()) {
                     // 打乱顺序后取指定数量
                     Collections.shuffle(questionPool);
@@ -429,12 +458,14 @@ public class StudentTestServiceImpl implements StudentTestService {
                     allQuestions.addAll(questionPool.subList(0, actualCount));
                     log.info("从题目池中随机获取题目: 需要{}, 实际获取{}", questionCount, actualCount);
                 } else {
-                    log.warn("没有找到符合条件的题目，年级ID: {}, 分类: {}", gradeId, categoryIds);
+                    log.warn("没有找到符合条件的题目，年级ID: {}, 知识点: {}, 分类: {}", 
+                            gradeId, knowledgePointIds, categoryIds);
                 }
             }
 
             if (allQuestions.isEmpty()) {
-                log.warn("没有找到符合条件的题目，年级ID: {}, 分类: {}", gradeId, categoryIds);
+                log.warn("没有找到符合条件的题目，年级ID: {}, 知识点: {}, 分类: {}", 
+                        gradeId, knowledgePointIds, categoryIds);
                 return null;
             }
 
@@ -491,8 +522,8 @@ public class StudentTestServiceImpl implements StudentTestService {
                 return null;
             }
 
-            log.info("为学生 {} 生成随机测试成功，测试ID: {}, 记录ID: {}, 难度分配: {}",
-                    studentId, test.getId(), record.getId(), equalDistribution);
+            log.info("为学生 {} 生成随机测试成功，测试ID: {}, 记录ID: {}, 难度分配: {}, 使用知识点: {}",
+                    studentId, test.getId(), record.getId(), equalDistribution, useKnowledgePoints);
             return record;
 
         } catch (Exception e) {

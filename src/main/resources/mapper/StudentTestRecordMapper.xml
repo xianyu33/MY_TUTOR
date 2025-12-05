@@ -106,6 +106,27 @@
         LIMIT #{offset}, #{limit}
     </select>
 
+    <select id="findTestRecordsByStudentIdAndKnowledgePointIds" resultMap="BaseResultMap">
+        SELECT DISTINCT str.id, str.student_id, str.test_id, str.test_name, str.test_name_fr,
+               str.start_time, str.end_time, str.submit_time, str.time_spent,
+               str.total_questions, str.answered_questions, str.correct_answers,
+               str.total_points, str.earned_points, str.score_percentage, str.test_status,
+               str.create_at, str.create_by, str.update_at, str.update_by, str.delete_flag
+        FROM student_test_record str
+        INNER JOIN test t ON str.test_id = t.id AND t.delete_flag = 'N'
+        INNER JOIN test_question tq ON t.id = tq.test_id
+        INNER JOIN question q ON tq.question_id = q.id AND q.delete_flag = 'N'
+        WHERE str.student_id = #{studentId}
+        AND str.delete_flag = 'N'
+        <if test="knowledgePointIds != null and knowledgePointIds.size() > 0">
+            AND q.knowledge_point_id IN
+            <foreach collection="knowledgePointIds" item="kpId" open="(" separator="," close=")">
+                #{kpId}
+            </foreach>
+        </if>
+        ORDER BY str.create_at DESC
+    </select>
+
 </mapper>
 
 

@@ -62,6 +62,12 @@ public interface QuestionMapper {
                                                              @Param("difficultyLevel") Integer difficultyLevel);
     
     /**
+     * 根据知识点ID列表和难度筛选符合条件的题目（不限制数量，用于获取题目池）
+     */
+    List<Question> findQuestionsByKnowledgePointIdsAndDifficulty(@Param("knowledgePointIds") List<Integer> knowledgePointIds,
+                                                                  @Param("difficultyLevel") Integer difficultyLevel);
+    
+    /**
      * 插入问题
      */
     int insertQuestion(Question question);

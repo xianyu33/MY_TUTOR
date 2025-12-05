@@ -4,11 +4,25 @@
 
 **接口地址**: `POST /api/student-test/generate-random`
 
-**功能说明**: 为学生生成随机测试，支持难度均匀分配和知识点分类筛选
+**功能说明**: 为学生生成随机测试，支持根据知识点ID或知识点分类筛选，支持难度均匀分配
 
 ## 请求参数
 
 使用 `@RequestBody` 接收 JSON 格式的请求参数：
+
+### 方式1：使用知识点ID（推荐）
+
+```json
+{
+  "studentId": 123,
+  "gradeId": 8,
+  "knowledgePointIds": [1, 2, 3],
+  "questionCount": 30,
+  "equalDifficultyDistribution": true
+}
+```
+
+### 方式2：使用知识点分类ID（向后兼容）
 
 ```json
 {
@@ -26,9 +40,15 @@
 |--------|------|------|------|
 | studentId | Integer | 是 | 学生ID |
 | gradeId | Integer | 是 | 年级ID |
-| categoryIds | List<Integer> | 否 | 知识点分类ID列表（可选） |
+| knowledgePointIds | List<Integer> | 否 | 知识点ID列表（优先使用，推荐） |
+| categoryIds | List<Integer> | 否 | 知识点分类ID列表（当knowledgePointIds为空时使用） |
 | questionCount | Integer | 是 | 题目数量 |
 | equalDifficultyDistribution | Boolean | 否 | 是否均匀分配难度（默认false） |
+
+**注意**: 
+- `knowledgePointIds` 和 `categoryIds` 至少提供一个
+- 如果同时提供，优先使用 `knowledgePointIds`
+- 如果都不提供，将从整个年级的所有题目中随机选择
 
 ## 响应示例
 
@@ -79,7 +99,21 @@
 
 ## 使用示例
 
-### cURL
+### cURL - 使用知识点ID
+
+```bash
+curl -X POST http://localhost:8080/api/student-test/generate-random \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": 123,
+    "gradeId": 8,
+    "knowledgePointIds": [1, 2, 3],
+    "questionCount": 30,
+    "equalDifficultyDistribution": true
+  }'
+```
+
+### cURL - 使用分类ID（向后兼容）
 
 ```bash
 curl -X POST http://localhost:8080/api/student-test/generate-random \
@@ -93,7 +127,7 @@ curl -X POST http://localhost:8080/api/student-test/generate-random \
   }'
 ```
 
-### JavaScript/Fetch
+### JavaScript/Fetch - 使用知识点ID
 
 ```javascript
 fetch('http://localhost:8080/api/student-test/generate-random', {
@@ -104,7 +138,7 @@ fetch('http://localhost:8080/api/student-test/generate-random', {
   body: JSON.stringify({
     studentId: 123,
     gradeId: 8,
-    categoryIds: [1, 2],
+    knowledgePointIds: [1, 2, 3],  // 使用知识点ID
     questionCount: 30,
     equalDifficultyDistribution: true
   })
@@ -118,7 +152,7 @@ fetch('http://localhost:8080/api/student-test/generate-random', {
 });
 ```
 
-### Vue.js
+### Vue.js - 使用知识点ID
 
 ```javascript
 async generateTest() {
@@ -126,7 +160,7 @@ async generateTest() {
     const response = await this.$http.post('/api/student-test/generate-random', {
       studentId: this.studentId,
       gradeId: this.gradeId,
-      categoryIds: [1, 2, 3],
+      knowledgePointIds: [1, 2, 3],  // 使用知识点ID（推荐）
       questionCount: 30,
       equalDifficultyDistribution: true
     });
@@ -148,6 +182,10 @@ async generateTest() {
 
 1. **参数验证**: 学生ID、年级ID、题目数量为必填项
 2. **难度分配**: `equalDifficultyDistribution=true` 时按1:1:1分配难度
-3. **分类筛选**: `categoryIds` 可选，用于限制题目分类
+3. **筛选方式**: 
+   - 优先使用 `knowledgePointIds`（知识点ID列表）进行精确筛选
+   - 如果未提供知识点ID，则使用 `categoryIds`（分类ID列表）进行筛选
+   - 如果都不提供，将从整个年级的所有题目中随机选择
 4. **随机打乱**: 题目顺序会自动打乱
+5. **向后兼容**: 原有的 `categoryIds` 参数仍然支持，但建议使用 `knowledgePointIds` 进行更精确的筛选
 

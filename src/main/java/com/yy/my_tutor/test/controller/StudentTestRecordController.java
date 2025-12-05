@@ -61,6 +61,22 @@ public class StudentTestRecordController {
     }
     
     /**
+     * 根据学生ID和知识点ID列表查询测试记录
+     * 查询包含指定知识点的测试记录
+     */
+    @PostMapping("/student/{studentId}/knowledge-points")
+    public RespResult<List<StudentTestRecord>> findTestRecordsByStudentIdAndKnowledgePointIds(
+            @PathVariable Integer studentId,
+            @RequestBody List<Integer> knowledgePointIds) {
+        if (knowledgePointIds == null || knowledgePointIds.isEmpty()) {
+            return RespResult.error("知识点ID列表不能为空");
+        }
+        List<StudentTestRecord> records = testRecordService.findTestRecordsByStudentIdAndKnowledgePointIds(
+                studentId, knowledgePointIds);
+        return RespResult.success(records);
+    }
+    
+    /**
      * 开始测试
      */
     @PostMapping("/start")

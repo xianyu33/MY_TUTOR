@@ -4,9 +4,23 @@
 
 **接口地址**: `POST /api/student-test/generate-random`
 
-**功能说明**: 为学生生成随机测试，返回包含题目详情的完整测试数据
+**功能说明**: 为学生生成随机测试，支持根据知识点ID或知识点分类筛选，返回包含题目详情的完整测试数据
 
 ## 请求参数
+
+### 方式1：使用知识点ID（推荐）
+
+```json
+{
+  "studentId": 123,
+  "gradeId": 8,
+  "knowledgePointIds": [1, 2, 3],
+  "questionCount": 30,
+  "equalDifficultyDistribution": true
+}
+```
+
+### 方式2：使用知识点分类ID（向后兼容）
 
 ```json
 {
@@ -17,6 +31,22 @@
   "equalDifficultyDistribution": true
 }
 ```
+
+### 参数说明
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| studentId | Integer | 是 | 学生ID |
+| gradeId | Integer | 是 | 年级ID |
+| knowledgePointIds | List<Integer> | 否 | 知识点ID列表（优先使用，推荐） |
+| categoryIds | List<Integer> | 否 | 知识点分类ID列表（当knowledgePointIds为空时使用） |
+| questionCount | Integer | 是 | 题目数量 |
+| equalDifficultyDistribution | Boolean | 否 | 是否均匀分配难度（默认false） |
+
+**注意**: 
+- `knowledgePointIds` 和 `categoryIds` 至少提供一个
+- 如果同时提供，优先使用 `knowledgePointIds`
+- 如果都不提供，将从整个年级的所有题目中随机选择
 
 ## 响应示例
 
@@ -162,7 +192,7 @@
 
 ## 使用示例
 
-### JavaScript/Fetch
+### JavaScript/Fetch - 使用知识点ID
 ```javascript
 const response = await fetch('http://localhost:8080/api/student-test/generate-random', {
   method: 'POST',
@@ -172,7 +202,7 @@ const response = await fetch('http://localhost:8080/api/student-test/generate-ra
   body: JSON.stringify({
     studentId: 123,
     gradeId: 8,
-    categoryIds: [2, 4],
+    knowledgePointIds: [1, 2, 3],  // 使用知识点ID（推荐）
     questionCount: 30,
     equalDifficultyDistribution: true
   })
@@ -186,18 +216,20 @@ console.log('题目数量:', data.data.totalQuestions);
 // 遍历题目列表
 data.data.questions.forEach((question, index) => {
   console.log(`第 ${index + 1} 题:`, question.questionContent);
+  console.log('知识点:', question.knowledgePointName);
   console.log('难度:', question.difficultyLevel === 1 ? '简单' : question.difficultyLevel === 2 ? '中等' : '困难');
 });
 ```
 
-### Vue.js
+### Vue.js - 使用知识点ID
 ```vue
 <script>
 export default {
   data() {
     return {
       testDetails: null,
-      loading: false
+      loading: false,
+      selectedKnowledgePointIds: [1, 2, 3]  // 选中的知识点ID列表
     }
   },
   methods: {
@@ -207,7 +239,7 @@ export default {
         const response = await this.$http.post('/api/student-test/generate-random', {
           studentId: this.studentId,
           gradeId: 8,
-          categoryIds: [2, 4],
+          knowledgePointIds: this.selectedKnowledgePointIds,  // 使用知识点ID（推荐）
           questionCount: 30,
           equalDifficultyDistribution: true
         });
@@ -256,6 +288,7 @@ export default {
 3. **难度统计**: 自动统计简单、中等、困难题目的数量
 4. **答题状态**: 可以追踪学生答题状态
 5. **知识点关联**: 每个题目关联对应的知识点信息
+6. **精确筛选**: 支持根据知识点ID进行精确筛选，比分类筛选更精准
 
 ## 注意事项
 
@@ -263,6 +296,8 @@ export default {
 2. 初始状态所有题目的 `studentAnswer`、`isCorrect`、`earnedPoints` 都为 `null`
 3. `testStatus` 初始为 `1`（进行中）
 4. 难度分布只在 `equalDifficultyDistribution=true` 时才会均匀分配
+5. **筛选优先级**: 如果同时提供 `knowledgePointIds` 和 `categoryIds`，优先使用 `knowledgePointIds`
+6. **推荐使用知识点ID**: 使用 `knowledgePointIds` 可以更精确地控制测试题目的范围
 
 ## 错误处理
 

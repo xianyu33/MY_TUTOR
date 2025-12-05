@@ -29,7 +29,8 @@ public class StudentTestController {
     
     /**
      * 为学生生成随机测试
-     * @param request 生成测试请求（包含学生ID、年级ID、知识点分类、题目数量等）
+     * @param request 生成测试请求（包含学生ID、年级ID、知识点ID列表或知识点分类ID列表、题目数量等）
+     *                优先使用knowledgePointIds，如果未提供则使用categoryIds
      * @return 测试记录
      */
     @PostMapping("/generate-random")
@@ -43,13 +44,14 @@ public class StudentTestController {
             return RespResult.error("题目数量必须大于0");
         }
         
-        log.info("为学生 {} 生成随机测试，年级: {}, 分类: {}, 题目数: {}, 均匀难度分配: {}", 
-                request.getStudentId(), request.getGradeId(), request.getCategoryIds(), 
-                request.getQuestionCount(), request.getEqualDifficultyDistribution());
+        log.info("为学生 {} 生成随机测试，年级: {}, 知识点: {}, 分类: {}, 题目数: {}, 均匀难度分配: {}", 
+                request.getStudentId(), request.getGradeId(), request.getKnowledgePointIds(), 
+                request.getCategoryIds(), request.getQuestionCount(), request.getEqualDifficultyDistribution());
         
         StudentTestRecord record = studentTestService.generateRandomTestWithDistribution(
                 request.getStudentId(), 
                 request.getGradeId(), 
+                request.getKnowledgePointIds(),
                 request.getCategoryIds(),
                 request.getQuestionCount(),
                 request.getEqualDifficultyDistribution() != null && request.getEqualDifficultyDistribution()

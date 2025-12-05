@@ -84,6 +84,11 @@ public class StudentTestRecordServiceImpl implements StudentTestRecordService {
         int result = testRecordMapper.deleteTestRecord(id);
         return result > 0;
     }
+    
+    @Override
+    public List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(Integer studentId, List<Integer> knowledgePointIds) {
+        return testRecordMapper.findTestRecordsByStudentIdAndKnowledgePointIds(studentId, knowledgePointIds);
+    }
 }
 
 

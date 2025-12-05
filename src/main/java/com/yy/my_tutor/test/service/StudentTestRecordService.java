@@ -48,6 +48,15 @@ public interface StudentTestRecordService {
      * 删除测试记录
      */
     boolean deleteTestRecord(Integer id);
+    
+    /**
+     * 根据学生ID和知识点ID列表查询测试记录
+     * 查询包含指定知识点的测试记录
+     * @param studentId 学生ID
+     * @param knowledgePointIds 知识点ID列表
+     * @return 测试记录列表
+     */
+    List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(Integer studentId, List<Integer> knowledgePointIds);
 }
 
 
