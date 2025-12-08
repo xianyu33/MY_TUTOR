@@ -127,6 +127,24 @@
         ORDER BY str.create_at DESC
     </select>
 
+    <select id="findTestRecordsByCategoryAndDifficulty" resultMap="BaseResultMap">
+        SELECT DISTINCT str.id, str.student_id, str.test_id, str.test_name, str.test_name_fr,
+               str.start_time, str.end_time, str.submit_time, str.time_spent,
+               str.total_questions, str.answered_questions, str.correct_answers,
+               str.total_points, str.earned_points, str.score_percentage, str.test_status,
+               str.create_at, str.create_by, str.update_at, str.update_by, str.delete_flag
+        FROM student_test_record str
+        INNER JOIN test t ON str.test_id = t.id AND t.delete_flag = 'N'
+        INNER JOIN test_question tq ON t.id = tq.test_id
+        INNER JOIN question q ON tq.question_id = q.id AND q.delete_flag = 'N'
+        INNER JOIN knowledge_point kp ON q.knowledge_point_id = kp.id AND kp.delete_flag = 'N'
+        WHERE str.student_id = #{studentId}
+        AND str.delete_flag = 'N'
+        AND kp.category_id = #{categoryId}
+        AND q.difficulty_level = #{difficultyLevel}
+        ORDER BY str.create_at DESC
+    </select>
+
 </mapper>
 
 

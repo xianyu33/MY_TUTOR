@@ -1013,4 +1013,92 @@ public class StudentTestServiceImpl implements StudentTestService {
             return null;
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public StudentTestRecord generateRandomTestByCategoryAndDifficulty(Integer studentId, Integer gradeId,
+                                                                        Integer categoryId, Integer difficultyLevel,
+                                                                        Integer questionCount) {
+        try {
+            log.info("根据知识类型和难度等级生成测试，学生ID: {}, 年级ID: {}, 分类ID: {}, 难度等级: {}, 题目数: {}",
+                    studentId, gradeId, categoryId, difficultyLevel, questionCount);
+
+            // 根据年级、分类和难度查询题目
+            List<Question> questions = questionMapper.findQuestionsByGradeCategoryAndDifficultyLevel(
+                    gradeId, categoryId, difficultyLevel);
+
+            if (questions == null || questions.isEmpty()) {
+                log.warn("没有找到符合条件的题目，年级ID: {}, 分类ID: {}, 难度等级: {}", gradeId, categoryId, difficultyLevel);
+                return null;
+            }
+
+            // 如果题目数量超过需要的数量，随机选择
+            if (questions.size() > questionCount) {
+                Collections.shuffle(questions);
+                questions = questions.subList(0, questionCount);
+            } else {
+                // 如果题目数量不足，使用所有可用题目
+                log.warn("可用题目数量 {} 少于请求数量 {}，将使用所有可用题目", questions.size(), questionCount);
+            }
+
+            // 创建测试
+            Test test = new Test();
+            test.setTestName("Assessment");
+            test.setGradeId(gradeId);
+            test.setDifficultyLevel(difficultyLevel);
+            test.setTotalQuestions(questions.size());
+            test.setTotalPoints(questions.size()); // 默认每题1分
+            test.setTimeLimit(60); // 默认60分钟
+            test.setTestType(1); // 练习测试
+            test.setStatus(1); // 启用
+            test.setCreateAt(new Date());
+            test.setUpdateAt(new Date());
+            test.setDeleteFlag("N");
+
+            int testResult = testMapper.insertTest(test);
+            if (testResult <= 0) {
+                log.error("创建测试失败");
+                return null;
+            }
+
+            // 创建测试题目关联
+            for (int i = 0; i < questions.size(); i++) {
+                TestQuestion testQuestion = new TestQuestion();
+                testQuestion.setTestId(test.getId());
+                testQuestion.setQuestionId(questions.get(i).getId());
+                testQuestion.setSortOrder(i + 1);
+                testQuestion.setPoints(1);
+                testQuestion.setCreateAt(new Date());
+
+                testQuestionMapper.insertTestQuestion(testQuestion);
+            }
+
+            // 创建学生测试记录
+            StudentTestRecord record = new StudentTestRecord();
+            record.setStudentId(studentId);
+            record.setTestId(test.getId());
+            record.setTestName(test.getTestName());
+            record.setStartTime(new Date());
+            record.setTotalQuestions(questions.size());
+            record.setTotalPoints(questions.size());
+            record.setTestStatus(1); // 进行中
+            record.setCreateAt(new Date());
+            record.setUpdateAt(new Date());
+            record.setDeleteFlag("N");
+
+            int recordResult = studentTestRecordMapper.insertTestRecord(record);
+            if (recordResult <= 0) {
+                log.error("创建测试记录失败");
+                return null;
+            }
+
+            log.info("根据知识类型和难度等级生成测试成功，学生ID: {}, 测试ID: {}, 记录ID: {}",
+                    studentId, test.getId(), record.getId());
+            return record;
+
+        } catch (Exception e) {
+            log.error("根据知识类型和难度等级生成测试时发生异常: {}", e.getMessage(), e);
+            return null;
+        }
+    }
 }

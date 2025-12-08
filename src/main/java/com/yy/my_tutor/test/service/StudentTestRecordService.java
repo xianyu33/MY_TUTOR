@@ -57,6 +57,15 @@ public interface StudentTestRecordService {
      * @return 测试记录列表
      */
     List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(Integer studentId, List<Integer> knowledgePointIds);
+    
+    /**
+     * 根据学生ID、知识类型和难度等级查询测试记录
+     * @param studentId 学生ID
+     * @param categoryId 知识类型ID（分类ID）
+     * @param difficultyLevel 知识点难度等级（1-简单，2-中等，3-困难）
+     * @return 测试记录列表
+     */
+    List<StudentTestRecord> findTestRecordsByCategoryAndDifficulty(Integer studentId, Integer categoryId, Integer difficultyLevel);
 }
 
 

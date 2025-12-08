@@ -68,6 +68,13 @@ public interface QuestionMapper {
                                                                   @Param("difficultyLevel") Integer difficultyLevel);
     
     /**
+     * 根据年级、知识类型（分类ID）和难度等级查询题目
+     */
+    List<Question> findQuestionsByGradeCategoryAndDifficultyLevel(@Param("gradeId") Integer gradeId,
+                                                                   @Param("categoryId") Integer categoryId,
+                                                                   @Param("difficultyLevel") Integer difficultyLevel);
+    
+    /**
      * 插入问题
      */
     int insertQuestion(Question question);

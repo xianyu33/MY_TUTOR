@@ -102,6 +102,19 @@ public interface StudentTestService {
                                                        boolean equalDistribution);
     
     /**
+     * 根据知识类型和难度等级生成随机测试
+     * @param studentId 学生ID
+     * @param gradeId 年级ID
+     * @param categoryId 知识类型ID（分类ID）
+     * @param difficultyLevel 知识点难度等级（1-简单，2-中等，3-困难）
+     * @param questionCount 题目数量
+     * @return 测试记录
+     */
+    StudentTestRecord generateRandomTestByCategoryAndDifficulty(Integer studentId, Integer gradeId,
+                                                                 Integer categoryId, Integer difficultyLevel,
+                                                                 Integer questionCount);
+    
+    /**
      * 获取测试详情（包含题目列表）
      * @param testRecordId 测试记录ID
      * @return 测试详情（包含题目列表）

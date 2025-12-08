@@ -1,6 +1,7 @@
 package com.yy.my_tutor.test.controller;
 
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.test.domain.QueryTestRecordRequest;
 import com.yy.my_tutor.test.domain.StudentTestRecord;
 import com.yy.my_tutor.test.service.StudentTestRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,18 +62,24 @@ public class StudentTestRecordController {
     }
     
     /**
-     * 根据学生ID和知识点ID列表查询测试记录
-     * 查询包含指定知识点的测试记录
+     * 根据学生ID和知识类型、难度等级查询测试记录
+     * 使用新的方式：根据知识类型和难度等级查询
      */
     @PostMapping("/student/{studentId}/knowledge-points")
-    public RespResult<List<StudentTestRecord>> findTestRecordsByStudentIdAndKnowledgePointIds(
+    public RespResult<List<StudentTestRecord>> findTestRecordsByStudentIdAndKnowledgePoints(
             @PathVariable Integer studentId,
-            @RequestBody List<Integer> knowledgePointIds) {
-        if (knowledgePointIds == null || knowledgePointIds.isEmpty()) {
-            return RespResult.error("知识点ID列表不能为空");
+            @RequestBody QueryTestRecordRequest request) {
+        
+        if (request == null) {
+            return RespResult.error("请求参数不能为空");
         }
-        List<StudentTestRecord> records = testRecordService.findTestRecordsByStudentIdAndKnowledgePointIds(
-                studentId, knowledgePointIds);
+        
+        if (request.getCategoryId() == null || request.getDifficultyLevel() == null) {
+            return RespResult.error("知识类型ID和难度等级不能为空");
+        }
+        
+        List<StudentTestRecord> records = testRecordService.findTestRecordsByCategoryAndDifficulty(
+                studentId, request.getCategoryId(), request.getDifficultyLevel());
         return RespResult.success(records);
     }
     

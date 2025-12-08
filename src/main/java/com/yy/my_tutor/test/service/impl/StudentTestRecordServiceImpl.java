@@ -89,6 +89,11 @@ public class StudentTestRecordServiceImpl implements StudentTestRecordService {
     public List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(Integer studentId, List<Integer> knowledgePointIds) {
         return testRecordMapper.findTestRecordsByStudentIdAndKnowledgePointIds(studentId, knowledgePointIds);
     }
+    
+    @Override
+    public List<StudentTestRecord> findTestRecordsByCategoryAndDifficulty(Integer studentId, Integer categoryId, Integer difficultyLevel) {
+        return testRecordMapper.findTestRecordsByCategoryAndDifficulty(studentId, categoryId, difficultyLevel);
+    }
 }
 
 

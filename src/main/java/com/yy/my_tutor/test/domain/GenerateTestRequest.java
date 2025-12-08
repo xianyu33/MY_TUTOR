@@ -25,14 +25,24 @@ public class GenerateTestRequest {
     private Integer gradeId;
     
     /**
-     * 知识点分类ID列表（可选，已废弃，建议使用knowledgePointIds）
+     * 知识点分类ID列表（可选，已废弃，建议使用categoryId）
      */
     private List<Integer> categoryIds;
     
     /**
-     * 知识点ID列表（可选，优先使用）
+     * 知识点ID列表（可选，已废弃，建议使用categoryId和difficultyLevel）
      */
     private List<Integer> knowledgePointIds;
+    
+    /**
+     * 知识类型ID（分类ID，必填）
+     */
+    private Integer categoryId;
+    
+    /**
+     * 知识点难度等级（1-简单，2-中等，3-困难，必填）
+     */
+    private Integer difficultyLevel;
     
     /**
      * 题目数量

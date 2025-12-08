@@ -29,8 +29,9 @@ public class StudentTestController {
     
     /**
      * 为学生生成随机测试
-     * @param request 生成测试请求（包含学生ID、年级ID、知识点ID列表或知识点分类ID列表、题目数量等）
-     *                优先使用knowledgePointIds，如果未提供则使用categoryIds
+     * @param request 生成测试请求
+     *                优先使用categoryId和difficultyLevel（新方式）
+     *                如果未提供，则使用knowledgePointIds或categoryIds（旧方式，向后兼容）
      * @return 测试记录
      */
     @PostMapping("/generate-random")
@@ -44,18 +45,36 @@ public class StudentTestController {
             return RespResult.error("题目数量必须大于0");
         }
         
-        log.info("为学生 {} 生成随机测试，年级: {}, 知识点: {}, 分类: {}, 题目数: {}, 均匀难度分配: {}", 
-                request.getStudentId(), request.getGradeId(), request.getKnowledgePointIds(), 
-                request.getCategoryIds(), request.getQuestionCount(), request.getEqualDifficultyDistribution());
+        StudentTestRecord record;
         
-        StudentTestRecord record = studentTestService.generateRandomTestWithDistribution(
-                request.getStudentId(), 
-                request.getGradeId(), 
-                request.getKnowledgePointIds(),
-                request.getCategoryIds(),
-                request.getQuestionCount(),
-                request.getEqualDifficultyDistribution() != null && request.getEqualDifficultyDistribution()
-        );
+        // 优先使用新的方式：根据知识类型和难度等级生成
+        if (request.getCategoryId() != null && request.getDifficultyLevel() != null) {
+            log.info("为学生 {} 生成随机测试（新方式），年级: {}, 分类ID: {}, 难度等级: {}, 题目数: {}", 
+                    request.getStudentId(), request.getGradeId(), request.getCategoryId(), 
+                    request.getDifficultyLevel(), request.getQuestionCount());
+            
+            record = studentTestService.generateRandomTestByCategoryAndDifficulty(
+                    request.getStudentId(),
+                    request.getGradeId(),
+                    request.getCategoryId(),
+                    request.getDifficultyLevel(),
+                    request.getQuestionCount()
+            );
+        } else {
+            // 向后兼容：使用旧方式
+            log.info("为学生 {} 生成随机测试（旧方式），年级: {}, 知识点: {}, 分类: {}, 题目数: {}, 均匀难度分配: {}", 
+                    request.getStudentId(), request.getGradeId(), request.getKnowledgePointIds(), 
+                    request.getCategoryIds(), request.getQuestionCount(), request.getEqualDifficultyDistribution());
+            
+            record = studentTestService.generateRandomTestWithDistribution(
+                    request.getStudentId(), 
+                    request.getGradeId(), 
+                    request.getKnowledgePointIds(),
+                    request.getCategoryIds(),
+                    request.getQuestionCount(),
+                    request.getEqualDifficultyDistribution() != null && request.getEqualDifficultyDistribution()
+            );
+        }
         
         if (record != null) {
             // 获取测试详情（包含题目列表）

@@ -65,6 +65,13 @@ public interface StudentTestRecordMapper {
      */
     List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(@Param("studentId") Integer studentId,
                                                                            @Param("knowledgePointIds") List<Integer> knowledgePointIds);
+    
+    /**
+     * 根据学生ID、知识类型和难度等级查询测试记录
+     */
+    List<StudentTestRecord> findTestRecordsByCategoryAndDifficulty(@Param("studentId") Integer studentId,
+                                                                    @Param("categoryId") Integer categoryId,
+                                                                    @Param("difficultyLevel") Integer difficultyLevel);
 }
 
 
