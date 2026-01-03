@@ -52,7 +52,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM knowledge_point
-        WHERE id = #{gradeId} AND delete_flag = 'N'
+        WHERE grade_id = #{gradeId} AND delete_flag = 'N'
         ORDER BY sort_order ASC
     </select>
 
@@ -60,7 +60,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM knowledge_point
-        WHERE id = #{categoryId} AND delete_flag = 'N'
+        WHERE category_id = #{categoryId} AND delete_flag = 'N'
         ORDER BY grade_id, sort_order ASC
     </select>
 
