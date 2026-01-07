@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.course.mapper.CourseMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.course.domain.Course">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="knowledge_point_id" property="knowledgePointId"/>
+        <result column="difficulty_level" property="difficultyLevel"/>
+        <result column="course_title" property="courseTitle"/>
+        <result column="course_title_fr" property="courseTitleFr"/>
+        <result column="explanation" property="explanation"/>
+        <result column="explanation_fr" property="explanationFr"/>
+        <result column="examples" property="examples"/>
+        <result column="examples_fr" property="examplesFr"/>
+        <result column="key_summary" property="keySummary"/>
+        <result column="key_summary_fr" property="keySummaryFr"/>
+        <result column="additional_info" property="additionalInfo"/>
+        <result column="additional_info_fr" property="additionalInfoFr"/>
+        <result column="generation_source" property="generationSource"/>
+        <result column="model_id" property="modelId"/>
+        <result column="prompt_used" property="promptUsed"/>
+        <result column="create_at" property="createAt"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_at" property="updateAt"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="delete_flag" property="deleteFlag"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, student_id, knowledge_point_id, difficulty_level, course_title, course_title_fr,
+        explanation, explanation_fr, examples, examples_fr, key_summary, key_summary_fr,
+        additional_info, additional_info_fr, generation_source, model_id, prompt_used,
+        create_at, create_by, update_at, update_by, delete_flag
+    </sql>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course
+        WHERE id = #{id} AND delete_flag = 0
+    </select>
+
+    <select id="findByStudentAndKnowledgePoint" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course
+        WHERE student_id = #{studentId}
+          AND knowledge_point_id = #{knowledgePointId}
+          AND delete_flag = 0
+        ORDER BY create_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findByStudentKnowledgePointAndDifficulty" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course
+        WHERE student_id = #{studentId}
+          AND knowledge_point_id = #{knowledgePointId}
+          AND difficulty_level = #{difficultyLevel}
+          AND delete_flag = 0
+        ORDER BY create_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findByStudentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course
+        WHERE student_id = #{studentId} AND delete_flag = 0
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="findByKnowledgePointId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course
+        WHERE knowledge_point_id = #{knowledgePointId} AND delete_flag = 0
+        ORDER BY create_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.yy.my_tutor.course.domain.Course" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course (
+            student_id, knowledge_point_id, difficulty_level, course_title, course_title_fr,
+            explanation, explanation_fr, examples, examples_fr, key_summary, key_summary_fr,
+            additional_info, additional_info_fr, generation_source, model_id, prompt_used,
+            create_at, create_by, update_at, update_by, delete_flag
+        ) VALUES (
+            #{studentId}, #{knowledgePointId}, #{difficultyLevel}, #{courseTitle}, #{courseTitleFr},
+            #{explanation}, #{explanationFr}, #{examples}, #{examplesFr}, #{keySummary}, #{keySummaryFr},
+            #{additionalInfo}, #{additionalInfoFr}, #{generationSource}, #{modelId}, #{promptUsed},
+            NOW(), #{createBy}, NOW(), #{updateBy}, 0
+        )
+    </insert>
+
+    <update id="update" parameterType="com.yy.my_tutor.course.domain.Course">
+        UPDATE course
+        <set>
+            <if test="difficultyLevel != null">difficulty_level = #{difficultyLevel},</if>
+            <if test="courseTitle != null">course_title = #{courseTitle},</if>
+            <if test="courseTitleFr != null">course_title_fr = #{courseTitleFr},</if>
+            <if test="explanation != null">explanation = #{explanation},</if>
+            <if test="explanationFr != null">explanation_fr = #{explanationFr},</if>
+            <if test="examples != null">examples = #{examples},</if>
+            <if test="examplesFr != null">examples_fr = #{examplesFr},</if>
+            <if test="keySummary != null">key_summary = #{keySummary},</if>
+            <if test="keySummaryFr != null">key_summary_fr = #{keySummaryFr},</if>
+            <if test="additionalInfo != null">additional_info = #{additionalInfo},</if>
+            <if test="additionalInfoFr != null">additional_info_fr = #{additionalInfoFr},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_at = NOW()
+        </set>
+        WHERE id = #{id} AND delete_flag = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE course
+        SET delete_flag = 1, update_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
