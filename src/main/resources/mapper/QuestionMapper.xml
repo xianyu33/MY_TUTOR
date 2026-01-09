@@ -24,12 +24,16 @@
         <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
         <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
         <result column="delete_flag" property="deleteFlag" jdbcType="CHAR"/>
+        <result column="generation_source" property="generationSource" jdbcType="VARCHAR"/>
+        <result column="model_id" property="modelId" jdbcType="VARCHAR"/>
+        <result column="prompt_used" property="promptUsed" jdbcType="LONGVARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id, knowledge_point_id, question_type, question_title, question_title_fr, question_content, question_content_fr,
         options, options_fr, correct_answer, correct_answer_fr, answer_explanation, answer_explanation_fr,
-        difficulty_level, points, sort_order, create_at, create_by, update_at, update_by, delete_flag
+        difficulty_level, points, sort_order, create_at, create_by, update_at, update_by, delete_flag,
+        generation_source, model_id, prompt_used
     </sql>
 
     <select id="findAllQuestions" resultMap="BaseResultMap">
@@ -158,11 +162,15 @@
     </select>
 
     <insert id="insertQuestion" parameterType="com.yy.my_tutor.math.domain.Question" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO question (knowledge_point_id, question_type, question_title, question_content, options,
-                             correct_answer, answer_explanation, difficulty_level, points, sort_order,
+        INSERT INTO question (knowledge_point_id, question_type, question_title, question_title_fr,
+                             question_content, question_content_fr, options, options_fr,
+                             correct_answer, correct_answer_fr, answer_explanation, answer_explanation_fr,
+                             difficulty_level, points, sort_order, generation_source, model_id, prompt_used,
                              create_at, create_by, update_at, update_by, delete_flag)
-        VALUES (#{knowledgePointId}, #{questionType}, #{questionTitle}, #{questionContent}, #{options},
-                #{correctAnswer}, #{answerExplanation}, #{difficultyLevel}, #{points}, #{sortOrder},
+        VALUES (#{knowledgePointId}, #{questionType}, #{questionTitle}, #{questionTitleFr},
+                #{questionContent}, #{questionContentFr}, #{options}, #{optionsFr},
+                #{correctAnswer}, #{correctAnswerFr}, #{answerExplanation}, #{answerExplanationFr},
+                #{difficultyLevel}, #{points}, #{sortOrder}, #{generationSource}, #{modelId}, #{promptUsed},
                 NOW(), #{createBy}, NOW(), #{updateBy}, 'N')
     </insert>
 
@@ -189,5 +197,48 @@
             update_at = NOW()
         WHERE id = #{id}
     </update>
+
+    <!-- 查询学生未做过的题目（根据知识点和难度） -->
+    <select id="findUndoneQuestionsByKnowledgePoint" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE knowledge_point_id = #{knowledgePointId}
+        AND delete_flag = 'N'
+        <if test="difficultyLevel != null">
+            AND difficulty_level = #{difficultyLevel}
+        </if>
+        <if test="doneQuestionIds != null and doneQuestionIds.size() > 0">
+            AND id NOT IN
+            <foreach collection="doneQuestionIds" item="questionId" open="(" separator="," close=")">
+                #{questionId}
+            </foreach>
+        </if>
+        ORDER BY RAND()
+    </select>
+
+    <!-- 查询学生未做过的题目（根据多个知识点和难度） -->
+    <select id="findUndoneQuestionsByKnowledgePoints" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE delete_flag = 'N'
+        <if test="knowledgePointIds != null and knowledgePointIds.size() > 0">
+            AND knowledge_point_id IN
+            <foreach collection="knowledgePointIds" item="kpId" open="(" separator="," close=")">
+                #{kpId}
+            </foreach>
+        </if>
+        <if test="difficultyLevel != null">
+            AND difficulty_level = #{difficultyLevel}
+        </if>
+        <if test="doneQuestionIds != null and doneQuestionIds.size() > 0">
+            AND id NOT IN
+            <foreach collection="doneQuestionIds" item="questionId" open="(" separator="," close=")">
+                #{questionId}
+            </foreach>
+        </if>
+        ORDER BY RAND()
+    </select>
 
 </mapper>

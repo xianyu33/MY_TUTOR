@@ -40,7 +40,12 @@ public class Question implements Serializable {
     private Date updateAt;
     private String updateBy;
     private String deleteFlag;
-    
+
+    // AI 生成相关字段
+    private String generationSource;  // 来源：MANUAL-人工录入, AI-AI生成
+    private String modelId;           // AI模型ID
+    private String promptUsed;        // 生成时使用的提示词
+
     // 关联对象
     private KnowledgePoint knowledgePoint;
 }

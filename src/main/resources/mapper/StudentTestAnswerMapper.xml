@@ -100,6 +100,22 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 查询学生已做过的所有题目ID -->
+    <select id="findDoneQuestionIdsByStudentId" resultType="java.lang.Integer">
+        SELECT DISTINCT question_id
+        FROM student_test_answer
+        WHERE student_id = #{studentId}
+    </select>
+
+    <!-- 查询学生在指定知识点下已做过的题目ID -->
+    <select id="findDoneQuestionIdsByStudentAndKnowledgePoint" resultType="java.lang.Integer">
+        SELECT DISTINCT sta.question_id
+        FROM student_test_answer sta
+        INNER JOIN question q ON sta.question_id = q.id
+        WHERE sta.student_id = #{studentId}
+          AND q.knowledge_point_id = #{knowledgePointId}
+    </select>
+
 </mapper>
 
 
