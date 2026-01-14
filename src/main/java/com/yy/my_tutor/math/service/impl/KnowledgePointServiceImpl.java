@@ -106,4 +106,9 @@ public class KnowledgePointServiceImpl implements KnowledgePointService {
         
         return allPoints;
     }
+
+    @Override
+    public List<KnowledgePoint> findKnowledgePointsByCategoryAndDifficulty(Integer categoryId, Integer difficultyLevel) {
+        return knowledgePointMapper.findKnowledgePointsByCategoryAndDifficulty(categoryId, difficultyLevel);
+    }
 }

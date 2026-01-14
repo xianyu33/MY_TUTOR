@@ -215,4 +215,15 @@
         ORDER BY kp.sort_order ASC, kp.id ASC
     </select>
 
+    <!-- 根据分类ID和难度等级查询知识点 -->
+    <select id="findKnowledgePointsByCategoryAndDifficulty" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM knowledge_point
+        WHERE category_id = #{categoryId}
+          AND difficulty_level = #{difficultyLevel}
+          AND delete_flag = 'N'
+        ORDER BY sort_order ASC
+    </select>
+
 </mapper>

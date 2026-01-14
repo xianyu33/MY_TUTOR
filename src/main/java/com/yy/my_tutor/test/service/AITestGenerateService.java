@@ -19,11 +19,11 @@ public interface AITestGenerateService {
     TestWithQuestionsDTO generateTestBySingleKnowledgePoint(GenerateAITestRequest request);
 
     /**
-     * 根据多个知识点生成综合 AI 测试
-     * 流程：检查各知识点题库 → 不足则AI生成补充 → 创建测试 → 返回测试详情
+     * 根据知识类型生成 AI 测试
+     * 流程：查询分类下所有知识点 → 检查题库 → 不足则AI生成补充 → 创建测试 → 返回测试详情
      *
-     * @param request 生成请求
+     * @param request 生成请求（需包含 categoryId 和 difficultyLevel）
      * @return 测试详情（包含题目列表）
      */
-    TestWithQuestionsDTO generateTestByMultipleKnowledgePoints(GenerateAITestRequest request);
+    TestWithQuestionsDTO generateTestByCategory(GenerateAITestRequest request);
 }

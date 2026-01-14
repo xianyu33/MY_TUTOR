@@ -69,4 +69,9 @@ public interface KnowledgePointService {
      * 根据分类ID列表查询知识点
      */
     List<KnowledgePoint> findKnowledgePointsByCategoryIds(List<Integer> categoryIds);
+
+    /**
+     * 根据分类ID和难度等级查询知识点
+     */
+    List<KnowledgePoint> findKnowledgePointsByCategoryAndDifficulty(Integer categoryId, Integer difficultyLevel);
 }

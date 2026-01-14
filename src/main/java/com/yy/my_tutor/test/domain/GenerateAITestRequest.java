@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 /**
  * AI 生成测试的请求 DTO
  */
@@ -25,9 +23,10 @@ public class GenerateAITestRequest {
     private Integer knowledgePointId;
 
     /**
-     * 知识点ID列表（多知识点综合测试时使用）
+     * 知识类型ID（按知识类型生成测试时使用）
+     * 系统会查询该分类下的所有知识点
      */
-    private List<Integer> knowledgePointIds;
+    private Integer categoryId;
 
     /**
      * 年级ID（综合测试时可选，用于筛选知识点）
@@ -44,12 +43,6 @@ public class GenerateAITestRequest {
      * 可选，不传则根据学生测试分析报告自动确定
      */
     private Integer difficultyLevel;
-
-    /**
-     * 题目类型（1-单选，2-多选，3-填空，4-计算）
-     * 可选，不传则混合类型
-     */
-    private Integer questionType;
 
     /**
      * 是否将 AI 生成的题目保存到题库

@@ -103,7 +103,17 @@ public class KnowledgePointController {
         List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByDifficulty(difficultyLevel);
         return RespResult.success(knowledgePoints);
     }
-    
+
+    /**
+     * 根据分类ID和难度等级查询知识点
+     */
+    @GetMapping("/category/{categoryId}/difficulty/{difficultyLevel}")
+    public RespResult<List<KnowledgePoint>> findKnowledgePointsByCategoryAndDifficulty(
+            @PathVariable Integer categoryId, @PathVariable Integer difficultyLevel) {
+        List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryAndDifficulty(categoryId, difficultyLevel);
+        return RespResult.success(knowledgePoints);
+    }
+
     /**
      * 新增知识点
      */

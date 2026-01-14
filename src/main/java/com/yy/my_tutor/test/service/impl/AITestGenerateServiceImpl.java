@@ -77,13 +77,12 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
                     request.getStudentId(), request.getKnowledgePointId());
         }
 
-        // 4. 获取题目（优先从题库，不足则AI生成）
+        // 4. 获取题目（优先从题库，不足则AI生成，固定单选类型）
         List<Question> questions = getOrGenerateQuestions(
                 request.getStudentId(),
                 Collections.singletonList(request.getKnowledgePointId()),
                 request.getQuestionCount(),
                 difficultyLevel,
-                request.getQuestionType(),
                 request.getSaveToQuestionBank()
         );
 
@@ -113,38 +112,38 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public TestWithQuestionsDTO generateTestByMultipleKnowledgePoints(GenerateAITestRequest request) {
+    public TestWithQuestionsDTO generateTestByCategory(GenerateAITestRequest request) {
         // 1. 参数校验
         validateRequest(request);
-        if (request.getKnowledgePointIds() == null || request.getKnowledgePointIds().isEmpty()) {
-            throw new IllegalArgumentException("知识点ID列表不能为空");
+        if (request.getCategoryId() == null) {
+            throw new IllegalArgumentException("知识类型ID不能为空");
+        }
+        if (request.getDifficultyLevel() == null) {
+            throw new IllegalArgumentException("难度级别不能为空");
         }
 
-        // 2. 查询所有知识点信息
-        List<KnowledgePoint> knowledgePoints = new ArrayList<>();
-        for (Integer kpId : request.getKnowledgePointIds()) {
-            KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
-            if (kp != null) {
-                knowledgePoints.add(kp);
-            }
+        // 2. 根据知识类型ID查询关联的所有知识点
+        List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryId(request.getCategoryId());
+        if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+            throw new IllegalArgumentException("该知识类型下没有关联的知识点");
         }
 
-        if (knowledgePoints.isEmpty()) {
-            throw new IllegalArgumentException("没有找到有效的知识点");
-        }
+        log.info("Found {} knowledge points for category {}", knowledgePoints.size(), request.getCategoryId());
 
-        // 3. 确定难度级别（综合测试使用中等难度，或根据分析报告）
+        // 3. 提取知识点ID列表
+        List<Integer> knowledgePointIds = knowledgePoints.stream()
+                .map(KnowledgePoint::getId)
+                .collect(Collectors.toList());
+
+        // 4. 使用传入的难度级别
         Integer difficultyLevel = request.getDifficultyLevel();
-        if (difficultyLevel == null) {
-            difficultyLevel = 2; // 综合测试默认中等难度
-        }
 
-        // 4. 计算每个知识点需要的题目数量
+        // 5. 计算每个知识点需要的题目数量
         int totalCount = request.getQuestionCount();
         int perPointCount = Math.max(1, totalCount / knowledgePoints.size());
         int remainder = totalCount % knowledgePoints.size();
 
-        // 5. 获取或生成题目
+        // 6. 获取或生成题目
         List<Question> allQuestions = new ArrayList<>();
         for (int i = 0; i < knowledgePoints.size(); i++) {
             KnowledgePoint kp = knowledgePoints.get(i);
@@ -155,7 +154,6 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
                     Collections.singletonList(kp.getId()),
                     count,
                     difficultyLevel,
-                    request.getQuestionType(),
                     request.getSaveToQuestionBank()
             );
             allQuestions.addAll(questions);
@@ -165,12 +163,12 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
             throw new RuntimeException("无法生成足够的题目");
         }
 
-        // 6. 打乱题目顺序
+        // 7. 打乱题目顺序
         Collections.shuffle(allQuestions);
 
-        // 7. 创建测试
-        String testName = request.getTestName() != null ? request.getTestName() : "AI Comprehensive Test";
-        String testNameFr = request.getTestNameFr() != null ? request.getTestNameFr() : "Test IA Complet";
+        // 8. 创建测试
+        String testName = request.getTestName() != null ? request.getTestName() : "AI Category Test";
+        String testNameFr = request.getTestNameFr() != null ? request.getTestNameFr() : "Test IA par Catégorie";
 
         Integer gradeId = request.getGradeId() != null ? request.getGradeId() : knowledgePoints.get(0).getGradeId();
 
@@ -181,10 +179,10 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
                 testName,
                 testNameFr,
                 difficultyLevel,
-                request.getKnowledgePointIds()
+                knowledgePointIds
         );
 
-        // 8. 返回测试详情
+        // 9. 返回测试详情
         return studentTestService.getTestWithQuestions(record.getId());
     }
 
@@ -203,10 +201,13 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
     /**
      * 获取或生成题目
      * 优先从题库获取学生未做过的题目，不足时AI生成补充
+     * 题目类型固定为单选（1）
      */
     private List<Question> getOrGenerateQuestions(Integer studentId, List<Integer> knowledgePointIds,
                                                    int count, Integer difficultyLevel,
-                                                   Integer questionType, Boolean saveToBank) {
+                                                   Boolean saveToBank) {
+        // 固定题目类型为单选
+        final Integer questionType = 1;
         List<Question> result = new ArrayList<>();
 
         // 1. 查询学生已做过的题目ID
