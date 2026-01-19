@@ -30,4 +30,13 @@ public interface ParentService {
      * @return 是否成功
      */
     boolean approveTeacher(Integer id);
+    
+    /**
+     * 查询已审批通过的老师（支持名称、电话、邮箱查询）
+     * @param name 名称（模糊查询，可选）
+     * @param tel 电话（模糊查询，可选）
+     * @param email 邮箱（模糊查询，可选）
+     * @return 已审批通过的老师列表
+     */
+    List<Parent> findApprovedTeachers(String name, String tel, String email);
 }

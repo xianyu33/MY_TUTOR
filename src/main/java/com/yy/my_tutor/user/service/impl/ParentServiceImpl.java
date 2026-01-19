@@ -115,4 +115,9 @@ public class ParentServiceImpl implements ParentService {
     public boolean approveTeacher(Integer id) {
         return parentMapper.approveTeacher(id) > 0;
     }
+
+    @Override
+    public List<Parent> findApprovedTeachers(String name, String tel, String email) {
+        return parentMapper.findApprovedTeachers(name, tel, email);
+    }
 }

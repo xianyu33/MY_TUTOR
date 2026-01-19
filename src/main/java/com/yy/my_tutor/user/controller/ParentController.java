@@ -160,6 +160,25 @@ public class ParentController {
     }
 
     /**
+     * 查询已审批通过的老师列表（支持名称、电话、邮箱查询）
+     * 需要管理员权限（type=9）
+     */
+    @PostMapping("/approvedTeachers")
+    public RespResult<List<Parent>> findApprovedTeachers(@RequestBody Map<String, String> params, HttpServletRequest request) {
+        // 校验管理员权限
+        checkAdminPermission(request);
+        
+        log.info("查询已审批通过的老师: {}", JSON.toJSONString(params));
+        String name = params.get("name");
+        String tel = params.get("tel");
+        String email = params.get("email");
+        List<Parent> teachers = parentService.findApprovedTeachers(name, tel, email);
+        // 隐藏敏感信息
+        teachers.forEach(teacher -> teacher.setPassword(null));
+        return RespResult.success(teachers);
+    }
+
+    /**
      * 校验当前登录用户是否为管理员（type=9）
      * @param request HTTP请求
      * @throws CustomException 如果不是管理员，抛出异常
