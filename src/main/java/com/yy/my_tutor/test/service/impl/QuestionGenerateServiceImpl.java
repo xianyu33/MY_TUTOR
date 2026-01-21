@@ -277,41 +277,58 @@ public class QuestionGenerateServiceImpl implements QuestionGenerateService {
         for (int i = 0; i < jsonStr.length(); i++) {
             char c = jsonStr.charAt(i);
 
-            if (c == '"' && (i == 0 || jsonStr.charAt(i - 1) != '\\')) {
-                inString = !inString;
+            if (!inString) {
                 result.append(c);
+                if (c == '"') {
+                    inString = true;
+                }
                 continue;
             }
 
-            if (inString) {
-                if (c == '\\') {
-                    if (i + 1 < jsonStr.length()) {
-                        char next = jsonStr.charAt(i + 1);
-                        if (next == '"' || next == '\\' || next == '/' ||
-                            next == 'b' || next == 'f' || next == 'n' ||
-                            next == 'r' || next == 't' || next == 'u') {
-                            result.append(c);
-                        } else {
-                            result.append("\\\\");
-                        }
+            // In string
+            if (c == '\\') {
+                // Check next char
+                if (i + 1 < jsonStr.length()) {
+                    char next = jsonStr.charAt(i + 1);
+                    if (isValidEscape(next)) {
+                        // Valid escape (e.g. \" or \\).
+                        // Output `\`
+                        result.append('\\');
+                        // Output `next`
+                        result.append(next);
+                        // Skip next char in loop
+                        i++;
                     } else {
+                        // Invalid escape. Escape the backslash.
                         result.append("\\\\");
+                        // Do NOT skip next char. It will be processed normally.
                     }
-                } else if (c == '\n') {
-                    result.append("\\n");
-                } else if (c == '\r') {
-                    result.append("\\r");
-                } else if (c == '\t') {
-                    result.append("\\t");
                 } else {
-                    result.append(c);
+                    // Backslash at end of string
+                    result.append("\\\\");
                 }
+            } else if (c == '"') {
+                // Closing quote
+                inString = false;
+                result.append(c);
+            } else if (c == '\n') {
+                result.append("\\n");
+            } else if (c == '\r') {
+                result.append("\\r");
+            } else if (c == '\t') {
+                result.append("\\t");
             } else {
                 result.append(c);
             }
         }
 
         return result.toString();
+    }
+
+    private boolean isValidEscape(char c) {
+        return c == '"' || c == '\\' || c == '/' ||
+               c == 'b' || c == 'f' || c == 'n' ||
+               c == 'r' || c == 't' || c == 'u';
     }
 
     /**
