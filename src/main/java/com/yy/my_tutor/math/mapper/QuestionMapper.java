@@ -88,4 +88,28 @@ public interface QuestionMapper {
      * 删除问题（逻辑删除）
      */
     int deleteQuestion(@Param("id") Integer id);
+
+    /**
+     * 查询学生未做过的题目（根据知识点和难度）
+     *
+     * @param knowledgePointId 知识点ID
+     * @param difficultyLevel  难度等级（可选）
+     * @param doneQuestionIds  学生已做过的题目ID列表
+     * @return 未做过的题目列表
+     */
+    List<Question> findUndoneQuestionsByKnowledgePoint(@Param("knowledgePointId") Integer knowledgePointId,
+                                                       @Param("difficultyLevel") Integer difficultyLevel,
+                                                       @Param("doneQuestionIds") List<Integer> doneQuestionIds);
+
+    /**
+     * 查询学生未做过的题目（根据多个知识点和难度）
+     *
+     * @param knowledgePointIds 知识点ID列表
+     * @param difficultyLevel   难度等级（可选）
+     * @param doneQuestionIds   学生已做过的题目ID列表
+     * @return 未做过的题目列表
+     */
+    List<Question> findUndoneQuestionsByKnowledgePoints(@Param("knowledgePointIds") List<Integer> knowledgePointIds,
+                                                        @Param("difficultyLevel") Integer difficultyLevel,
+                                                        @Param("doneQuestionIds") List<Integer> doneQuestionIds);
 }

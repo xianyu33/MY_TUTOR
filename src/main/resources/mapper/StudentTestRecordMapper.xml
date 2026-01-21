@@ -7,6 +7,7 @@
         <result column="student_id" property="studentId"/>
         <result column="test_id" property="testId"/>
         <result column="test_name" property="testName"/>
+        <result column="test_name_fr" property="testNameFr"/>
         <result column="start_time" property="startTime"/>
         <result column="end_time" property="endTime"/>
         <result column="submit_time" property="submitTime"/>
@@ -26,7 +27,7 @@
     </resultMap>
 
     <sql id="Base_Columns">
-        id, student_id, test_id, test_name, start_time, end_time, submit_time, time_spent,
+        id, student_id, test_id, test_name, test_name_fr, start_time, end_time, submit_time, time_spent,
         total_questions, answered_questions, correct_answers, total_points, earned_points,
         score_percentage, test_status, create_at, create_by, update_at, update_by, delete_flag
     </sql>
@@ -61,11 +62,11 @@
     </select>
 
     <insert id="insertTestRecord" parameterType="com.yy.my_tutor.test.domain.StudentTestRecord" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO student_test_record (student_id, test_id, test_name, start_time, end_time, submit_time,
+        INSERT INTO student_test_record (student_id, test_id, test_name, test_name_fr, start_time, end_time, submit_time,
                                         time_spent, total_questions, answered_questions, correct_answers,
                                         total_points, earned_points, score_percentage, test_status,
                                         create_at, create_by, update_at, update_by, delete_flag)
-        VALUES (#{studentId}, #{testId}, #{testName}, #{startTime}, #{endTime}, #{submitTime},
+        VALUES (#{studentId}, #{testId}, #{testName}, #{testNameFr}, #{startTime}, #{endTime}, #{submitTime},
                 #{timeSpent}, #{totalQuestions}, #{answeredQuestions}, #{correctAnswers},
                 #{totalPoints}, #{earnedPoints}, #{scorePercentage}, #{testStatus},
                 NOW(), #{createBy}, NOW(), #{updateBy}, 'N')

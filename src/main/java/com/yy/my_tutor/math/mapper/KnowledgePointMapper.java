@@ -70,4 +70,11 @@ public interface KnowledgePointMapper {
      * 删除知识点（逻辑删除）
      */
     int deleteKnowledgePoint(@Param("id") Integer id);
+
+    /**
+     * 根据分类ID和难度等级查询知识点
+     */
+    List<KnowledgePoint> findKnowledgePointsByCategoryAndDifficulty(
+            @Param("categoryId") Integer categoryId,
+            @Param("difficultyLevel") Integer difficultyLevel);
 }

@@ -56,6 +56,24 @@ public interface StudentTestAnswerMapper {
      * 更新答题详情（别名方法）
      */
     int updateAnswer(StudentTestAnswer testAnswer);
+
+    /**
+     * 查询学生已做过的所有题目ID
+     *
+     * @param studentId 学生ID
+     * @return 已做过的题目ID列表
+     */
+    List<Integer> findDoneQuestionIdsByStudentId(@Param("studentId") Integer studentId);
+
+    /**
+     * 查询学生在指定知识点下已做过的题目ID
+     *
+     * @param studentId        学生ID
+     * @param knowledgePointId 知识点ID
+     * @return 已做过的题目ID列表
+     */
+    List<Integer> findDoneQuestionIdsByStudentAndKnowledgePoint(@Param("studentId") Integer studentId,
+                                                                 @Param("knowledgePointId") Integer knowledgePointId);
 }
 
 
