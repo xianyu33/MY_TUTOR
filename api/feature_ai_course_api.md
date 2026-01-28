@@ -6,9 +6,8 @@
 
 1. [AI测试生成接口](#1-ai测试生成接口)
 2. [课程生成接口](#2-课程生成接口)
-3. [学生测试接口](#3-学生测试接口)
-4. [知识点查询接口](#4-知识点查询接口)
-5. [学习计划接口](#5-学习计划接口)
+3. [知识点查询接口](#3-知识点查询接口)
+4. [学习计划接口](#4-学习计划接口)
 
 ---
 
@@ -785,9 +784,194 @@
 
 ---
 
-## 3. 学习计划接口
+## 3. 知识点查询接口
 
-### 3.1 获取学生所有学习计划
+### 3.1 根据分类ID和难度等级查询知识点
+
+**接口地址**: `GET /api/math/knowledge/category/{categoryId}/difficulty/{difficultyLevel}`
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| categoryId | Integer | 是 | 知识分类ID (路径参数) |
+| difficultyLevel | Integer | 是 | 难度等级：1-简单，2-中等，3-困难 (路径参数) |
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 631,
+      "gradeId": 12,
+      "categoryId": 73,
+      "pointName": "Logarithmic Functions",
+      "pointNameFr": "Fonctions logarithmiques",
+      "pointCode": "GR12_ALG_026",
+      "description": "Understanding logarithmic functions",
+      "descriptionFr": "Comprendre les fonctions logarithmiques",
+      "content": "Understand logarithmic functions as inverses of exponential functions...",
+      "contentFr": "Comprendre les fonctions logarithmiques comme inverses des fonctions exponentielles...",
+      "difficultyLevel": 2,
+      "sortOrder": 37,
+      "learningObjectives": "Understand logarithmic functions; Graph log functions; Understand log properties",
+      "learningObjectivesFr": "Comprendre les fonctions logarithmiques; Représenter graphiquement des fonctions log; Comprendre les propriétés des logs",
+      "createAt": "2025-12-31 00:31:57",
+      "updateAt": "2025-12-31 00:31:57",
+      "deleteFlag": "N"
+    }
+  ]
+}
+```
+
+---
+
+### 3.2 根据学生ID和知识点ID查询历史测试列表
+
+**接口地址**: `GET /api/student-test-record/student/{studentId}/knowledge-point/{knowledgePointId}`
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| studentId | Integer | 是 | 学生ID (路径参数) |
+| knowledgePointId | Integer | 是 | 知识点ID (路径参数) |
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 135,
+      "studentId": 48,
+      "testId": 155,
+      "testName": "三角函数测试",
+      "testNameFr": "Test de trigonométrie",
+      "startTime": "2026-01-21 07:50:22",
+      "endTime": "2026-01-21 08:30:00",
+      "timeLimit": 60,
+      "totalQuestions": 5,
+      "answeredQuestions": 5,
+      "correctAnswers": 4,
+      "totalPoints": 5,
+      "earnedPoints": 4,
+      "testStatus": 3,
+      "createAt": "2026-01-20 23:50:22"
+    }
+  ]
+}
+```
+
+**说明**: 返回该学生在指定知识点相关的所有历史测试记录
+
+---
+
+### 3.3 根据测试记录ID获取测试详情（包含题目和解析）
+
+**接口地址**: `GET /api/student-test/detail/{testRecordId}`
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| testRecordId | Integer | 是 | 测试记录ID (路径参数) |
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "id": 135,
+    "studentId": 48,
+    "testId": 155,
+    "testName": "三角函数测试",
+    "testNameFr": "Test de trigonométrie",
+    "startTime": "2026-01-21 07:50:22",
+    "timeLimit": 60,
+    "totalQuestions": 5,
+    "totalPoints": 5,
+    "testStatus": 1,
+    "createAt": "2026-01-20 23:50:22",
+    "questions": [
+      {
+        "questionId": 183,
+        "sortOrder": 1,
+        "points": 1,
+        "questionTitle": "Solve Sine Equation",
+        "questionTitleFr": "Résoudre une équation de sinus",
+        "questionContent": "Find the solutions of the equation...",
+        "questionContentFr": "Trouvez les solutions de l'équation...",
+        "options": "[\"A. ...\", \"B. ...\", \"C. ...\", \"D. ...\"]",
+        "optionsFr": "[\"A. ...\", \"B. ...\", \"C. ...\", \"D. ...\"]",
+        "correctAnswer": "B",
+        "correctAnswerFr": "B",
+        "answerExplanation": "First, isolate sin(x)... So the answer is B.",
+        "answerExplanationFr": "Tout d'abord, isolez sin(x)... Donc la réponse est B.",
+        "difficultyLevel": 2,
+        "knowledgePointId": 627,
+        "knowledgePointName": "Basic Trigonometric Equations",
+        "knowledgePointNameFr": "Équations trigonométriques de base"
+      }
+    ],
+    "easyCount": 0,
+    "mediumCount": 5,
+    "hardCount": 0
+  }
+}
+```
+
+**说明**: 返回测试详情，包含完整的题目列表（题目内容、选项、正确答案、解析等）
+
+---
+
+### 3.4 根据测试记录ID查询测试报告
+
+**接口地址**: `GET /api/test-analysis-report/record/{testRecordId}`
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| testRecordId | Integer | 是 | 测试记录ID (路径参数) |
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 15,
+      "testRecordId": 135,
+      "studentId": 48,
+      "testId": 155,
+      "reportType": 1,
+      "reportTitle": "测试分析报告_135",
+      "reportTitleFr": "Rapport d'analyse de test_135",
+      "reportContent": "测试分析报告内容...",
+      "overallScore": 80.00,
+      "totalPoints": 5,
+      "earnedPoints": 4,
+      "accuracyRate": 80.00,
+      "strongKnowledgePoints": "[627, 631]",
+      "strongPointsSummary": "掌握良好的知识点: Basic Trigonometric Equations, Logarithmic Functions",
+      "needsImprovementPoints": "[620]",
+      "needsImprovementSummary": "需要加强的知识点: Angles in Standard Position",
+      "weakKnowledgePoints": "[]",
+      "weakPointsSummary": "",
+      "recommendations": "建议多练习相关知识点的题目...",
+      "recommendationsFr": "Il est recommandé de pratiquer davantage...",
+      "analysisData": "{\"knowledgePointScores\": {...}}",
+      "createAt": "2026-01-21 08:30:00"
+    }
+  ]
+}
+```
+
+**说明**: 返回测试分析报告列表，包含得分、知识点掌握情况分析和学习建议
+
+---
+
+## 4. 学习计划接口
+
+### 4.1 获取学生所有学习计划
 
 **接口地址**: `GET /api/study-plan/list/{studentId}`
 
@@ -887,7 +1071,7 @@
 
 ---
 
-### 3.2 获取单个计划详情
+### 4.2 获取单个计划详情
 
 **接口地址**: `GET /api/study-plan/{studentId}/{categoryId}`
 
@@ -926,7 +1110,7 @@
 
 ---
 
-### 3.3 完成知识点学习
+### 4.3 完成知识点学习
 
 **接口地址**: `POST /api/study-plan/complete-knowledge`
 
@@ -968,7 +1152,7 @@
 
 ---
 
-### 3.4 取消完成知识点
+### 4.4 取消完成知识点
 
 **接口地址**: `POST /api/study-plan/uncomplete-knowledge`
 
@@ -1010,7 +1194,7 @@
 
 ---
 
-### 3.5 刷新计划进度
+### 4.5 刷新计划进度
 
 **接口地址**: `POST /api/study-plan/refresh/{studentId}/{categoryId}`
 
@@ -1050,7 +1234,7 @@
 
 ---
 
-### 3.6 根据知识点获取所属计划
+### 4.6 根据知识点获取所属计划
 
 **接口地址**: `GET /api/study-plan/by-knowledge/{studentId}/{knowledgePointId}`
 

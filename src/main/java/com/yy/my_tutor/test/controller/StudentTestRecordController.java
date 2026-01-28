@@ -62,6 +62,18 @@ public class StudentTestRecordController {
     }
     
     /**
+     * 根据学生ID和知识点ID查询历史测试记录
+     */
+    @GetMapping("/student/{studentId}/knowledge-point/{knowledgePointId}")
+    public RespResult<List<StudentTestRecord>> findTestRecordsByStudentAndKnowledgePoint(
+            @PathVariable Integer studentId,
+            @PathVariable Integer knowledgePointId) {
+        List<StudentTestRecord> records = testRecordService.findTestRecordsByStudentIdAndKnowledgePointIds(
+                studentId, java.util.Collections.singletonList(knowledgePointId));
+        return RespResult.success(records);
+    }
+
+    /**
      * 根据学生ID和知识类型、难度等级查询测试记录
      * 使用新的方式：根据知识类型和难度等级查询
      */
