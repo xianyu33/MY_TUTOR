@@ -158,9 +158,24 @@ public class StudentTestController {
     @GetMapping("/answer-details/{testRecordId}")
     public RespResult<List<StudentTestAnswer>> getTestAnswerDetails(@PathVariable Integer testRecordId) {
         log.info("查询测试记录 {} 的答题详情", testRecordId);
-        
+
         List<StudentTestAnswer> answers = studentTestService.getTestAnswerDetails(testRecordId);
         return RespResult.success(answers);
+    }
+
+    /**
+     * 根据测试记录ID获取测试详情（包含题目列表和解析）
+     */
+    @GetMapping("/detail/{testRecordId}")
+    public RespResult<TestWithQuestionsDTO> getTestDetail(@PathVariable Integer testRecordId) {
+        log.info("获取测试详情，测试记录ID: {}", testRecordId);
+
+        TestWithQuestionsDTO testDetails = studentTestService.getTestWithQuestions(testRecordId);
+        if (testDetails != null) {
+            return RespResult.success(testDetails);
+        } else {
+            return RespResult.error("测试记录不存在");
+        }
     }
     
     /**
