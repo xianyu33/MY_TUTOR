@@ -212,6 +212,7 @@
         WHERE kp.delete_flag = 'N'
             AND kp.grade_id = #{gradeId}
             AND kp.category_id = #{categoryId}
+            AND kp.id = #{knowledgePointId}
         ORDER BY kp.sort_order ASC, kp.id ASC
     </select>
 

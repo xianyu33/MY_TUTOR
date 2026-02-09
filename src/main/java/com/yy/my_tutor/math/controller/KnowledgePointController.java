@@ -78,7 +78,7 @@ public class KnowledgePointController {
     public RespResult<List<KnowledgePointWithProgress>> findKnowledgePointsWithProgress(
             @RequestBody KnowledgePointQueryRequest request) {
         List<KnowledgePointWithProgress> knowledgePoints = knowledgePointService.findKnowledgePointsWithProgress(
-                request.getStudentId(), request.getGradeId(), request.getCategoryId());
+                request.getStudentId(), request.getGradeId(), request.getCategoryId(), request.getKnowledgePointId());
         return RespResult.success(knowledgePoints);
     }
     

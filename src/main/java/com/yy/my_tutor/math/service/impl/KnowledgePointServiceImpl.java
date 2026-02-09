@@ -55,8 +55,8 @@ public class KnowledgePointServiceImpl implements KnowledgePointService {
     }
     
     @Override
-    public List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId) {
-        return knowledgePointMapper.findKnowledgePointsWithProgress(userId, gradeId, categoryId);
+    public List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId, Integer knowledgePointId) {
+        return knowledgePointMapper.findKnowledgePointsWithProgress(userId, gradeId, categoryId, knowledgePointId);
     }
     
     @Override

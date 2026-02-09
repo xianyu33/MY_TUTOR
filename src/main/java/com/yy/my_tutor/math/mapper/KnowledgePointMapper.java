@@ -54,7 +54,8 @@ public interface KnowledgePointMapper {
     List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(
             @Param("userId") Integer userId, 
             @Param("gradeId") Integer gradeId, 
-            @Param("categoryId") Integer categoryId);
+            @Param("categoryId") Integer categoryId,
+            @Param("knowledgePointId") Integer knowledgePointId);
     
     /**
      * 插入知识点

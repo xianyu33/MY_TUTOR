@@ -48,7 +48,7 @@ public interface KnowledgePointService {
     /**
      * 根据学生ID、年级ID和分类ID查询知识点列表（包含学习进度）
      */
-    List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId);
+    List<KnowledgePointWithProgress> findKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId, Integer knowledgePointId);
     
     /**
      * 新增知识点
