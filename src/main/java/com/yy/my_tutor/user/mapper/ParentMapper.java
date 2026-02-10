@@ -30,4 +30,13 @@ public interface ParentMapper {
      * @return 影响行数
      */
     int approveTeacher(Integer id);
+    
+    /**
+     * 查询已审批通过的老师（支持名称、电话、邮箱查询）
+     * @param name 名称（模糊查询）
+     * @param tel 电话（模糊查询）
+     * @param email 邮箱（模糊查询）
+     * @return 已审批通过的老师列表
+     */
+    List<Parent> findApprovedTeachers(@Param("name") String name, @Param("tel") String tel, @Param("email") String email);
 } 

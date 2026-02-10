@@ -28,6 +28,12 @@ public class KnowledgePointQueryRequest implements Serializable {
      * 知识点分类ID
      */
     private Integer categoryId;
+
+    /**
+     * 知识点id
+     */
+    private Integer knowledgePointId;
+
 }
 
 
