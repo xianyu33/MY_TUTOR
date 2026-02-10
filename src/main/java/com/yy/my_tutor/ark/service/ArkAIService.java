@@ -1,18 +1,30 @@
 package com.yy.my_tutor.ark.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionResult;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole;
 import com.volcengine.ark.runtime.service.ArkService;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import okio.BufferedSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 火山引擎 Ark API 服务封装（使用官方SDK）
@@ -162,6 +174,118 @@ public class ArkAIService {
             log.error("Ark API call failed", e);
             throw new RuntimeException("AI 服务调用失败: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 流式调用 AI 生成内容
+     *
+     * @param systemPrompt 系统提示词
+     * @param userPrompt   用户提示词
+     * @return Flux<String>，每个元素是一个 content delta
+     */
+    public Flux<String> streamChat(String systemPrompt, String userPrompt) {
+        String url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+
+        // 构建请求体
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("model", defaultModel);
+        requestBody.put("stream", true);
+
+        JSONArray messages = new JSONArray();
+        if (systemPrompt != null && !systemPrompt.isEmpty()) {
+            JSONObject sysMsg = new JSONObject();
+            sysMsg.put("role", "system");
+            sysMsg.put("content", systemPrompt);
+            messages.add(sysMsg);
+        }
+        JSONObject userMsg = new JSONObject();
+        userMsg.put("role", "user");
+        userMsg.put("content", userPrompt);
+        messages.add(userMsg);
+        requestBody.put("messages", messages);
+
+        if (defaultTemperature != null) {
+            requestBody.put("temperature", defaultTemperature);
+        }
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + apiKey);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        RequestBody body = RequestBody.create(
+                okhttp3.MediaType.parse("application/json"), requestBody.toJSONString());
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(Headers.of(headers))
+                .post(body)
+                .build();
+
+        log.info("Calling Ark streaming API, model: {}, userPrompt length: {}", defaultModel, userPrompt.length());
+
+        return Flux.create(fluxSink -> {
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    log.error("Ark streaming API request failed", e);
+                    fluxSink.error(new RuntimeException("AI 流式服务调用失败: " + e.getMessage(), e));
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try (ResponseBody responseBody = response.body()) {
+                        if (!response.isSuccessful()) {
+                            String errorBody = responseBody != null ? responseBody.string() : "unknown";
+                            log.error("Ark streaming API response failed: {}, body: {}", response.code(), errorBody);
+                            fluxSink.error(new RuntimeException("AI 流式服务响应失败: " + response.code()));
+                            return;
+                        }
+                        if (responseBody == null) {
+                            fluxSink.error(new RuntimeException("AI 流式服务响应为空"));
+                            return;
+                        }
+                        BufferedSource source = responseBody.source();
+                        while (!source.exhausted()) {
+                            String line = source.readUtf8Line();
+                            if (StrUtil.isBlank(line)) {
+                                continue;
+                            }
+                            // SSE format: "data: {...}"
+                            if (line.startsWith("data: ")) {
+                                String data = line.substring(6).trim();
+                                if ("[DONE]".equals(data)) {
+                                    break;
+                                }
+                                try {
+                                    JSONObject jsonObj = JSON.parseObject(data);
+                                    JSONArray choices = jsonObj.getJSONArray("choices");
+                                    if (choices != null && !choices.isEmpty()) {
+                                        JSONObject delta = choices.getJSONObject(0).getJSONObject("delta");
+                                        if (delta != null) {
+                                            String content = delta.getString("content");
+                                            if (content != null && !content.isEmpty()) {
+                                                fluxSink.next(content);
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.debug("Skip non-JSON SSE line: {}", line);
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        log.error("Ark streaming API read error", e);
+                        fluxSink.error(new RuntimeException("AI 流式服务读取异常: " + e.getMessage(), e));
+                    } finally {
+                        fluxSink.complete();
+                    }
+                }
+            });
+        }, FluxSink.OverflowStrategy.BUFFER);
     }
 
     /**

@@ -30,7 +30,7 @@ public class GenerateCourseRequest implements Serializable {
     private Integer difficultyLevel;
 
     /**
-     * 语言（可选）：en-英文 fr-法语 both-双语（默认）
+     * 语言（可选）：en-英语 fr-法语
      */
-    private String language = "both";
+    private String language = "en";
 }

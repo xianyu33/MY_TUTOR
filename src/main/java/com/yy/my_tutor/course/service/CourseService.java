@@ -9,43 +9,29 @@ import java.util.List;
  */
 public interface CourseService {
 
-    /**
-     * 根据ID查询课程
-     */
     Course findById(Integer id);
 
     /**
-     * 根据学生ID和知识点ID查询课程
+     * 根据ID查询课程并填充指定语言的内容
      */
+    Course findByIdWithContent(Integer id, String language);
+
     Course findByStudentAndKnowledgePoint(Integer studentId, Integer knowledgePointId);
 
-    /**
-     * 根据学生ID、知识点ID和难度级别查询课程
-     */
     Course findByStudentKnowledgePointAndDifficulty(Integer studentId, Integer knowledgePointId, Integer difficultyLevel);
 
-    /**
-     * 根据学生ID查询课程列表
-     */
     List<Course> findByStudentId(Integer studentId);
 
-    /**
-     * 根据知识点ID查询课程列表
-     */
     List<Course> findByKnowledgePointId(Integer knowledgePointId);
 
-    /**
-     * 保存课程
-     */
     Course save(Course course);
 
-    /**
-     * 更新课程
-     */
     Course update(Course course);
 
-    /**
-     * 删除课程
-     */
     boolean deleteById(Integer id);
+
+    /**
+     * 标记当前阶段完成
+     */
+    Course completeStage(Integer courseId);
 }

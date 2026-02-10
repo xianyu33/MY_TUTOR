@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * AI生成课程内容实体类
+ * 课程主表实体类（不含内容，内容在 CourseContent）
  */
 @Data
 @AllArgsConstructor
@@ -22,23 +22,12 @@ public class Course implements Serializable {
     private Integer studentId;
     private Integer knowledgePointId;
     private Integer difficultyLevel;
-    private String courseTitle;
-    private String courseTitleFr;
 
-    // 课程内容模块
-    private String explanation;
-    private String explanationFr;
-    private String examples;
-    private String examplesFr;
-    private String keySummary;
-    private String keySummaryFr;
-    private String additionalInfo;
-    private String additionalInfoFr;
+    // 当前已生成阶段：0-未开始，1-4对应已生成的阶段
+    private Integer currentStage;
 
-    // 元数据
-    private String generationSource;
-    private String modelId;
-    private String promptUsed;
+    // 用户已完成的阶段：0-未完成，1-4对应已完成的阶段
+    private Integer completedStage;
 
     // 审计字段
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -51,4 +40,13 @@ public class Course implements Serializable {
 
     // 关联对象
     private KnowledgePoint knowledgePoint;
+    private CourseContent content;
+
+    /**
+     * 学习进度（不持久化，查询时计算）
+     * progress = completedStage * 25
+     */
+    public Integer getProgress() {
+        return (completedStage != null ? completedStage : 0) * 25;
+    }
 }

@@ -5,9 +5,10 @@
 ## 目录
 
 1. [AI测试生成接口](#1-ai测试生成接口)
-2. [课程生成接口](#2-课程生成接口)
-3. [知识点查询接口](#3-知识点查询接口)
-4. [学习计划接口](#4-学习计划接口)
+2. [知识点查询接口](#2-知识点查询接口)
+3. [学习计划接口](#3-学习计划接口)
+
+> 课程相关接口已迁移至 [course_api.md](course_api.md)
 
 ---
 
@@ -503,290 +504,9 @@
 
 ---
 
-## 2. 课程生成接口
+## 2. 知识点查询接口
 
-### 2.1 根据知识点生成课程
-
-**接口地址**: `POST /course/generate`
-
-**请求参数**:
-```json
-{
-  "knowledgePointId":"631",
-  "studentId":"48"
-}
-```
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| studentId | Integer | 是 | 学生ID |
-| knowledgePointId | Integer | 是 | 知识点ID |
-| difficultyLevel | Integer | 否 | 难度等级，不传则自动确定 |
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "课程生成成功",
-  "data": {
-    "id": 6,
-    "studentId": 48,
-    "knowledgePointId": 631,
-    "difficultyLevel": 1,
-    "courseTitle": "Introduction to Logarithmic Functions",
-    "courseTitleFr": "Introduction aux fonctions logarithmiques",
-    "explanation": "Logarithmic functions are the inverse of exponential functions. An exponential function looks like \\(y = a^x\\), where \\(a\\) is a positive number and \\(x\\) is the exponent. A logarithmic function, written as \\(y=\\log_a(x)\\), answers the question: 'To what power do we need to raise the base \\(a\\) to get \\(x\\)'? For example, if we have \\(\\log_2(8)\\), we're asking 'What power do we raise 2 to, to get 8?' Since \\(2^3 = 8\\), then \\(\\log_2(8)=3\\).\n\nGraphing logarithmic functions helps us visualize how they behave. The graph of \\(y = \\log_a(x)\\) has a vertical asymptote at \\(x = 0\\) (the y - axis) and passes through the point \\((1,0)\\) because \\(a^0=1\\) for any positive \\(a\neq1\\).\n\nLogarithmic properties are rules that make it easier to work with logarithmic expressions. Some important properties are: \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\), and \\(\\log_a(M^p)=p\\log_a(M)\\). These properties are useful in many real - world scenarios, like measuring the intensity of earthquakes (Richter scale), the loudness of sounds (decibel scale), and in finance for calculating compound interest.",
-    "explanationFr": "Les fonctions logarithmiques sont l'inverse des fonctions exponentielles. Une fonction exponentielle a la forme \\(y = a^x\\), où \\(a\\) est un nombre positif et \\(x\\) est l'exposant. Une fonction logarithmique, écrite sous la forme \\(y=\\log_a(x)\\), répond à la question : 'À quelle puissance devons - nous élever la base \\(a\\) pour obtenir \\(x\\)'? Par exemple, si nous avons \\(\\log_2(8)\\), nous nous demandons 'À quelle puissance devons - nous élever 2 pour obtenir 8?' Puisque \\(2^3 = 8\\), alors \\(\\log_2(8)=3\\).\n\nLe tracé des fonctions logarithmiques nous aide à visualiser leur comportement. Le graphe de \\(y = \\log_a(x)\\) a une asymptote verticale en \\(x = 0\\) (l'axe des y) et passe par le point \\((1,0)\\) car \\(a^0 = 1\\) pour tout \\(a\\) positif différent de 1.\n\nLes propriétés logarithmiques sont des règles qui facilitent le travail avec les expressions logarithmiques. Certaines propriétés importantes sont : \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\) et \\(\\log_a(M^p)=p\\log_a(M)\\). Ces propriétés sont utiles dans de nombreux scénarios du monde réel, comme la mesure de l'intensité des tremblements de terre (échelle de Richter), la mesure du volume des sons (échelle des décibels) et en finance pour calculer les intérêts composés.",
-    "examples": "**Example 1: Evaluating a Logarithm**\nFind the value of \\(\\log_3(27)\\).\nStep 1: Recall the definition of a logarithm. We need to find the exponent \\(x\\) such that \\(3^x = 27\\).\nStep 2: Since \\(3^3=27\\), then \\(\\log_3(27)=3\\).\n\n**Example 2: Using Logarithmic Properties**\nSimplify \\(\\log_5(25x)\\).\nStep 1: Use the property \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Here, \\(M = 25\\) and \\(N=x\\).\nStep 2: We know that \\(\\log_5(25)\\) because \\(5^2 = 25\\), so \\(\\log_5(25)=2\\). Then \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Example 3: Graphing a Logarithmic Function**\nGraph \\(y=\\log_2(x)\\).\nStep 1: Find some key points. When \\(x = 1\\), \\(y=\\log_2(1)=0\\) (since \\(2^0 = 1\\)). When \\(x = 2\\), \\(y=\\log_2(2)=1\\) (since \\(2^1 = 2\\)). When \\(x = 4\\), \\(y=\\log_2(4)=2\\) (since \\(2^2 = 4\\)).\nStep 2: Draw a vertical asymptote at \\(x = 0\\). Then plot the points \\((1,0)\\), \\((2,1)\\), and \\((4,2)\\) and connect them with a smooth curve that approaches the asymptote as \\(x\\) gets closer to 0.",
-    "examplesFr": "**Exemple 1 : Évaluation d'un logarithme**\nTrouvez la valeur de \\(\\log_3(27)\\).\nÉtape 1 : Rappelez - vous la définition d'un logarithme. Nous devons trouver l'exposant \\(x\\) tel que \\(3^x = 27\\).\nÉtape 2 : Puisque \\(3^3 = 27\\), alors \\(\\log_3(27)=3\\).\n\n**Exemple 2 : Utilisation des propriétés logarithmiques**\nSimplifiez \\(\\log_5(25x)\\).\nÉtape 1 : Utilisez la propriété \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Ici, \\(M = 25\\) et \\(N=x\\).\nÉtape 2 : Nous savons que \\(\\log_5(25)\\) car \\(5^2 = 25\\), donc \\(\\log_5(25)=2\\). Alors \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Exemple 3 : Tracé d'une fonction logarithmique**\nTracez le graphe de \\(y=\\log_2(x)\\).\nÉtape 1 : Trouvez quelques points clés. Lorsque \\(x = 1\\), \\(y=\\log_2(1)=0\\) (puisque \\(2^0 = 1\\)). Lorsque \\(x = 2\\), \\(y=\\log_2(2)=1\\) (puisque \\(2^1 = 2\\)). Lorsque \\(x = 4\\), \\(y=\\log_2(4)=2\\) (puisque \\(2^2 = 4\\)).\nÉtape 2 : Tracez une asymptote verticale en \\(x = 0\\). Ensuite, placez les points \\((1,0)\\), \\((2,1)\\) et \\((4,2)\\) et reliez - les avec une courbe lisse qui s'approche de l'asymptote lorsque \\(x\\) se rapproche de 0.",
-    "keySummary": "1. Definition of a logarithmic function: \\(y=\\log_a(x)\\) means \\(a^y=x\\).\n2. Key graph features: Vertical asymptote at \\(x = 0\\), passes through \\((1,0)\\).\n3. Logarithmic properties:\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-    "keySummaryFr": "1. Définition d'une fonction logarithmique : \\(y=\\log_a(x)\\) signifie \\(a^y=x\\).\n2. Caractéristiques clés du graphe : Asymptote verticale en \\(x = 0\\), passe par le point \\((1,0)\\).\n3. Propriétés logarithmiques :\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-    "additionalInfo": "**Tips**: \n- When evaluating logarithms, try to rewrite the number inside the logarithm as a power of the base. For example, if you have \\(\\log_4(64)\\), think '4 to what power is 64?' Since \\(4^3 = 64\\), the answer is 3.\n- When graphing, always start by finding the vertical asymptote and a few key points.\n\n**Common mistakes to avoid**: \n- Forgetting the base of the logarithm. \\(\\log(x)\\) usually means \\(\\log_{10}(x)\\) in most math courses, but in some contexts it could mean \\(\\log_e(x)\\) (natural logarithm).\n- Misapplying the logarithmic properties. For example, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Connections to other topics**: Logarithmic functions are closely related to exponential functions. They are also used in solving exponential equations. In calculus, logarithms are important for integration and differentiation problems.",
-    "additionalInfoFr": "**Conseils** : \n- Lors de l'évaluation des logarithmes, essayez de réécrire le nombre à l'intérieur du logarithme comme une puissance de la base. Par exemple, si vous avez \\(\\log_4(64)\\), demandez - vous '4 à quelle puissance donne 64?' Puisque \\(4^3 = 64\\), la réponse est 3.\n- Lors du tracé du graphe, commencez toujours par trouver l'asymptote verticale et quelques points clés.\n\n**Erreurs courantes à éviter** : \n- Oublier la base du logarithme. \\(\\log(x)\\) signifie généralement \\(\\log_{10}(x)\\) dans la plupart des cours de mathématiques, mais dans certains contextes, cela pourrait signifier \\(\\log_e(x)\\) (logarithme naturel).\n- Appliquer incorrectement les propriétés logarithmiques. Par exemple, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Liens avec d'autres sujets** : Les fonctions logarithmiques sont étroitement liées aux fonctions exponentielles. Elles sont également utilisées pour résoudre les équations exponentielles. En calcul différentiel et intégral, les logarithmes sont importants pour les problèmes d'intégration et de différentiation.",
-    "generationSource": "AI",
-    "modelId": "ep-20250421140255-d6sfx",
-    "promptUsed": "Please generate a comprehensive course for the following knowledge point:\n\nKnowledge Point Name: Logarithmic Functions\nKnowledge Point Name (French): Fonctions logarithmiques\nDescription: Understanding logarithmic functions\nLearning Objectives: Understand logarithmic functions; Graph log functions; Understand log properties\nDifficulty Level: Easy (beginner)\n\nPlease generate the course content in the following JSON format:\n{\n  \"courseTitle\": \"Course title in English\",\n  \"courseTitleFr\": \"Course title in French\",\n  \"explanation\": \"Detailed explanation of the knowledge point in English, suitable for Easy (beginner) level\",\n  \"explanationFr\": \"Detailed explanation in French\",\n  \"examples\": \"2-3 worked examples with step-by-step solutions in English\",\n  \"examplesFr\": \"Same examples in French\",\n  \"keySummary\": \"Key points and formulas to remember in English\",\n  \"keySummaryFr\": \"Key summary in French\",\n  \"additionalInfo\": \"Tips, common mistakes to avoid, and connections to other topics in English\",\n  \"additionalInfoFr\": \"Additional info in French\"\n}\n\nImportant requirements:\n1. Content must be appropriate for the Easy (beginner) difficulty level\n2. Use clear, student-friendly language\n3. Include practical examples relevant to real-world applications\n4. Ensure French translations are accurate and natural\n5. Return ONLY valid JSON, no additional text\n",
-    "knowledgePoint": {
-      "id": 631,
-      "gradeId": 12,
-      "categoryId": 73,
-      "pointName": "Logarithmic Functions",
-      "pointNameFr": "Fonctions logarithmiques",
-      "pointCode": "GR12_ALG_026",
-      "description": "Understanding logarithmic functions",
-      "descriptionFr": "Comprendre les fonctions logarithmiques",
-      "content": "Understand logarithmic functions as inverses of exponential functions. Graph logarithmic functions. Understand properties of logarithms. Apply logarithmic functions to solve problems.",
-      "contentFr": "Comprendre les fonctions logarithmiques comme inverses des fonctions exponentielles. Représenter graphiquement des fonctions logarithmiques. Comprendre les propriétés des logarithmes. Appliquer des fonctions logarithmiques pour résoudre des problèmes.",
-      "difficultyLevel": 3,
-      "sortOrder": 37,
-      "learningObjectives": "Understand logarithmic functions; Graph log functions; Understand log properties",
-      "learningObjectivesFr": "Comprendre les fonctions logarithmiques; Représenter graphiquement des fonctions log; Comprendre les propriétés des logs",
-      "createAt": "2025-12-31 00:31:57",
-      "updateAt": "2025-12-31 00:31:57",
-      "deleteFlag": "N"
-    }
-  }
-}
-```
-
----
-
-### 2.2 根据ID查询课程
-
-**接口地址**: `GET /course/{id}`
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| id | Integer | 是 | 课程ID (路径参数) |
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "操作成功",
-  "data": {
-    "id": 6,
-    "studentId": 48,
-    "knowledgePointId": 631,
-    "difficultyLevel": 1,
-    "courseTitle": "Introduction to Logarithmic Functions",
-    "courseTitleFr": "Introduction aux fonctions logarithmiques",
-    "explanation": "Logarithmic functions are the inverse of exponential functions. An exponential function looks like \\(y = a^x\\), where \\(a\\) is a positive number and \\(x\\) is the exponent. A logarithmic function, written as \\(y=\\log_a(x)\\), answers the question: 'To what power do we need to raise the base \\(a\\) to get \\(x\\)'? For example, if we have \\(\\log_2(8)\\), we're asking 'What power do we raise 2 to, to get 8?' Since \\(2^3 = 8\\), then \\(\\log_2(8)=3\\).\n\nGraphing logarithmic functions helps us visualize how they behave. The graph of \\(y = \\log_a(x)\\) has a vertical asymptote at \\(x = 0\\) (the y - axis) and passes through the point \\((1,0)\\) because \\(a^0=1\\) for any positive \\(a\neq1\\).\n\nLogarithmic properties are rules that make it easier to work with logarithmic expressions. Some important properties are: \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\), and \\(\\log_a(M^p)=p\\log_a(M)\\). These properties are useful in many real - world scenarios, like measuring the intensity of earthquakes (Richter scale), the loudness of sounds (decibel scale), and in finance for calculating compound interest.",
-    "explanationFr": "Les fonctions logarithmiques sont l'inverse des fonctions exponentielles. Une fonction exponentielle a la forme \\(y = a^x\\), où \\(a\\) est un nombre positif et \\(x\\) est l'exposant. Une fonction logarithmique, écrite sous la forme \\(y=\\log_a(x)\\), répond à la question : 'À quelle puissance devons - nous élever la base \\(a\\) pour obtenir \\(x\\)'? Par exemple, si nous avons \\(\\log_2(8)\\), nous nous demandons 'À quelle puissance devons - nous élever 2 pour obtenir 8?' Puisque \\(2^3 = 8\\), alors \\(\\log_2(8)=3\\).\n\nLe tracé des fonctions logarithmiques nous aide à visualiser leur comportement. Le graphe de \\(y = \\log_a(x)\\) a une asymptote verticale en \\(x = 0\\) (l'axe des y) et passe par le point \\((1,0)\\) car \\(a^0 = 1\\) pour tout \\(a\\) positif différent de 1.\n\nLes propriétés logarithmiques sont des règles qui facilitent le travail avec les expressions logarithmiques. Certaines propriétés importantes sont : \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\) et \\(\\log_a(M^p)=p\\log_a(M)\\). Ces propriétés sont utiles dans de nombreux scénarios du monde réel, comme la mesure de l'intensité des tremblements de terre (échelle de Richter), la mesure du volume des sons (échelle des décibels) et en finance pour calculer les intérêts composés.",
-    "examples": "**Example 1: Evaluating a Logarithm**\nFind the value of \\(\\log_3(27)\\).\nStep 1: Recall the definition of a logarithm. We need to find the exponent \\(x\\) such that \\(3^x = 27\\).\nStep 2: Since \\(3^3=27\\), then \\(\\log_3(27)=3\\).\n\n**Example 2: Using Logarithmic Properties**\nSimplify \\(\\log_5(25x)\\).\nStep 1: Use the property \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Here, \\(M = 25\\) and \\(N=x\\).\nStep 2: We know that \\(\\log_5(25)\\) because \\(5^2 = 25\\), so \\(\\log_5(25)=2\\). Then \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Example 3: Graphing a Logarithmic Function**\nGraph \\(y=\\log_2(x)\\).\nStep 1: Find some key points. When \\(x = 1\\), \\(y=\\log_2(1)=0\\) (since \\(2^0 = 1\\)). When \\(x = 2\\), \\(y=\\log_2(2)=1\\) (since \\(2^1 = 2\\)). When \\(x = 4\\), \\(y=\\log_2(4)=2\\) (since \\(2^2 = 4\\)).\nStep 2: Draw a vertical asymptote at \\(x = 0\\). Then plot the points \\((1,0)\\), \\((2,1)\\), and \\((4,2)\\) and connect them with a smooth curve that approaches the asymptote as \\(x\\) gets closer to 0.",
-    "examplesFr": "**Exemple 1 : Évaluation d'un logarithme**\nTrouvez la valeur de \\(\\log_3(27)\\).\nÉtape 1 : Rappelez - vous la définition d'un logarithme. Nous devons trouver l'exposant \\(x\\) tel que \\(3^x = 27\\).\nÉtape 2 : Puisque \\(3^3 = 27\\), alors \\(\\log_3(27)=3\\).\n\n**Exemple 2 : Utilisation des propriétés logarithmiques**\nSimplifiez \\(\\log_5(25x)\\).\nÉtape 1 : Utilisez la propriété \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Ici, \\(M = 25\\) et \\(N=x\\).\nÉtape 2 : Nous savons que \\(\\log_5(25)\\) car \\(5^2 = 25\\), donc \\(\\log_5(25)=2\\). Alors \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Exemple 3 : Tracé d'une fonction logarithmique**\nTracez le graphe de \\(y=\\log_2(x)\\).\nÉtape 1 : Trouvez quelques points clés. Lorsque \\(x = 1\\), \\(y=\\log_2(1)=0\\) (puisque \\(2^0 = 1\\)). Lorsque \\(x = 2\\), \\(y=\\log_2(2)=1\\) (puisque \\(2^1 = 2\\)). Lorsque \\(x = 4\\), \\(y=\\log_2(4)=2\\) (puisque \\(2^2 = 4\\)).\nÉtape 2 : Tracez une asymptote verticale en \\(x = 0\\). Ensuite, placez les points \\((1,0)\\), \\((2,1)\\) et \\((4,2)\\) et reliez - les avec une courbe lisse qui s'approche de l'asymptote lorsque \\(x\\) se rapproche de 0.",
-    "keySummary": "1. Definition of a logarithmic function: \\(y=\\log_a(x)\\) means \\(a^y=x\\).\n2. Key graph features: Vertical asymptote at \\(x = 0\\), passes through \\((1,0)\\).\n3. Logarithmic properties:\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-    "keySummaryFr": "1. Définition d'une fonction logarithmique : \\(y=\\log_a(x)\\) signifie \\(a^y=x\\).\n2. Caractéristiques clés du graphe : Asymptote verticale en \\(x = 0\\), passe par le point \\((1,0)\\).\n3. Propriétés logarithmiques :\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-    "additionalInfo": "**Tips**: \n- When evaluating logarithms, try to rewrite the number inside the logarithm as a power of the base. For example, if you have \\(\\log_4(64)\\), think '4 to what power is 64?' Since \\(4^3 = 64\\), the answer is 3.\n- When graphing, always start by finding the vertical asymptote and a few key points.\n\n**Common mistakes to avoid**: \n- Forgetting the base of the logarithm. \\(\\log(x)\\) usually means \\(\\log_{10}(x)\\) in most math courses, but in some contexts it could mean \\(\\log_e(x)\\) (natural logarithm).\n- Misapplying the logarithmic properties. For example, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Connections to other topics**: Logarithmic functions are closely related to exponential functions. They are also used in solving exponential equations. In calculus, logarithms are important for integration and differentiation problems.",
-    "additionalInfoFr": "**Conseils** : \n- Lors de l'évaluation des logarithmes, essayez de réécrire le nombre à l'intérieur du logarithme comme une puissance de la base. Par exemple, si vous avez \\(\\log_4(64)\\), demandez - vous '4 à quelle puissance donne 64?' Puisque \\(4^3 = 64\\), la réponse est 3.\n- Lors du tracé du graphe, commencez toujours par trouver l'asymptote verticale et quelques points clés.\n\n**Erreurs courantes à éviter** : \n- Oublier la base du logarithme. \\(\\log(x)\\) signifie généralement \\(\\log_{10}(x)\\) dans la plupart des cours de mathématiques, mais dans certains contextes, cela pourrait signifier \\(\\log_e(x)\\) (logarithme naturel).\n- Appliquer incorrectement les propriétés logarithmiques. Par exemple, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Liens avec d'autres sujets** : Les fonctions logarithmiques sont étroitement liées aux fonctions exponentielles. Elles sont également utilisées pour résoudre les équations exponentielles. En calcul différentiel et intégral, les logarithmes sont importants pour les problèmes d'intégration et de différentiation.",
-    "generationSource": "AI",
-    "modelId": "ep-20250421140255-d6sfx",
-    "promptUsed": "Please generate a comprehensive course for the following knowledge point:\n\nKnowledge Point Name: Logarithmic Functions\nKnowledge Point Name (French): Fonctions logarithmiques\nDescription: Understanding logarithmic functions\nLearning Objectives: Understand logarithmic functions; Graph log functions; Understand log properties\nDifficulty Level: Easy (beginner)\n\nPlease generate the course content in the following JSON format:\n{\n  \"courseTitle\": \"Course title in English\",\n  \"courseTitleFr\": \"Course title in French\",\n  \"explanation\": \"Detailed explanation of the knowledge point in English, suitable for Easy (beginner) level\",\n  \"explanationFr\": \"Detailed explanation in French\",\n  \"examples\": \"2-3 worked examples with step-by-step solutions in English\",\n  \"examplesFr\": \"Same examples in French\",\n  \"keySummary\": \"Key points and formulas to remember in English\",\n  \"keySummaryFr\": \"Key summary in French\",\n  \"additionalInfo\": \"Tips, common mistakes to avoid, and connections to other topics in English\",\n  \"additionalInfoFr\": \"Additional info in French\"\n}\n\nImportant requirements:\n1. Content must be appropriate for the Easy (beginner) difficulty level\n2. Use clear, student-friendly language\n3. Include practical examples relevant to real-world applications\n4. Ensure French translations are accurate and natural\n5. Return ONLY valid JSON, no additional text\n",
-    "createAt": "2026-01-21 00:16:09",
-    "updateAt": "2026-01-21 00:16:09",
-    "deleteFlag": "0"
-  }
-}
-```
-
----
-
-### 2.3 根据学生ID查询课程列表
-
-**接口地址**: `GET /course/student/{studentId}`
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| studentId | Integer | 是 | 学生ID (路径参数) |
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "操作成功",
-  "data": [
-    {
-      "id": 6,
-      "studentId": 48,
-      "knowledgePointId": 631,
-      "difficultyLevel": 1,
-      "courseTitle": "Introduction to Logarithmic Functions",
-      "courseTitleFr": "Introduction aux fonctions logarithmiques",
-      "explanation": "Logarithmic functions are the inverse of exponential functions. An exponential function looks like \\(y = a^x\\), where \\(a\\) is a positive number and \\(x\\) is the exponent. A logarithmic function, written as \\(y=\\log_a(x)\\), answers the question: 'To what power do we need to raise the base \\(a\\) to get \\(x\\)'? For example, if we have \\(\\log_2(8)\\), we're asking 'What power do we raise 2 to, to get 8?' Since \\(2^3 = 8\\), then \\(\\log_2(8)=3\\).\n\nGraphing logarithmic functions helps us visualize how they behave. The graph of \\(y = \\log_a(x)\\) has a vertical asymptote at \\(x = 0\\) (the y - axis) and passes through the point \\((1,0)\\) because \\(a^0=1\\) for any positive \\(a\neq1\\).\n\nLogarithmic properties are rules that make it easier to work with logarithmic expressions. Some important properties are: \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\), and \\(\\log_a(M^p)=p\\log_a(M)\\). These properties are useful in many real - world scenarios, like measuring the intensity of earthquakes (Richter scale), the loudness of sounds (decibel scale), and in finance for calculating compound interest.",
-      "explanationFr": "Les fonctions logarithmiques sont l'inverse des fonctions exponentielles. Une fonction exponentielle a la forme \\(y = a^x\\), où \\(a\\) est un nombre positif et \\(x\\) est l'exposant. Une fonction logarithmique, écrite sous la forme \\(y=\\log_a(x)\\), répond à la question : 'À quelle puissance devons - nous élever la base \\(a\\) pour obtenir \\(x\\)'? Par exemple, si nous avons \\(\\log_2(8)\\), nous nous demandons 'À quelle puissance devons - nous élever 2 pour obtenir 8?' Puisque \\(2^3 = 8\\), alors \\(\\log_2(8)=3\\).\n\nLe tracé des fonctions logarithmiques nous aide à visualiser leur comportement. Le graphe de \\(y = \\log_a(x)\\) a une asymptote verticale en \\(x = 0\\) (l'axe des y) et passe par le point \\((1,0)\\) car \\(a^0 = 1\\) pour tout \\(a\\) positif différent de 1.\n\nLes propriétés logarithmiques sont des règles qui facilitent le travail avec les expressions logarithmiques. Certaines propriétés importantes sont : \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\) et \\(\\log_a(M^p)=p\\log_a(M)\\). Ces propriétés sont utiles dans de nombreux scénarios du monde réel, comme la mesure de l'intensité des tremblements de terre (échelle de Richter), la mesure du volume des sons (échelle des décibels) et en finance pour calculer les intérêts composés.",
-      "examples": "**Example 1: Evaluating a Logarithm**\nFind the value of \\(\\log_3(27)\\).\nStep 1: Recall the definition of a logarithm. We need to find the exponent \\(x\\) such that \\(3^x = 27\\).\nStep 2: Since \\(3^3=27\\), then \\(\\log_3(27)=3\\).\n\n**Example 2: Using Logarithmic Properties**\nSimplify \\(\\log_5(25x)\\).\nStep 1: Use the property \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Here, \\(M = 25\\) and \\(N=x\\).\nStep 2: We know that \\(\\log_5(25)\\) because \\(5^2 = 25\\), so \\(\\log_5(25)=2\\). Then \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Example 3: Graphing a Logarithmic Function**\nGraph \\(y=\\log_2(x)\\).\nStep 1: Find some key points. When \\(x = 1\\), \\(y=\\log_2(1)=0\\) (since \\(2^0 = 1\\)). When \\(x = 2\\), \\(y=\\log_2(2)=1\\) (since \\(2^1 = 2\\)). When \\(x = 4\\), \\(y=\\log_2(4)=2\\) (since \\(2^2 = 4\\)).\nStep 2: Draw a vertical asymptote at \\(x = 0\\). Then plot the points \\((1,0)\\), \\((2,1)\\), and \\((4,2)\\) and connect them with a smooth curve that approaches the asymptote as \\(x\\) gets closer to 0.",
-      "examplesFr": "**Exemple 1 : Évaluation d'un logarithme**\nTrouvez la valeur de \\(\\log_3(27)\\).\nÉtape 1 : Rappelez - vous la définition d'un logarithme. Nous devons trouver l'exposant \\(x\\) tel que \\(3^x = 27\\).\nÉtape 2 : Puisque \\(3^3 = 27\\), alors \\(\\log_3(27)=3\\).\n\n**Exemple 2 : Utilisation des propriétés logarithmiques**\nSimplifiez \\(\\log_5(25x)\\).\nÉtape 1 : Utilisez la propriété \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Ici, \\(M = 25\\) et \\(N=x\\).\nÉtape 2 : Nous savons que \\(\\log_5(25)\\) car \\(5^2 = 25\\), donc \\(\\log_5(25)=2\\). Alors \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Exemple 3 : Tracé d'une fonction logarithmique**\nTracez le graphe de \\(y=\\log_2(x)\\).\nÉtape 1 : Trouvez quelques points clés. Lorsque \\(x = 1\\), \\(y=\\log_2(1)=0\\) (puisque \\(2^0 = 1\\)). Lorsque \\(x = 2\\), \\(y=\\log_2(2)=1\\) (puisque \\(2^1 = 2\\)). Lorsque \\(x = 4\\), \\(y=\\log_2(4)=2\\) (puisque \\(2^2 = 4\\)).\nÉtape 2 : Tracez une asymptote verticale en \\(x = 0\\). Ensuite, placez les points \\((1,0)\\), \\((2,1)\\) et \\((4,2)\\) et reliez - les avec une courbe lisse qui s'approche de l'asymptote lorsque \\(x\\) se rapproche de 0.",
-      "keySummary": "1. Definition of a logarithmic function: \\(y=\\log_a(x)\\) means \\(a^y=x\\).\n2. Key graph features: Vertical asymptote at \\(x = 0\\), passes through \\((1,0)\\).\n3. Logarithmic properties:\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-      "keySummaryFr": "1. Définition d'une fonction logarithmique : \\(y=\\log_a(x)\\) signifie \\(a^y=x\\).\n2. Caractéristiques clés du graphe : Asymptote verticale en \\(x = 0\\), passe par le point \\((1,0)\\).\n3. Propriétés logarithmiques :\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-      "additionalInfo": "**Tips**: \n- When evaluating logarithms, try to rewrite the number inside the logarithm as a power of the base. For example, if you have \\(\\log_4(64)\\), think '4 to what power is 64?' Since \\(4^3 = 64\\), the answer is 3.\n- When graphing, always start by finding the vertical asymptote and a few key points.\n\n**Common mistakes to avoid**: \n- Forgetting the base of the logarithm. \\(\\log(x)\\) usually means \\(\\log_{10}(x)\\) in most math courses, but in some contexts it could mean \\(\\log_e(x)\\) (natural logarithm).\n- Misapplying the logarithmic properties. For example, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Connections to other topics**: Logarithmic functions are closely related to exponential functions. They are also used in solving exponential equations. In calculus, logarithms are important for integration and differentiation problems.",
-      "additionalInfoFr": "**Conseils** : \n- Lors de l'évaluation des logarithmes, essayez de réécrire le nombre à l'intérieur du logarithme comme une puissance de la base. Par exemple, si vous avez \\(\\log_4(64)\\), demandez - vous '4 à quelle puissance donne 64?' Puisque \\(4^3 = 64\\), la réponse est 3.\n- Lors du tracé du graphe, commencez toujours par trouver l'asymptote verticale et quelques points clés.\n\n**Erreurs courantes à éviter** : \n- Oublier la base du logarithme. \\(\\log(x)\\) signifie généralement \\(\\log_{10}(x)\\) dans la plupart des cours de mathématiques, mais dans certains contextes, cela pourrait signifier \\(\\log_e(x)\\) (logarithme naturel).\n- Appliquer incorrectement les propriétés logarithmiques. Par exemple, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Liens avec d'autres sujets** : Les fonctions logarithmiques sont étroitement liées aux fonctions exponentielles. Elles sont également utilisées pour résoudre les équations exponentielles. En calcul différentiel et intégral, les logarithmes sont importants pour les problèmes d'intégration et de différentiation.",
-      "generationSource": "AI",
-      "modelId": "ep-20250421140255-d6sfx",
-      "promptUsed": "Please generate a comprehensive course for the following knowledge point:\n\nKnowledge Point Name: Logarithmic Functions\nKnowledge Point Name (French): Fonctions logarithmiques\nDescription: Understanding logarithmic functions\nLearning Objectives: Understand logarithmic functions; Graph log functions; Understand log properties\nDifficulty Level: Easy (beginner)\n\nPlease generate the course content in the following JSON format:\n{\n  \"courseTitle\": \"Course title in English\",\n  \"courseTitleFr\": \"Course title in French\",\n  \"explanation\": \"Detailed explanation of the knowledge point in English, suitable for Easy (beginner) level\",\n  \"explanationFr\": \"Detailed explanation in French\",\n  \"examples\": \"2-3 worked examples with step-by-step solutions in English\",\n  \"examplesFr\": \"Same examples in French\",\n  \"keySummary\": \"Key points and formulas to remember in English\",\n  \"keySummaryFr\": \"Key summary in French\",\n  \"additionalInfo\": \"Tips, common mistakes to avoid, and connections to other topics in English\",\n  \"additionalInfoFr\": \"Additional info in French\"\n}\n\nImportant requirements:\n1. Content must be appropriate for the Easy (beginner) difficulty level\n2. Use clear, student-friendly language\n3. Include practical examples relevant to real-world applications\n4. Ensure French translations are accurate and natural\n5. Return ONLY valid JSON, no additional text\n",
-      "createAt": "2026-01-21 00:16:09",
-      "updateAt": "2026-01-21 00:16:09",
-      "deleteFlag": "0"
-    },
-    {
-      "id": 5,
-      "studentId": 48,
-      "knowledgePointId": 631,
-      "difficultyLevel": 1,
-      "courseTitle": "Introduction to Logarithmic Functions",
-      "courseTitleFr": "Introduction aux fonctions logarithmiques",
-      "explanation": "Logarithmic functions are the inverse of exponential functions. An exponential function looks like \\(y = a^x\\), where \\(a\\) is a positive number other than 1 and \\(x\\) is the exponent. A logarithmic function, on the other hand, helps us find the exponent when we know the base \\(a\\) and the result \\(y\\). It is written as \\(y=\\log_{a}x\\), which means \\(a^y = x\\). For example, if we have the exponential equation \\(2^3=8\\), the equivalent logarithmic form is \\(\\log_{2}8 = 3\\). Graphing logarithmic functions can show us how they behave. The graph of \\(y = \\log_{a}x\\) has a vertical asymptote at \\(x = 0\\) and passes through the point \\((1,0)\\) because \\(a^0 = 1\\) for any positive \\(aå\neq1\\). Logarithmic functions have some important properties. The product rule states that \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). For example, \\(\\log_{10}(2\times5)=\\log_{10}2+\\log_{10}5\\). The quotient rule is \\(\\log_{a}\frac{M}{N}=\\log_{a}M - \\log_{a}N\\), and the power rule is \\(\\log_{a}M^p=p\\log_{a}M\\). In real - world applications, logarithms are used in measuring the loudness of sounds (decibels), the magnitude of earthquakes (Richter scale), and in finance for calculating compound interest.",
-      "explanationFr": "Les fonctions logarithmiques sont l'inverse des fonctions exponentielles. Une fonction exponentielle a la forme \\(y = a^x\\), où \\(a\\) est un nombre positif différent de 1 et \\(x\\) est l'exposant. Une fonction logarithmique, en revanche, nous permet de trouver l'exposant lorsque nous connaissons la base \\(a\\) et le résultat \\(y\\). Elle s'écrit \\(y=\\log_{a}x\\), ce qui signifie \\(a^y = x\\). Par exemple, si nous avons l'équation exponentielle \\(2^3 = 8\\), la forme logarithmique équivalente est \\(\\log_{2}8=3\\). Le tracé des fonctions logarithmiques nous permet de voir comment elles se comportent. Le graphe de \\(y = \\log_{a}x\\) a une asymptote verticale en \\(x = 0\\) et passe par le point \\((1,0)\\) car \\(a^0 = 1\\) pour tout \\(a\\gt0\\) différent de 1. Les fonctions logarithmiques ont des propriétés importantes. La règle du produit stipule que \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). Par exemple, \\(\\log_{10}(2\times5)=\\log_{10}2+\\log_{10}5\\). La règle du quotient est \\(\\log_{a}\frac{M}{N}=\\log_{a}M-\\log_{a}N\\), et la règle de puissance est \\(\\log_{a}M^p = p\\log_{a}M\\). Dans les applications du monde réel, les logarithmes sont utilisés pour mesurer le volume sonore (en décibels), la magnitude des tremblements de terre (échelle de Richter) et en finance pour calculer l'intérêt composé.",
-      "examples": "Example 1: Convert the exponential equation \\(3^4 = 81\\) to logarithmic form. Step 1: Recall the relationship between exponential and logarithmic forms \\(a^y=x\\) is equivalent to \\(y = \\log_{a}x\\). Here, \\(a = 3\\), \\(y = 4\\), and \\(x = 81\\). Step 2: Substitute these values into the logarithmic form. So, \\(\\log_{3}81=4\\). Example 2: Simplify \\(\\log_{5}(25\times125)\\) using the product rule. Step 1: Recall the product rule \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). Here, \\(a = 5\\), \\(M = 25\\), and \\(N = 125\\). Step 2: Calculate \\(\\log_{5}25\\) and \\(\\log_{5}125\\) separately. Since \\(5^2 = 25\\), \\(\\log_{5}25 = 2\\), and since \\(5^3=125\\), \\(\\log_{5}125 = 3\\). Step 3: Apply the product rule. \\(\\log_{5}(25\times125)=\\log_{5}25+\\log_{5}125=2 + 3=5\\).",
-      "examplesFr": "Exemple 1: Convertir l'équation exponentielle \\(3^4 = 81\\) en forme logarithmique. Étape 1: Rappelez la relation entre les formes exponentielle et logarithmique \\(a^y=x\\) est équivalent à \\(y=\\log_{a}x\\). Ici, \\(a = 3\\), \\(y = 4\\) et \\(x = 81\\). Étape 2: Substituez ces valeurs dans la forme logarithmique. Donc, \\(\\log_{3}81 = 4\\). Exemple 2: Simplifiez \\(\\log_{5}(25\times125)\\) en utilisant la règle du produit. Étape 1: Rappelez la règle du produit \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). Ici, \\(a = 5\\), \\(M = 25\\) et \\(N = 125\\). Étape 2: Calculez \\(\\log_{5}25\\) et \\(\\log_{5}125\\) séparément. Puisque \\(5^2 = 25\\), \\(\\log_{5}25 = 2\\), et puisque \\(5^3=125\\), \\(\\log_{5}125 = 3\\). Étape 3: Appliquez la règle du produit. \\(\\log_{5}(25\times125)=\\log_{5}25+\\log_{5}125=2 + 3=5\\).",
-      "keySummary": "Key points to remember: 1. A logarithmic function \\(y=\\log_{a}x\\) is the inverse of the exponential function \\(y = a^x\\). 2. The relationship between exponential and logarithmic forms is \\(a^y=x\\) is equivalent to \\(y=\\log_{a}x\\). 3. Graph of \\(y=\\log_{a}x\\) has a vertical asymptote at \\(x = 0\\) and passes through \\((1,0)\\). 4. Logarithm properties: Product rule \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\), Quotient rule \\(\\log_{a}\frac{M}{N}=\\log_{a}M-\\log_{a}N\\), Power rule \\(\\log_{a}M^p=p\\log_{a}M\\).",
-      "keySummaryFr": "Points clés à retenir : 1. Une fonction logarithmique \\(y=\\log_{a}x\\) est l'inverse de la fonction exponentielle \\(y = a^x\\). 2. La relation entre les formes exponentielle et logarithmique est que \\(a^y=x\\) est équivalent à \\(y=\\log_{a}x\\). 3. Le graphe de \\(y=\\log_{a}x\\) a une asymptote verticale en \\(x = 0\\) et passe par le point \\((1,0)\\). 4. Propriétés des logarithmes : Règle du produit \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\), Règle du quotient \\(\\log_{a}\frac{M}{N}=\\log_{a}M-\\log_{a}N\\), Règle de puissance \\(\\log_{a}M^p=p\\log_{a}M\\).",
-      "additionalInfo": "Tips: - When converting between exponential and logarithmic forms, always identify the base \\(a\\), the exponent \\(y\\), and the result \\(x\\) correctly. - When using logarithm properties, make sure to apply them carefully, especially when dealing with negative signs in the quotient rule. Common mistakes: - Forgetting that the argument of a logarithmic function (\\(x\\) in \\(\\log_{a}x\\)) must be positive. Logarithms are not defined for non - positive values. - Misapplying the logarithm properties, for example, thinking \\(\\log_{a}(M + N)=\\log_{a}M+\\log_{a}N\\) (this is incorrect). Connections to other topics: Logarithmic functions are closely related to exponential functions as they are inverses of each other. They are also used in solving exponential equations and in various scientific and financial calculations.",
-      "additionalInfoFr": "Conseils : - Lors de la conversion entre les formes exponentielle et logarithmique, identifiez toujours correctement la base \\(a\\), l'exposant \\(y\\) et le résultat \\(x\\). - Lorsque vous utilisez les propriétés des logarithmes, assurez - vous de les appliquer avec soin, en particulier lorsqu'il s'agit de signes négatifs dans la règle du quotient. Erreurs courantes : - Oublier que l'argument d'une fonction logarithmique (\\(x\\) dans \\(\\log_{a}x\\)) doit être positif. Les logarithmes ne sont pas définis pour les valeurs non positives. - Appliquer incorrectement les propriétés des logarithmes, par exemple, penser que \\(\\log_{a}(M + N)=\\log_{a}M+\\log_{a}N\\) (ce qui est incorrect). Liens avec d'autres sujets : Les fonctions logarithmiques sont étroitement liées aux fonctions exponentielles car elles sont leurs inverses. Elles sont également utilisées pour résoudre les équations exponentielles et dans divers calculs scientifiques et financiers.",
-      "generationSource": "AI",
-      "modelId": "ep-20250421140255-d6sfx",
-      "promptUsed": "Please generate a comprehensive course for the following knowledge point:\n\nKnowledge Point Name: Logarithmic Functions\nKnowledge Point Name (French): Fonctions logarithmiques\nDescription: Understanding logarithmic functions\nLearning Objectives: Understand logarithmic functions; Graph log functions; Understand log properties\nDifficulty Level: Easy (beginner)\n\nPlease generate the course content in the following JSON format:\n{\n  \"courseTitle\": \"Course title in English\",\n  \"courseTitleFr\": \"Course title in French\",\n  \"explanation\": \"Detailed explanation of the knowledge point in English, suitable for Easy (beginner) level\",\n  \"explanationFr\": \"Detailed explanation in French\",\n  \"examples\": \"2-3 worked examples with step-by-step solutions in English\",\n  \"examplesFr\": \"Same examples in French\",\n  \"keySummary\": \"Key points and formulas to remember in English\",\n  \"keySummaryFr\": \"Key summary in French\",\n  \"additionalInfo\": \"Tips, common mistakes to avoid, and connections to other topics in English\",\n  \"additionalInfoFr\": \"Additional info in French\"\n}\n\nImportant requirements:\n1. Content must be appropriate for the Easy (beginner) difficulty level\n2. Use clear, student-friendly language\n3. Include practical examples relevant to real-world applications\n4. Ensure French translations are accurate and natural\n5. Return ONLY valid JSON, no additional text\n",
-      "createAt": "2026-01-07 06:29:09",
-      "updateAt": "2026-01-07 06:29:40",
-      "deleteFlag": "0"
-    }
-  ]
-}
-```
-
----
-
-### 2.4 根据知识点ID查询课程列表
-
-**接口地址**: `GET /course/knowledge-point/{knowledgePointId}`
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| knowledgePointId | Integer | 是 | 知识点ID (路径参数) |
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "操作成功",
-  "data": [
-    {
-      "id": 6,
-      "studentId": 48,
-      "knowledgePointId": 631,
-      "difficultyLevel": 1,
-      "courseTitle": "Introduction to Logarithmic Functions",
-      "courseTitleFr": "Introduction aux fonctions logarithmiques",
-      "explanation": "Logarithmic functions are the inverse of exponential functions. An exponential function looks like \\(y = a^x\\), where \\(a\\) is a positive number and \\(x\\) is the exponent. A logarithmic function, written as \\(y=\\log_a(x)\\), answers the question: 'To what power do we need to raise the base \\(a\\) to get \\(x\\)'? For example, if we have \\(\\log_2(8)\\), we're asking 'What power do we raise 2 to, to get 8?' Since \\(2^3 = 8\\), then \\(\\log_2(8)=3\\).\n\nGraphing logarithmic functions helps us visualize how they behave. The graph of \\(y = \\log_a(x)\\) has a vertical asymptote at \\(x = 0\\) (the y - axis) and passes through the point \\((1,0)\\) because \\(a^0=1\\) for any positive \\(a\neq1\\).\n\nLogarithmic properties are rules that make it easier to work with logarithmic expressions. Some important properties are: \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\), and \\(\\log_a(M^p)=p\\log_a(M)\\). These properties are useful in many real - world scenarios, like measuring the intensity of earthquakes (Richter scale), the loudness of sounds (decibel scale), and in finance for calculating compound interest.",
-      "explanationFr": "Les fonctions logarithmiques sont l'inverse des fonctions exponentielles. Une fonction exponentielle a la forme \\(y = a^x\\), où \\(a\\) est un nombre positif et \\(x\\) est l'exposant. Une fonction logarithmique, écrite sous la forme \\(y=\\log_a(x)\\), répond à la question : 'À quelle puissance devons - nous élever la base \\(a\\) pour obtenir \\(x\\)'? Par exemple, si nous avons \\(\\log_2(8)\\), nous nous demandons 'À quelle puissance devons - nous élever 2 pour obtenir 8?' Puisque \\(2^3 = 8\\), alors \\(\\log_2(8)=3\\).\n\nLe tracé des fonctions logarithmiques nous aide à visualiser leur comportement. Le graphe de \\(y = \\log_a(x)\\) a une asymptote verticale en \\(x = 0\\) (l'axe des y) et passe par le point \\((1,0)\\) car \\(a^0 = 1\\) pour tout \\(a\\) positif différent de 1.\n\nLes propriétés logarithmiques sont des règles qui facilitent le travail avec les expressions logarithmiques. Certaines propriétés importantes sont : \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\), \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\) et \\(\\log_a(M^p)=p\\log_a(M)\\). Ces propriétés sont utiles dans de nombreux scénarios du monde réel, comme la mesure de l'intensité des tremblements de terre (échelle de Richter), la mesure du volume des sons (échelle des décibels) et en finance pour calculer les intérêts composés.",
-      "examples": "**Example 1: Evaluating a Logarithm**\nFind the value of \\(\\log_3(27)\\).\nStep 1: Recall the definition of a logarithm. We need to find the exponent \\(x\\) such that \\(3^x = 27\\).\nStep 2: Since \\(3^3=27\\), then \\(\\log_3(27)=3\\).\n\n**Example 2: Using Logarithmic Properties**\nSimplify \\(\\log_5(25x)\\).\nStep 1: Use the property \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Here, \\(M = 25\\) and \\(N=x\\).\nStep 2: We know that \\(\\log_5(25)\\) because \\(5^2 = 25\\), so \\(\\log_5(25)=2\\). Then \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Example 3: Graphing a Logarithmic Function**\nGraph \\(y=\\log_2(x)\\).\nStep 1: Find some key points. When \\(x = 1\\), \\(y=\\log_2(1)=0\\) (since \\(2^0 = 1\\)). When \\(x = 2\\), \\(y=\\log_2(2)=1\\) (since \\(2^1 = 2\\)). When \\(x = 4\\), \\(y=\\log_2(4)=2\\) (since \\(2^2 = 4\\)).\nStep 2: Draw a vertical asymptote at \\(x = 0\\). Then plot the points \\((1,0)\\), \\((2,1)\\), and \\((4,2)\\) and connect them with a smooth curve that approaches the asymptote as \\(x\\) gets closer to 0.",
-      "examplesFr": "**Exemple 1 : Évaluation d'un logarithme**\nTrouvez la valeur de \\(\\log_3(27)\\).\nÉtape 1 : Rappelez - vous la définition d'un logarithme. Nous devons trouver l'exposant \\(x\\) tel que \\(3^x = 27\\).\nÉtape 2 : Puisque \\(3^3 = 27\\), alors \\(\\log_3(27)=3\\).\n\n**Exemple 2 : Utilisation des propriétés logarithmiques**\nSimplifiez \\(\\log_5(25x)\\).\nÉtape 1 : Utilisez la propriété \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\). Ici, \\(M = 25\\) et \\(N=x\\).\nÉtape 2 : Nous savons que \\(\\log_5(25)\\) car \\(5^2 = 25\\), donc \\(\\log_5(25)=2\\). Alors \\(\\log_5(25x)=\\log_5(25)+\\log_5(x)=2+\\log_5(x)\\).\n\n**Exemple 3 : Tracé d'une fonction logarithmique**\nTracez le graphe de \\(y=\\log_2(x)\\).\nÉtape 1 : Trouvez quelques points clés. Lorsque \\(x = 1\\), \\(y=\\log_2(1)=0\\) (puisque \\(2^0 = 1\\)). Lorsque \\(x = 2\\), \\(y=\\log_2(2)=1\\) (puisque \\(2^1 = 2\\)). Lorsque \\(x = 4\\), \\(y=\\log_2(4)=2\\) (puisque \\(2^2 = 4\\)).\nÉtape 2 : Tracez une asymptote verticale en \\(x = 0\\). Ensuite, placez les points \\((1,0)\\), \\((2,1)\\) et \\((4,2)\\) et reliez - les avec une courbe lisse qui s'approche de l'asymptote lorsque \\(x\\) se rapproche de 0.",
-      "keySummary": "1. Definition of a logarithmic function: \\(y=\\log_a(x)\\) means \\(a^y=x\\).\n2. Key graph features: Vertical asymptote at \\(x = 0\\), passes through \\((1,0)\\).\n3. Logarithmic properties:\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-      "keySummaryFr": "1. Définition d'une fonction logarithmique : \\(y=\\log_a(x)\\) signifie \\(a^y=x\\).\n2. Caractéristiques clés du graphe : Asymptote verticale en \\(x = 0\\), passe par le point \\((1,0)\\).\n3. Propriétés logarithmiques :\n   - \\(\\log_a(MN)=\\log_a(M)+\\log_a(N)\\)\n   - \\(\\log_a(\frac{M}{N})=\\log_a(M)-\\log_a(N)\\)\n   - \\(\\log_a(M^p)=p\\log_a(M)\\)",
-      "additionalInfo": "**Tips**: \n- When evaluating logarithms, try to rewrite the number inside the logarithm as a power of the base. For example, if you have \\(\\log_4(64)\\), think '4 to what power is 64?' Since \\(4^3 = 64\\), the answer is 3.\n- When graphing, always start by finding the vertical asymptote and a few key points.\n\n**Common mistakes to avoid**: \n- Forgetting the base of the logarithm. \\(\\log(x)\\) usually means \\(\\log_{10}(x)\\) in most math courses, but in some contexts it could mean \\(\\log_e(x)\\) (natural logarithm).\n- Misapplying the logarithmic properties. For example, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Connections to other topics**: Logarithmic functions are closely related to exponential functions. They are also used in solving exponential equations. In calculus, logarithms are important for integration and differentiation problems.",
-      "additionalInfoFr": "**Conseils** : \n- Lors de l'évaluation des logarithmes, essayez de réécrire le nombre à l'intérieur du logarithme comme une puissance de la base. Par exemple, si vous avez \\(\\log_4(64)\\), demandez - vous '4 à quelle puissance donne 64?' Puisque \\(4^3 = 64\\), la réponse est 3.\n- Lors du tracé du graphe, commencez toujours par trouver l'asymptote verticale et quelques points clés.\n\n**Erreurs courantes à éviter** : \n- Oublier la base du logarithme. \\(\\log(x)\\) signifie généralement \\(\\log_{10}(x)\\) dans la plupart des cours de mathématiques, mais dans certains contextes, cela pourrait signifier \\(\\log_e(x)\\) (logarithme naturel).\n- Appliquer incorrectement les propriétés logarithmiques. Par exemple, \\(\\log_a(M + N)\neq\\log_a(M)+\\log_a(N)\\).\n\n**Liens avec d'autres sujets** : Les fonctions logarithmiques sont étroitement liées aux fonctions exponentielles. Elles sont également utilisées pour résoudre les équations exponentielles. En calcul différentiel et intégral, les logarithmes sont importants pour les problèmes d'intégration et de différentiation.",
-      "generationSource": "AI",
-      "modelId": "ep-20250421140255-d6sfx",
-      "promptUsed": "Please generate a comprehensive course for the following knowledge point:\n\nKnowledge Point Name: Logarithmic Functions\nKnowledge Point Name (French): Fonctions logarithmiques\nDescription: Understanding logarithmic functions\nLearning Objectives: Understand logarithmic functions; Graph log functions; Understand log properties\nDifficulty Level: Easy (beginner)\n\nPlease generate the course content in the following JSON format:\n{\n  \"courseTitle\": \"Course title in English\",\n  \"courseTitleFr\": \"Course title in French\",\n  \"explanation\": \"Detailed explanation of the knowledge point in English, suitable for Easy (beginner) level\",\n  \"explanationFr\": \"Detailed explanation in French\",\n  \"examples\": \"2-3 worked examples with step-by-step solutions in English\",\n  \"examplesFr\": \"Same examples in French\",\n  \"keySummary\": \"Key points and formulas to remember in English\",\n  \"keySummaryFr\": \"Key summary in French\",\n  \"additionalInfo\": \"Tips, common mistakes to avoid, and connections to other topics in English\",\n  \"additionalInfoFr\": \"Additional info in French\"\n}\n\nImportant requirements:\n1. Content must be appropriate for the Easy (beginner) difficulty level\n2. Use clear, student-friendly language\n3. Include practical examples relevant to real-world applications\n4. Ensure French translations are accurate and natural\n5. Return ONLY valid JSON, no additional text\n",
-      "createAt": "2026-01-21 00:16:09",
-      "updateAt": "2026-01-21 00:16:09",
-      "deleteFlag": "0"
-    },
-    {
-      "id": 5,
-      "studentId": 48,
-      "knowledgePointId": 631,
-      "difficultyLevel": 1,
-      "courseTitle": "Introduction to Logarithmic Functions",
-      "courseTitleFr": "Introduction aux fonctions logarithmiques",
-      "explanation": "Logarithmic functions are the inverse of exponential functions. An exponential function looks like \\(y = a^x\\), where \\(a\\) is a positive number other than 1 and \\(x\\) is the exponent. A logarithmic function, on the other hand, helps us find the exponent when we know the base \\(a\\) and the result \\(y\\). It is written as \\(y=\\log_{a}x\\), which means \\(a^y = x\\). For example, if we have the exponential equation \\(2^3=8\\), the equivalent logarithmic form is \\(\\log_{2}8 = 3\\). Graphing logarithmic functions can show us how they behave. The graph of \\(y = \\log_{a}x\\) has a vertical asymptote at \\(x = 0\\) and passes through the point \\((1,0)\\) because \\(a^0 = 1\\) for any positive \\(aå\neq1\\). Logarithmic functions have some important properties. The product rule states that \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). For example, \\(\\log_{10}(2\times5)=\\log_{10}2+\\log_{10}5\\). The quotient rule is \\(\\log_{a}\frac{M}{N}=\\log_{a}M - \\log_{a}N\\), and the power rule is \\(\\log_{a}M^p=p\\log_{a}M\\). In real - world applications, logarithms are used in measuring the loudness of sounds (decibels), the magnitude of earthquakes (Richter scale), and in finance for calculating compound interest.",
-      "explanationFr": "Les fonctions logarithmiques sont l'inverse des fonctions exponentielles. Une fonction exponentielle a la forme \\(y = a^x\\), où \\(a\\) est un nombre positif différent de 1 et \\(x\\) est l'exposant. Une fonction logarithmique, en revanche, nous permet de trouver l'exposant lorsque nous connaissons la base \\(a\\) et le résultat \\(y\\). Elle s'écrit \\(y=\\log_{a}x\\), ce qui signifie \\(a^y = x\\). Par exemple, si nous avons l'équation exponentielle \\(2^3 = 8\\), la forme logarithmique équivalente est \\(\\log_{2}8=3\\). Le tracé des fonctions logarithmiques nous permet de voir comment elles se comportent. Le graphe de \\(y = \\log_{a}x\\) a une asymptote verticale en \\(x = 0\\) et passe par le point \\((1,0)\\) car \\(a^0 = 1\\) pour tout \\(a\\gt0\\) différent de 1. Les fonctions logarithmiques ont des propriétés importantes. La règle du produit stipule que \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). Par exemple, \\(\\log_{10}(2\times5)=\\log_{10}2+\\log_{10}5\\). La règle du quotient est \\(\\log_{a}\frac{M}{N}=\\log_{a}M-\\log_{a}N\\), et la règle de puissance est \\(\\log_{a}M^p = p\\log_{a}M\\). Dans les applications du monde réel, les logarithmes sont utilisés pour mesurer le volume sonore (en décibels), la magnitude des tremblements de terre (échelle de Richter) et en finance pour calculer l'intérêt composé.",
-      "examples": "Example 1: Convert the exponential equation \\(3^4 = 81\\) to logarithmic form. Step 1: Recall the relationship between exponential and logarithmic forms \\(a^y=x\\) is equivalent to \\(y = \\log_{a}x\\). Here, \\(a = 3\\), \\(y = 4\\), and \\(x = 81\\). Step 2: Substitute these values into the logarithmic form. So, \\(\\log_{3}81=4\\). Example 2: Simplify \\(\\log_{5}(25\times125)\\) using the product rule. Step 1: Recall the product rule \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). Here, \\(a = 5\\), \\(M = 25\\), and \\(N = 125\\). Step 2: Calculate \\(\\log_{5}25\\) and \\(\\log_{5}125\\) separately. Since \\(5^2 = 25\\), \\(\\log_{5}25 = 2\\), and since \\(5^3=125\\), \\(\\log_{5}125 = 3\\). Step 3: Apply the product rule. \\(\\log_{5}(25\times125)=\\log_{5}25+\\log_{5}125=2 + 3=5\\).",
-      "examplesFr": "Exemple 1: Convertir l'équation exponentielle \\(3^4 = 81\\) en forme logarithmique. Étape 1: Rappelez la relation entre les formes exponentielle et logarithmique \\(a^y=x\\) est équivalent à \\(y=\\log_{a}x\\). Ici, \\(a = 3\\), \\(y = 4\\) et \\(x = 81\\). Étape 2: Substituez ces valeurs dans la forme logarithmique. Donc, \\(\\log_{3}81 = 4\\). Exemple 2: Simplifiez \\(\\log_{5}(25\times125)\\) en utilisant la règle du produit. Étape 1: Rappelez la règle du produit \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\). Ici, \\(a = 5\\), \\(M = 25\\) et \\(N = 125\\). Étape 2: Calculez \\(\\log_{5}25\\) et \\(\\log_{5}125\\) séparément. Puisque \\(5^2 = 25\\), \\(\\log_{5}25 = 2\\), et puisque \\(5^3=125\\), \\(\\log_{5}125 = 3\\). Étape 3: Appliquez la règle du produit. \\(\\log_{5}(25\times125)=\\log_{5}25+\\log_{5}125=2 + 3=5\\).",
-      "keySummary": "Key points to remember: 1. A logarithmic function \\(y=\\log_{a}x\\) is the inverse of the exponential function \\(y = a^x\\). 2. The relationship between exponential and logarithmic forms is \\(a^y=x\\) is equivalent to \\(y=\\log_{a}x\\). 3. Graph of \\(y=\\log_{a}x\\) has a vertical asymptote at \\(x = 0\\) and passes through \\((1,0)\\). 4. Logarithm properties: Product rule \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\), Quotient rule \\(\\log_{a}\frac{M}{N}=\\log_{a}M-\\log_{a}N\\), Power rule \\(\\log_{a}M^p=p\\log_{a}M\\).",
-      "keySummaryFr": "Points clés à retenir : 1. Une fonction logarithmique \\(y=\\log_{a}x\\) est l'inverse de la fonction exponentielle \\(y = a^x\\). 2. La relation entre les formes exponentielle et logarithmique est que \\(a^y=x\\) est équivalent à \\(y=\\log_{a}x\\). 3. Le graphe de \\(y=\\log_{a}x\\) a une asymptote verticale en \\(x = 0\\) et passe par le point \\((1,0)\\). 4. Propriétés des logarithmes : Règle du produit \\(\\log_{a}(MN)=\\log_{a}M+\\log_{a}N\\), Règle du quotient \\(\\log_{a}\frac{M}{N}=\\log_{a}M-\\log_{a}N\\), Règle de puissance \\(\\log_{a}M^p=p\\log_{a}M\\).",
-      "additionalInfo": "Tips: - When converting between exponential and logarithmic forms, always identify the base \\(a\\), the exponent \\(y\\), and the result \\(x\\) correctly. - When using logarithm properties, make sure to apply them carefully, especially when dealing with negative signs in the quotient rule. Common mistakes: - Forgetting that the argument of a logarithmic function (\\(x\\) in \\(\\log_{a}x\\)) must be positive. Logarithms are not defined for non - positive values. - Misapplying the logarithm properties, for example, thinking \\(\\log_{a}(M + N)=\\log_{a}M+\\log_{a}N\\) (this is incorrect). Connections to other topics: Logarithmic functions are closely related to exponential functions as they are inverses of each other. They are also used in solving exponential equations and in various scientific and financial calculations.",
-      "additionalInfoFr": "Conseils : - Lors de la conversion entre les formes exponentielle et logarithmique, identifiez toujours correctement la base \\(a\\), l'exposant \\(y\\) et le résultat \\(x\\). - Lorsque vous utilisez les propriétés des logarithmes, assurez - vous de les appliquer avec soin, en particulier lorsqu'il s'agit de signes négatifs dans la règle du quotient. Erreurs courantes : - Oublier que l'argument d'une fonction logarithmique (\\(x\\) dans \\(\\log_{a}x\\)) doit être positif. Les logarithmes ne sont pas définis pour les valeurs non positives. - Appliquer incorrectement les propriétés des logarithmes, par exemple, penser que \\(\\log_{a}(M + N)=\\log_{a}M+\\log_{a}N\\) (ce qui est incorrect). Liens avec d'autres sujets : Les fonctions logarithmiques sont étroitement liées aux fonctions exponentielles car elles sont leurs inverses. Elles sont également utilisées pour résoudre les équations exponentielles et dans divers calculs scientifiques et financiers.",
-      "generationSource": "AI",
-      "modelId": "ep-20250421140255-d6sfx",
-      "promptUsed": "Please generate a comprehensive course for the following knowledge point:\n\nKnowledge Point Name: Logarithmic Functions\nKnowledge Point Name (French): Fonctions logarithmiques\nDescription: Understanding logarithmic functions\nLearning Objectives: Understand logarithmic functions; Graph log functions; Understand log properties\nDifficulty Level: Easy (beginner)\n\nPlease generate the course content in the following JSON format:\n{\n  \"courseTitle\": \"Course title in English\",\n  \"courseTitleFr\": \"Course title in French\",\n  \"explanation\": \"Detailed explanation of the knowledge point in English, suitable for Easy (beginner) level\",\n  \"explanationFr\": \"Detailed explanation in French\",\n  \"examples\": \"2-3 worked examples with step-by-step solutions in English\",\n  \"examplesFr\": \"Same examples in French\",\n  \"keySummary\": \"Key points and formulas to remember in English\",\n  \"keySummaryFr\": \"Key summary in French\",\n  \"additionalInfo\": \"Tips, common mistakes to avoid, and connections to other topics in English\",\n  \"additionalInfoFr\": \"Additional info in French\"\n}\n\nImportant requirements:\n1. Content must be appropriate for the Easy (beginner) difficulty level\n2. Use clear, student-friendly language\n3. Include practical examples relevant to real-world applications\n4. Ensure French translations are accurate and natural\n5. Return ONLY valid JSON, no additional text\n",
-      "createAt": "2026-01-07 06:29:09",
-      "updateAt": "2026-01-07 06:29:40",
-      "deleteFlag": "0"
-    }
-  ]
-}
-```
-
----
-
-### 2.5 获取建议难度级别
-
-**接口地址**: `GET /course/difficulty-level`
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| studentId | Integer | 是 | 学生ID |
-| knowledgePointId | Integer | 是 | 知识点ID |
-
-**请求参数**:
-```json
-  "knowledgePointId"="631"
-  "studentId"="48"
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": 2
-}
-```
-
----
-
-### 2.6 删除课程
-
-**接口地址**: `DELETE /course/{id}`
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| id | Integer | 是 | 课程ID (路径参数) |
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "删除成功",
-  "data": true
-}
-```
-
----
-
-## 3. 知识点查询接口
-
-### 3.1 根据分类ID和难度等级查询知识点
+### 2.1 根据分类ID和难度等级查询知识点
 
 **接口地址**: `GET /api/math/knowledge/category/{categoryId}/difficulty/{difficultyLevel}`
 
@@ -826,7 +546,7 @@
 
 ---
 
-### 3.2 根据学生ID和知识点ID查询历史测试列表
+### 2.2 根据学生ID和知识点ID查询历史测试列表
 
 **接口地址**: `GET /api/student-test-record/student/{studentId}/knowledge-point/{knowledgePointId}`
 
@@ -866,7 +586,7 @@
 
 ---
 
-### 3.3 根据测试记录ID获取测试详情（包含题目和解析）
+### 2.3 根据测试记录ID获取测试详情（包含题目和解析）
 
 **接口地址**: `GET /api/student-test/detail/{testRecordId}`
 
@@ -923,7 +643,7 @@
 
 ---
 
-### 3.4 根据测试记录ID查询测试报告
+### 2.4 根据测试记录ID查询测试报告
 
 **接口地址**: `GET /api/test-analysis-report/record/{testRecordId}`
 
@@ -969,9 +689,9 @@
 
 ---
 
-## 4. 学习计划接口
+## 3. 学习计划接口
 
-### 4.1 获取学生所有学习计划
+### 3.1 获取学生所有学习计划
 
 **接口地址**: `GET /api/study-plan/list/{studentId}`
 
@@ -1071,7 +791,7 @@
 
 ---
 
-### 4.2 获取单个计划详情
+### 3.2 获取单个计划详情
 
 **接口地址**: `GET /api/study-plan/{studentId}/{categoryId}`
 
@@ -1110,7 +830,7 @@
 
 ---
 
-### 4.3 完成知识点学习
+### 3.3 完成知识点学习
 
 **接口地址**: `POST /api/study-plan/complete-knowledge`
 
@@ -1152,7 +872,7 @@
 
 ---
 
-### 4.4 取消完成知识点
+### 3.4 取消完成知识点
 
 **接口地址**: `POST /api/study-plan/uncomplete-knowledge`
 
@@ -1194,7 +914,7 @@
 
 ---
 
-### 4.5 刷新计划进度
+### 3.5 刷新计划进度
 
 **接口地址**: `POST /api/study-plan/refresh/{studentId}/{categoryId}`
 
@@ -1234,7 +954,7 @@
 
 ---
 
-### 4.6 根据知识点获取所属计划
+### 3.6 根据知识点获取所属计划
 
 **接口地址**: `GET /api/study-plan/by-knowledge/{studentId}/{knowledgePointId}`
 

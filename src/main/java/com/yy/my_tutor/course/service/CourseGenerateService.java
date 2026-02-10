@@ -2,6 +2,7 @@ package com.yy.my_tutor.course.service;
 
 import com.yy.my_tutor.course.domain.Course;
 import com.yy.my_tutor.course.domain.GenerateCourseRequest;
+import reactor.core.publisher.Flux;
 
 /**
  * 课程生成服务接口
@@ -15,6 +16,14 @@ public interface CourseGenerateService {
      * @return 生成的课程
      */
     Course generateCourse(GenerateCourseRequest request);
+
+    /**
+     * 流式生成课程（SSE）
+     *
+     * @param request 生成课程请求参数
+     * @return Flux<String> SSE 事件流
+     */
+    Flux<String> generateCourseStream(GenerateCourseRequest request);
 
     /**
      * 根据学生测验报告判断知识点难度级别

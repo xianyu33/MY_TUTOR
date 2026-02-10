@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yy.my_tutor.course.mapper.CourseContentMapper">
+
+    <resultMap id="BaseResultMap" type="com.yy.my_tutor.course.domain.CourseContent">
+        <id column="id" property="id"/>
+        <result column="course_id" property="courseId"/>
+        <result column="language" property="language"/>
+        <result column="course_title" property="courseTitle"/>
+        <result column="explanation" property="explanation"/>
+        <result column="examples" property="examples"/>
+        <result column="key_summary" property="keySummary"/>
+        <result column="additional_info" property="additionalInfo"/>
+        <result column="create_at" property="createAt"/>
+        <result column="update_at" property="updateAt"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, course_id, language, course_title,
+        explanation, examples, key_summary, additional_info,
+        create_at, update_at
+    </sql>
+
+    <select id="findByCourseIdAndLanguage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course_content
+        WHERE course_id = #{courseId}
+          AND language = #{language}
+    </select>
+
+    <select id="findByCourseId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM course_content
+        WHERE course_id = #{courseId}
+    </select>
+
+    <insert id="insert" parameterType="com.yy.my_tutor.course.domain.CourseContent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course_content (
+            course_id, language, course_title,
+            explanation, examples, key_summary, additional_info,
+            create_at, update_at
+        ) VALUES (
+            #{courseId}, #{language}, #{courseTitle},
+            #{explanation}, #{examples}, #{keySummary}, #{additionalInfo},
+            NOW(), NOW()
+        )
+    </insert>
+
+    <update id="update" parameterType="com.yy.my_tutor.course.domain.CourseContent">
+        UPDATE course_content
+        <set>
+            <if test="courseTitle != null">course_title = #{courseTitle},</if>
+            <if test="explanation != null">explanation = #{explanation},</if>
+            <if test="examples != null">examples = #{examples},</if>
+            <if test="keySummary != null">key_summary = #{keySummary},</if>
+            <if test="additionalInfo != null">additional_info = #{additionalInfo},</if>
+            update_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
