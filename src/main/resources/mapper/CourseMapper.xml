@@ -95,7 +95,7 @@
         WHERE id = #{id}
     </update>
     <update id="updateProgressPercentage">
-        UPDATE knowledge_point
+        UPDATE learning_progress
         SET progress_status = #{status},
             completion_percentage = #{progressPercentage},
             last_study_time = NOW(),
