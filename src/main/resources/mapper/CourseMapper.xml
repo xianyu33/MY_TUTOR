@@ -100,7 +100,7 @@
             completion_percentage = #{progressPercentage},
             last_study_time = NOW(),
             update_at = NOW()
-        WHERE id = #{id} AND delete_flag = 'N' AND user_id = #{studentId} AND knowledge_point_id = #{knowledgePointId}
+        WHERE delete_flag = 'N' AND user_id = #{studentId} AND knowledge_point_id = #{knowledgePointId}
     </update>
 
 </mapper>

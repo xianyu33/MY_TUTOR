@@ -93,11 +93,11 @@ public class CourseServiceImpl implements CourseService {
         updateCourse.setCompletedStage(currentStage);
         courseMapper.update(updateCourse);
 
-        if (completedStage != 0) {
+        if (currentStage != 0) {
             //更新学习百分比进度
             int totalStages = 4;
-            double progressPercentage = ((double)(completedStage) / totalStages);
-            int status = completedStage == 4 ? 3 : 4;
+            double progressPercentage = ((double)(currentStage) / totalStages);
+            int status = currentStage == 4 ? 3 : 4;
             System.out.println("progressPercentage: " + progressPercentage);
             courseMapper.updateProgressPercentage(course.getStudentId(), course.getKnowledgePointId(), progressPercentage, status);
         }
