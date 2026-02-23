@@ -30,4 +30,9 @@ public interface CourseMapper {
     int update(Course course);
 
     int deleteById(@Param("id") Integer id);
+
+    void updateProgressPercentage(@Param("studentId") Integer studentId,
+                                  @Param("knowledgePointId") Integer knowledgePointId,
+                                  @Param("progressPercentage") double progressPercentage,
+                                  @Param("status") Integer status);
 }

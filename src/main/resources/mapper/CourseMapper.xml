@@ -94,5 +94,13 @@
         SET delete_flag = 1, update_at = NOW()
         WHERE id = #{id}
     </update>
+    <update id="updateProgressPercentage">
+        UPDATE knowledge_point
+        SET progress_status = #{status},
+            completion_percentage = #{progressPercentage},
+            last_study_time = NOW(),
+            update_at = NOW()
+        WHERE id = #{id} AND delete_flag = 'N' AND user_id = #{studentId} AND knowledge_point_id = #{knowledgePointId}
+    </update>
 
 </mapper>

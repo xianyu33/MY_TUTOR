@@ -180,7 +180,7 @@ public class QuestionGenerateServiceImpl implements QuestionGenerateService {
         try {
             // 提取 JSON 内容
             String jsonContent = extractJsonContent(aiResponse);
-            log.debug("Extracted JSON content: {}", jsonContent);
+            log.info("Extracted JSON content: {}", jsonContent);
 
             JSONObject json = JSON.parseObject(jsonContent);
             JSONArray questionsArray = json.getJSONArray("questions");
