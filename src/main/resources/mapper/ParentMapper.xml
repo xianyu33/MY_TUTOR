@@ -16,6 +16,7 @@
         <result column="school" property="school" jdbcType="VARCHAR"/>
         <result column="type" property="type" jdbcType="TINYINT"/>
         <result column="approval_status" property="approvalStatus" jdbcType="TINYINT"/>
+        <result column="avatar_url" property="avatarUrl" jdbcType="VARCHAR"/>
         <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
         <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
         <result column="update_at" property="updateAt" jdbcType="TIMESTAMP"/>
@@ -24,7 +25,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status,
+        id, user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status, avatar_url,
         create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
@@ -45,11 +46,11 @@
 
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.Parent" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
         insert into parent (
-            user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status,
+            user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status, avatar_url,
             create_at, create_by, update_at, update_by, delete_flag
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
-            #{country}, #{email}, #{grade}, #{school}, #{type}, #{approvalStatus}, #{createAt}, #{createBy}, #{updateAt},
+            #{country}, #{email}, #{grade}, #{school}, #{type}, #{approvalStatus}, #{avatarUrl}, #{createAt}, #{createBy}, #{updateAt},
             #{updateBy}, #{deleteFlag}
         )
     </insert>
@@ -68,6 +69,7 @@
             <if test="school != null">school = #{school},</if>
             <if test="type != null">type = #{type},</if>
             <if test="approvalStatus != null">approval_status = #{approvalStatus},</if>
+            <if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
         </set>

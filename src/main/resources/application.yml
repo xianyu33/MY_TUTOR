@@ -23,6 +23,12 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+# 头像等文件上传保存路径（绝对路径或相对项目目录）；访问 URL 前缀
+file:
+  upload:
+    path: photo
+    url-prefix: http://59.110.35.233:29999
+
 jwt:
   tokenHeader: X-Token #JWT存储的请求头
   tokenHead: Bearer  #令牌前缀

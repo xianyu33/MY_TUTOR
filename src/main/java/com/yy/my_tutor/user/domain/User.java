@@ -55,6 +55,11 @@ public class User implements Serializable {
     private Integer parentId;
 
     /**
+     * 头像地址
+     */
+    private String avatarUrl;
+
+    /**
      * P-家长  S-学生
      */
     private String role;

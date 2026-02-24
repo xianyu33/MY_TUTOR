@@ -31,6 +31,10 @@ public class Parent implements Serializable {
      * 审批状态：0-未审批，1-已审批
      */
     private Integer approvalStatus;
+    /**
+     * 头像地址
+     */
+    private String avatarUrl;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createAt;
     private String createBy;
