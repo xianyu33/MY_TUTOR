@@ -140,7 +140,7 @@ public class UserController {
         User checkUser = userMapper.findByUserAccount(userVo.getUserAccount());
         if (checkUser != null && checkUser.getType() != null && checkUser.getType() == 1) {
             if (checkUser.getApprovalStatus() == null || checkUser.getApprovalStatus() == 0) {
-                return RespResult.error("您的账号尚未通过审批，请等待管理员审批");
+                return RespResult.error("Your account has not been approved yet, Please wait for administrator approval.");
             }
         }
 
