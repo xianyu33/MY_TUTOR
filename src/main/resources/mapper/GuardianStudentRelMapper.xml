@@ -50,6 +50,7 @@
             <result column="student_update_at" property="updateAt"/>
             <result column="student_update_by" property="updateBy"/>
             <result column="student_delete_flag" property="deleteFlag"/>
+            <result column="avatar_url" property="avatarUrl"/>
         </association>
     </resultMap>
 
@@ -101,7 +102,8 @@
             u.create_by as student_create_by,
             u.update_at as student_update_at,
             u.update_by as student_update_by,
-            u.delete_flag as student_delete_flag
+            u.delete_flag as student_delete_flag,
+            u.avatar_url as avatar_url
         FROM guardian_student_rel gsr
         LEFT JOIN parent p ON gsr.guardian_id = p.id AND p.delete_flag = '0'
         LEFT JOIN user u ON gsr.student_id = u.id AND u.delete_flag = '0'

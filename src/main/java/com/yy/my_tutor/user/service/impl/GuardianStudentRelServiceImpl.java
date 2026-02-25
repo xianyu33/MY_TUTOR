@@ -119,6 +119,7 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
             detail.setStudentRole(rel.getStudent().getRole());
             detail.setStudentCreateAt(rel.getStudent().getCreateAt());
             detail.setStudentUpdateAt(rel.getStudent().getUpdateAt());
+            detail.setAvatarUrl(rel.getStudent().getAvatarUrl());
             
             // 获取学生各知识点类型的学习情况
             List<StudentDetailDTO.CategoryLearningProgress> categoryProgressList = getCategoryLearningProgress(rel.getStudent().getId());

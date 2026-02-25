@@ -37,6 +37,8 @@ public class StudentDetailDTO implements Serializable {
     private String studentEmail;
     private String studentGrade;
     private String studentRole;
+
+    private String avatarUrl;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date studentCreateAt;
