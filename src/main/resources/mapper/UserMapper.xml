@@ -75,7 +75,7 @@
         UNION
         select
         id, user_account, username, sex, age, password, tel, country, email, grade, school,
-        create_at, create_by, update_at, update_by, delete_flag, avatar_url,"P" AS role, type, approval_status
+        create_at, create_by, update_at, update_by, delete_flag, null AS parent_id, avatar_url,"P" AS role, type, approval_status
         from parent
         where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
     </select>
