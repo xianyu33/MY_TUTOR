@@ -112,4 +112,30 @@ public interface QuestionMapper {
     List<Question> findUndoneQuestionsByKnowledgePoints(@Param("knowledgePointIds") List<Integer> knowledgePointIds,
                                                         @Param("difficultyLevel") Integer difficultyLevel,
                                                         @Param("doneQuestionIds") List<Integer> doneQuestionIds);
+
+    /**
+     * 统计某知识点+难度下的题目总数
+     *
+     * @param knowledgePointId 知识点ID
+     * @param difficultyLevel  难度等级
+     * @return 题目总数
+     */
+    int countByKnowledgePointAndDifficulty(@Param("knowledgePointId") Integer knowledgePointId,
+                                           @Param("difficultyLevel") Integer difficultyLevel);
+
+    /**
+     * 查询已做过但间隔最久的题目（按最近做题时间升序排列）
+     * 用于题库耗尽时的兜底复用
+     *
+     * @param knowledgePointIds 知识点ID列表
+     * @param difficultyLevel   难度等级（可选）
+     * @param doneQuestionIds   已做过的题目ID列表
+     * @param limit             返回数量限制
+     * @return 间隔最久的已做题目列表
+     */
+    List<Question> findLeastRecentlyDoneQuestions(@Param("knowledgePointIds") List<Integer> knowledgePointIds,
+                                                  @Param("difficultyLevel") Integer difficultyLevel,
+                                                  @Param("doneQuestionIds") List<Integer> doneQuestionIds,
+                                                  @Param("studentId") Integer studentId,
+                                                  @Param("limit") int limit);
 }

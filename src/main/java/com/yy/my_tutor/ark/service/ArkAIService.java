@@ -134,6 +134,58 @@ public class ArkAIService {
     }
 
     /**
+     * 同步调用 AI 生成内容（指定最大输出Token数）
+     */
+    public String chat(String systemPrompt, String userPrompt, Integer maxTokens) {
+        return chat(systemPrompt, userPrompt, defaultModel, defaultTemperature, maxTokens);
+    }
+
+    /**
+     * 同步调用 AI 生成内容（指定模型、温度和最大输出Token数）
+     */
+    public String chat(String systemPrompt, String userPrompt, String model, Double temperature, Integer maxTokens) {
+        List<ChatMessage> messages = new ArrayList<>();
+
+        if (systemPrompt != null && !systemPrompt.isEmpty()) {
+            messages.add(ChatMessage.builder()
+                    .role(ChatMessageRole.SYSTEM)
+                    .content(systemPrompt)
+                    .build());
+        }
+
+        messages.add(ChatMessage.builder()
+                .role(ChatMessageRole.USER)
+                .content(userPrompt)
+                .build());
+
+        ChatCompletionRequest.Builder requestBuilder = ChatCompletionRequest.builder()
+                .model(model)
+                .messages(messages);
+
+        if (temperature != null) {
+            requestBuilder.temperature(temperature);
+        }
+        if (maxTokens != null) {
+            requestBuilder.maxTokens(maxTokens);
+        }
+
+        ChatCompletionRequest request = requestBuilder.build();
+
+        log.info("Calling Ark API with model: {}, temperature: {}, maxTokens: {}, userPrompt length: {}",
+                model, temperature, maxTokens, userPrompt.length());
+
+        try {
+            ChatCompletionResult result = arkService.createChatCompletion(request);
+            String content = result.getChoices().get(0).getMessage().getContent().toString();
+            log.info("Ark API response received, content length: {}", content.length());
+            return content;
+        } catch (Exception e) {
+            log.error("Ark API call failed", e);
+            throw new RuntimeException("AI 服务调用失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * 同步调用 AI（多轮对话）
      *
      * @param messages 消息列表

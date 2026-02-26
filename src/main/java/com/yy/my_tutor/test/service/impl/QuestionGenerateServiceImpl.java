@@ -28,24 +28,52 @@ public class QuestionGenerateServiceImpl implements QuestionGenerateService {
     @Resource
     private QuestionMapper questionMapper;
 
+    private static final int MAX_RETRIES = 2;
+    private static final int MAX_TOKENS = 4096;
+
     @Override
     public List<Question> generateQuestions(KnowledgePoint knowledgePoint, int count,
                                             Integer difficultyLevel, Integer questionType) {
-        // 1. 构建 Prompt
-        String prompt = buildQuestionPrompt(knowledgePoint, count, difficultyLevel, questionType);
+        int currentCount = count;
         String systemPrompt = buildSystemPrompt();
 
-        log.info("Generating {} questions for knowledgePoint: {}, difficulty: {}, type: {}",
-                count, knowledgePoint.getPointName(), difficultyLevel, questionType);
+        for (int retry = 0; retry <= MAX_RETRIES; retry++) {
+            try {
+                String prompt = buildQuestionPrompt(knowledgePoint, currentCount, difficultyLevel, questionType);
 
-        // 2. 调用 AI 生成
-        String aiResponse = arkAIService.chat(systemPrompt, prompt);
+                log.info("Generating {} questions for knowledgePoint: {}, difficulty: {}, attempt: {}/{}",
+                        currentCount, knowledgePoint.getPointName(), difficultyLevel, retry + 1, MAX_RETRIES + 1);
 
-        // 3. 解析响应
-        List<Question> questions = parseAIResponse(aiResponse, knowledgePoint, difficultyLevel, prompt);
+                // 调用 AI 生成（设置 maxTokens 防止输出截断）
+                String aiResponse = arkAIService.chat(systemPrompt, prompt, MAX_TOKENS);
 
-        log.info("Generated {} questions successfully", questions.size());
-        return questions;
+                // 尝试正常解析
+                List<Question> questions = parseAIResponse(aiResponse, knowledgePoint, difficultyLevel, prompt);
+
+                if (!questions.isEmpty()) {
+                    log.info("Generated {} questions successfully", questions.size());
+                    return questions;
+                }
+
+                // 正常解析失败，尝试从截断的JSON中恢复部分题目
+                List<Question> recovered = recoverPartialQuestions(aiResponse, knowledgePoint, difficultyLevel, prompt);
+                if (!recovered.isEmpty()) {
+                    log.info("Recovered {} questions from truncated response", recovered.size());
+                    return recovered;
+                }
+
+                log.warn("No questions parsed on attempt {}, reducing count and retrying", retry + 1);
+            } catch (Exception e) {
+                log.warn("Question generation attempt {} failed: {}", retry + 1, e.getMessage());
+            }
+
+            // 减少生成数量后重试
+            currentCount = Math.max(1, currentCount - 2);
+        }
+
+        log.error("Failed to generate questions for [{}]-difficulty[{}] after {} attempts",
+                knowledgePoint.getPointName(), difficultyLevel, MAX_RETRIES + 1);
+        return new ArrayList<>();
     }
 
     @Override
@@ -180,7 +208,6 @@ public class QuestionGenerateServiceImpl implements QuestionGenerateService {
         try {
             // 提取 JSON 内容
             String jsonContent = extractJsonContent(aiResponse);
-            log.info("Extracted JSON content: {}", jsonContent);
 
             JSONObject json = JSON.parseObject(jsonContent);
             JSONArray questionsArray = json.getJSONArray("questions");
@@ -192,46 +219,161 @@ public class QuestionGenerateServiceImpl implements QuestionGenerateService {
 
             for (int i = 0; i < questionsArray.size(); i++) {
                 JSONObject qObj = questionsArray.getJSONObject(i);
-                Question question = new Question();
-
-                // 设置关联信息
-                question.setKnowledgePointId(knowledgePoint.getId());
-                question.setGenerationSource("AI");
-                question.setModelId(arkAIService.getDefaultModel());
-                question.setPromptUsed(promptUsed);
-
-                // 解析题目内容
-                question.setQuestionType(qObj.getInteger("questionType"));
-                question.setQuestionTitle(getJsonString(qObj, "questionTitle"));
-                question.setQuestionTitleFr(getJsonString(qObj, "questionTitleFr"));
-                question.setQuestionContent(getJsonString(qObj, "questionContent"));
-                question.setQuestionContentFr(getJsonString(qObj, "questionContentFr"));
-                question.setOptions(getJsonString(qObj, "options"));
-                question.setOptionsFr(getJsonString(qObj, "optionsFr"));
-                question.setCorrectAnswer(getJsonString(qObj, "correctAnswer"));
-                question.setCorrectAnswerFr(getJsonString(qObj, "correctAnswerFr"));
-                question.setAnswerExplanation(getJsonString(qObj, "answerExplanation"));
-                question.setAnswerExplanationFr(getJsonString(qObj, "answerExplanationFr"));
-
-                // 设置难度和分值
-                Integer qDifficulty = qObj.getInteger("difficultyLevel");
-                question.setDifficultyLevel(qDifficulty != null ? qDifficulty : difficultyLevel);
-                Integer points = qObj.getInteger("points");
-                question.setPoints(points != null ? points : 1);
-                question.setSortOrder(i + 1);
-
-                questions.add(question);
+                Question question = parseQuestionObject(qObj, knowledgePoint, difficultyLevel, promptUsed, i);
+                if (question != null) {
+                    questions.add(question);
+                }
             }
 
             log.info("Parsed {} questions from AI response", questions.size());
 
         } catch (Exception e) {
             log.error("Failed to parse AI response: {}", e.getMessage());
-            log.error("Raw AI response (first 2000 chars): {}",
-                    aiResponse != null && aiResponse.length() > 2000 ? aiResponse.substring(0, 2000) : aiResponse);
+            log.debug("Raw AI response (first 500 chars): {}",
+                    aiResponse != null && aiResponse.length() > 500 ? aiResponse.substring(0, 500) : aiResponse);
         }
 
         return questions;
+    }
+
+    /**
+     * 从截断的 AI 响应中恢复部分完整的题目
+     * 当 JSON 被截断时（如 "unclosed string" 错误），尝试提取已完成的题目对象
+     */
+    private List<Question> recoverPartialQuestions(String aiResponse, KnowledgePoint knowledgePoint,
+                                                    Integer difficultyLevel, String promptUsed) {
+        List<Question> questions = new ArrayList<>();
+        if (aiResponse == null || aiResponse.isEmpty()) {
+            return questions;
+        }
+
+        try {
+            String content = aiResponse.trim();
+
+            // 去掉 markdown 代码块
+            if (content.contains("```")) {
+                content = content.replaceAll("```json\\s*", "");
+                content = content.replaceAll("```\\s*", "");
+                content = content.trim();
+            }
+
+            // 找到 questions 数组开始的位置
+            int arrStart = content.indexOf('[');
+            if (arrStart == -1) {
+                return questions;
+            }
+
+            // 逐字符扫描，提取完整的 JSON 对象
+            int depth = 0;
+            int objStart = -1;
+            boolean inString = false;
+
+            for (int i = arrStart + 1; i < content.length(); i++) {
+                char c = content.charAt(i);
+
+                if (inString) {
+                    if (c == '\\' && i + 1 < content.length()) {
+                        i++; // 跳过转义字符
+                    } else if (c == '"') {
+                        inString = false;
+                    }
+                    continue;
+                }
+
+                if (c == '"') {
+                    inString = true;
+                } else if (c == '{') {
+                    if (depth == 0) {
+                        objStart = i;
+                    }
+                    depth++;
+                } else if (c == '}') {
+                    depth--;
+                    if (depth == 0 && objStart != -1) {
+                        // 找到一个完整的对象
+                        String objStr = content.substring(objStart, i + 1);
+                        try {
+                            String cleanedObj = cleanJsonString(objStr);
+                            JSONObject qObj = JSON.parseObject(cleanedObj);
+                            Question question = parseQuestionObject(qObj, knowledgePoint, difficultyLevel,
+                                    promptUsed, questions.size());
+                            if (question != null) {
+                                questions.add(question);
+                            }
+                        } catch (Exception e) {
+                            log.debug("Skipping incomplete question object: {}", e.getMessage());
+                        }
+                        objStart = -1;
+                    }
+                }
+            }
+
+            if (!questions.isEmpty()) {
+                log.info("Recovered {} complete questions from truncated response", questions.size());
+            }
+        } catch (Exception e) {
+            log.error("Failed to recover partial questions: {}", e.getMessage());
+        }
+
+        return questions;
+    }
+
+    /**
+     * 解析单个题目 JSON 对象为 Question 实体
+     */
+    private Question parseQuestionObject(JSONObject qObj, KnowledgePoint knowledgePoint,
+                                          Integer difficultyLevel, String promptUsed, int index) {
+        try {
+            Question question = new Question();
+
+            // 设置关联信息
+            question.setKnowledgePointId(knowledgePoint.getId());
+            question.setGenerationSource("AI");
+            question.setModelId(arkAIService.getDefaultModel());
+            question.setPromptUsed(promptUsed);
+
+            // 解析题目内容
+            question.setQuestionType(qObj.getInteger("questionType"));
+            question.setQuestionTitle(truncateIfNeeded(getJsonString(qObj, "questionTitle"), 200));
+            question.setQuestionTitleFr(truncateIfNeeded(getJsonString(qObj, "questionTitleFr"), 200));
+            question.setQuestionContent(getJsonString(qObj, "questionContent"));
+            question.setQuestionContentFr(getJsonString(qObj, "questionContentFr"));
+            question.setOptions(getJsonString(qObj, "options"));
+            question.setOptionsFr(getJsonString(qObj, "optionsFr"));
+            question.setCorrectAnswer(getJsonString(qObj, "correctAnswer"));
+            question.setCorrectAnswerFr(getJsonString(qObj, "correctAnswerFr"));
+            question.setAnswerExplanation(getJsonString(qObj, "answerExplanation"));
+            question.setAnswerExplanationFr(getJsonString(qObj, "answerExplanationFr"));
+
+            // 设置难度和分值
+            Integer qDifficulty = qObj.getInteger("difficultyLevel");
+            question.setDifficultyLevel(qDifficulty != null ? qDifficulty : difficultyLevel);
+            Integer points = qObj.getInteger("points");
+            question.setPoints(points != null ? points : 1);
+            question.setSortOrder(index + 1);
+
+            // 基本校验：必须有题目内容和正确答案
+            if (question.getQuestionContent() == null || question.getCorrectAnswer() == null) {
+                log.warn("Skipping question with missing content or answer");
+                return null;
+            }
+
+            return question;
+        } catch (Exception e) {
+            log.warn("Failed to parse question object at index {}: {}", index, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 截断过长的字符串，防止数据库列溢出
+     */
+    private String truncateIfNeeded(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("Truncating string from {} to {} chars", value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     /**

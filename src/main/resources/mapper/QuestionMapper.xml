@@ -241,4 +241,44 @@
         ORDER BY RAND()
     </select>
 
+    <!-- 统计某知识点+难度下的题目总数 -->
+    <select id="countByKnowledgePointAndDifficulty" resultType="int">
+        SELECT COUNT(*)
+        FROM question
+        WHERE knowledge_point_id = #{knowledgePointId}
+          AND difficulty_level = #{difficultyLevel}
+          AND delete_flag = 'N'
+    </select>
+
+    <!-- 查询已做过但间隔最久的题目（按最近做题时间升序） -->
+    <select id="findLeastRecentlyDoneQuestions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question q
+        INNER JOIN (
+            SELECT question_id, MAX(answer_time) AS last_answer_time
+            FROM student_test_answer
+            WHERE student_id = #{studentId}
+            <if test="doneQuestionIds != null and doneQuestionIds.size() > 0">
+                AND question_id IN
+                <foreach collection="doneQuestionIds" item="questionId" open="(" separator="," close=")">
+                    #{questionId}
+                </foreach>
+            </if>
+            GROUP BY question_id
+        ) sta ON q.id = sta.question_id
+        WHERE q.delete_flag = 'N'
+        <if test="knowledgePointIds != null and knowledgePointIds.size() > 0">
+            AND q.knowledge_point_id IN
+            <foreach collection="knowledgePointIds" item="kpId" open="(" separator="," close=")">
+                #{kpId}
+            </foreach>
+        </if>
+        <if test="difficultyLevel != null">
+            AND q.difficulty_level = #{difficultyLevel}
+        </if>
+        ORDER BY sta.last_answer_time ASC
+        LIMIT #{limit}
+    </select>
+
 </mapper>
