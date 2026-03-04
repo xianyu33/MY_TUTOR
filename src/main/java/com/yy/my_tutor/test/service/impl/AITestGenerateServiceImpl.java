@@ -6,6 +6,7 @@ import com.yy.my_tutor.math.domain.Question;
 import com.yy.my_tutor.math.mapper.QuestionMapper;
 import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.test.domain.*;
+import com.yy.my_tutor.test.job.QuestionPoolFillJob;
 import com.yy.my_tutor.test.mapper.StudentTestAnswerMapper;
 import com.yy.my_tutor.test.mapper.StudentTestRecordMapper;
 import com.yy.my_tutor.test.mapper.TestMapper;
@@ -27,6 +28,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class AITestGenerateServiceImpl implements AITestGenerateService {
+
+    private static final int LOW_STOCK_THRESHOLD = 10;
+    private static final int REPLENISH_TARGET = 20;
+    private static final int REPLENISH_BATCH_SIZE = 5;
 
     @Resource
     private KnowledgePointService knowledgePointService;
@@ -54,6 +59,9 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
 
     @Resource
     private CourseGenerateService courseGenerateService;
+
+    @Resource
+    private QuestionPoolFillJob questionPoolFillJob;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -200,7 +208,7 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
 
     /**
      * 获取或生成题目
-     * 优先从题库获取学生未做过的题目，不足时AI生成补充
+     * 优先从题库获取学生未做过的题目，不足时优先复用间隔最久的已做题目，仍不足则AI生成补充
      * 题目类型固定为单选（1）
      */
     private List<Question> getOrGenerateQuestions(Integer studentId, List<Integer> knowledgePointIds,
@@ -230,17 +238,37 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
 
         log.info("Found {} undone questions in question bank", availableQuestions != null ? availableQuestions.size() : 0);
 
+        // 检测题库存量低，异步触发补充（不影响当前请求的返回）
+        if (availableQuestions == null || availableQuestions.size() < LOW_STOCK_THRESHOLD) {
+            for (Integer kpId : knowledgePointIds) {
+                questionPoolFillJob.asyncFillForKnowledgePoint(kpId, difficultyLevel, REPLENISH_TARGET, REPLENISH_BATCH_SIZE);
+            }
+        }
+
         // 3. 如果题库中有足够的题目，直接使用
         if (availableQuestions != null && availableQuestions.size() >= count) {
             Collections.shuffle(availableQuestions);
             return availableQuestions.subList(0, count);
         }
 
-        // 4. 题库题目不足，添加已有的，然后AI生成补充
+        // 4. 题库题目不足，先添加所有未做过的题目
         if (availableQuestions != null && !availableQuestions.isEmpty()) {
             result.addAll(availableQuestions);
         }
 
+        // 5. 从已做过的题中选间隔最久的补充（兜底复用）
+        int stillNeed = count - result.size();
+        if (stillNeed > 0 && !doneQuestionIds.isEmpty()) {
+            log.info("Undone questions insufficient, trying to reuse {} least recently done questions", stillNeed);
+            List<Question> leastRecentlyDone = questionMapper.findLeastRecentlyDoneQuestions(
+                    knowledgePointIds, difficultyLevel, doneQuestionIds, studentId, stillNeed);
+            if (leastRecentlyDone != null && !leastRecentlyDone.isEmpty()) {
+                result.addAll(leastRecentlyDone);
+                log.info("Reused {} least recently done questions as fallback", leastRecentlyDone.size());
+            }
+        }
+
+        // 6. 如果仍不足，再实时AI生成兜底
         int needGenerate = count - result.size();
         if (needGenerate > 0) {
             log.info("Need to generate {} more questions via AI", needGenerate);

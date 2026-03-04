@@ -3,21 +3,32 @@ package com.yy.my_tutor.math.service.impl;
 import com.yy.my_tutor.math.domain.KnowledgePoint;
 import com.yy.my_tutor.math.mapper.KnowledgePointMapper;
 import com.yy.my_tutor.math.service.KnowledgePointService;
+import com.yy.my_tutor.test.job.QuestionPoolFillJob;
 import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 /**
  * 知识点服务实现类
  */
+@Slf4j
 @Service
 public class KnowledgePointServiceImpl implements KnowledgePointService {
-    
+
+    private static final int PREFILL_TARGET = 20;
+    private static final int PREFILL_BATCH_SIZE = 5;
+
     @Autowired
     private KnowledgePointMapper knowledgePointMapper;
+
+    @Resource
+    private QuestionPoolFillJob questionPoolFillJob;
     
     @Override
     public List<KnowledgePoint> findAllKnowledgePoints() {
@@ -65,9 +76,18 @@ public class KnowledgePointServiceImpl implements KnowledgePointService {
         knowledgePoint.setCreateAt(now);
         knowledgePoint.setUpdateAt(now);
         knowledgePoint.setDeleteFlag("N");
-        
+
         int result = knowledgePointMapper.insertKnowledgePoint(knowledgePoint);
-        return result > 0 ? knowledgePoint : null;
+        if (result > 0) {
+            // 新增知识点后，异步预填充3个难度级别的题目
+            for (int difficulty : Arrays.asList(1, 2, 3)) {
+                questionPoolFillJob.asyncFillForKnowledgePoint(
+                        knowledgePoint.getId(), difficulty, PREFILL_TARGET, PREFILL_BATCH_SIZE);
+            }
+            log.info("新增知识点[{}]，已触发题库异步预填充", knowledgePoint.getPointName());
+            return knowledgePoint;
+        }
+        return null;
     }
     
     @Override
