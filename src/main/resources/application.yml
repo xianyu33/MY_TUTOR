@@ -27,7 +27,7 @@ mybatis-plus:
 file:
   upload:
     path: photo
-    url-prefix: http://59.110.35.233:29999
+    url-prefix: https://mytutor.top/img
 
 jwt:
   tokenHeader: X-Token #JWT存储的请求头
