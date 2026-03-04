@@ -116,6 +116,19 @@
           AND q.knowledge_point_id = #{knowledgePointId}
     </select>
 
+    <!-- 按知识点汇总学生在某知识大类下的测试统计 -->
+    <select id="findTestStatsByStudentAndCategory" resultType="com.yy.my_tutor.test.domain.KnowledgePointTestStats">
+        SELECT q.knowledge_point_id AS knowledgePointId,
+               COUNT(*) AS totalQuestions,
+               SUM(sta.is_correct) AS correctCount
+        FROM student_test_answer sta
+        INNER JOIN question q ON sta.question_id = q.id AND q.delete_flag = 'N'
+        INNER JOIN knowledge_point kp ON q.knowledge_point_id = kp.id AND kp.delete_flag = 'N'
+        WHERE sta.student_id = #{studentId}
+          AND kp.category_id = #{categoryId}
+        GROUP BY q.knowledge_point_id
+    </select>
+
 </mapper>
 
 

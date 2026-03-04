@@ -1,5 +1,6 @@
 package com.yy.my_tutor.test.mapper;
 
+import com.yy.my_tutor.test.domain.KnowledgePointTestStats;
 import com.yy.my_tutor.test.domain.StudentTestAnswer;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -74,6 +75,12 @@ public interface StudentTestAnswerMapper {
      */
     List<Integer> findDoneQuestionIdsByStudentAndKnowledgePoint(@Param("studentId") Integer studentId,
                                                                  @Param("knowledgePointId") Integer knowledgePointId);
+
+    /**
+     * 按知识点汇总学生在某知识大类下的测试统计（总题数、正确数）
+     */
+    List<KnowledgePointTestStats> findTestStatsByStudentAndCategory(@Param("studentId") Integer studentId,
+                                                                     @Param("categoryId") Integer categoryId);
 }
 
 

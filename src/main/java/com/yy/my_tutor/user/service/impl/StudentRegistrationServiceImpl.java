@@ -10,11 +10,14 @@ import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.math.service.LearningProgressService;
 import com.yy.my_tutor.test.domain.Test;
 import com.yy.my_tutor.test.service.TestService;
+import com.yy.my_tutor.user.domain.CategoryKnowledgeStatsResponse;
 import com.yy.my_tutor.user.domain.CategoryWithProgress;
 import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import com.yy.my_tutor.user.domain.LearningProgressStats;
 import com.yy.my_tutor.user.domain.StudentCategoryBinding;
 import com.yy.my_tutor.user.domain.User;
+import com.yy.my_tutor.test.domain.KnowledgePointTestStats;
+import com.yy.my_tutor.test.mapper.StudentTestAnswerMapper;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.StudentRegistrationService;
 import com.yy.my_tutor.user.service.StudentCategoryBindingService;
@@ -58,6 +61,9 @@ public class StudentRegistrationServiceImpl implements StudentRegistrationServic
 
     @Autowired
     private StudentCategoryBindingService studentCategoryBindingService;
+
+    @Autowired
+    private StudentTestAnswerMapper studentTestAnswerMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -832,6 +838,87 @@ public class StudentRegistrationServiceImpl implements StudentRegistrationServic
             default:
                 kpWithProgress.setDifficultyName("未知");
                 kpWithProgress.setDifficultyDescription("难度等级超出范围");
+        }
+    }
+
+    @Override
+    public CategoryKnowledgeStatsResponse getCategoryKnowledgeStats(Integer studentId, Integer categoryId) {
+        CategoryKnowledgeStatsResponse response = new CategoryKnowledgeStatsResponse();
+        response.setStudentId(studentId);
+        response.setCategoryId(categoryId);
+
+        KnowledgeCategory category = knowledgeCategoryService.findCategoryById(categoryId);
+        if (category == null) {
+            log.warn("知识大类不存在: {}", categoryId);
+            response.setItems(Collections.emptyList());
+            return response;
+        }
+        response.setCategoryName(category.getCategoryName());
+        response.setCategoryNameFr(category.getCategoryNameFr());
+
+        List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryId(categoryId);
+        if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+            response.setItems(Collections.emptyList());
+            return response;
+        }
+
+        List<KnowledgePointTestStats> testStatsList = studentTestAnswerMapper.findTestStatsByStudentAndCategory(studentId, categoryId);
+        Map<Integer, KnowledgePointTestStats> testStatsMap = testStatsList == null ? new HashMap<>() :
+            testStatsList.stream().collect(Collectors.toMap(KnowledgePointTestStats::getKnowledgePointId, s -> s));
+
+        List<LearningProgress> progressList = learningProgressService.findLearningProgressByUserId(studentId);
+        Map<Integer, LearningProgress> progressMap = progressList == null ? new HashMap<>() :
+            progressList.stream()
+                .filter(p -> p.getKnowledgePointId() != null)
+                .collect(Collectors.toMap(LearningProgress::getKnowledgePointId, p -> p));
+
+        List<CategoryKnowledgeStatsResponse.KnowledgePointStatItem> items = new ArrayList<>();
+        for (KnowledgePoint kp : knowledgePoints) {
+            CategoryKnowledgeStatsResponse.KnowledgePointStatItem item = new CategoryKnowledgeStatsResponse.KnowledgePointStatItem();
+            item.setKnowledgePointId(kp.getId());
+            item.setPointName(kp.getPointName());
+            item.setPointNameFr(kp.getPointNameFr());
+            item.setPointCode(kp.getPointCode());
+            item.setSortOrder(kp.getSortOrder());
+
+            KnowledgePointTestStats testStats = testStatsMap.get(kp.getId());
+            int total = testStats == null ? 0 : (testStats.getTotalQuestions() != null ? testStats.getTotalQuestions() : 0);
+            int correct = testStats == null ? 0 : (testStats.getCorrectCount() != null ? testStats.getCorrectCount() : 0);
+            item.setTotalQuestions(total);
+            item.setCorrectCount(correct);
+            if (total > 0) {
+                item.setCorrectRate(new BigDecimal(correct).divide(new BigDecimal(total), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)));
+            } else {
+                item.setCorrectRate(null);
+            }
+
+            LearningProgress progress = progressMap.get(kp.getId());
+            if (progress != null) {
+                item.setCompletionPercentage(progress.getCompletionPercentage());
+                item.setProgressStatus(progress.getProgressStatus());
+            } else {
+                item.setCompletionPercentage(BigDecimal.ZERO);
+                item.setProgressStatus(1);
+            }
+
+            item.setDifficultyLevel(kp.getDifficultyLevel());
+            item.setDifficultyName(getDifficultyName(kp.getDifficultyLevel()));
+            items.add(item);
+        }
+        items.sort(Comparator.comparing(CategoryKnowledgeStatsResponse.KnowledgePointStatItem::getSortOrder, Comparator.nullsLast(Comparator.naturalOrder())));
+        response.setItems(items);
+        return response;
+    }
+
+    private static String getDifficultyName(Integer difficultyLevel) {
+        if (difficultyLevel == null) {
+            return "未知";
+        }
+        switch (difficultyLevel) {
+            case 1: return "简单";
+            case 2: return "中等";
+            case 3: return "困难";
+            default: return "未知";
         }
     }
 }

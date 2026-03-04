@@ -1,6 +1,7 @@
 package com.yy.my_tutor.user.service;
 
 import com.yy.my_tutor.math.domain.KnowledgeCategory;
+import com.yy.my_tutor.user.domain.CategoryKnowledgeStatsResponse;
 import com.yy.my_tutor.user.domain.CategoryWithProgress;
 import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import com.yy.my_tutor.user.domain.LearningProgressStats;
@@ -96,4 +97,13 @@ public interface StudentRegistrationService {
      * @return 知识点详情列表（包含学习进度）
      */
     List<KnowledgePointWithProgress> getKnowledgePointsWithProgress(Integer userId, Integer gradeId, Integer categoryId);
+
+    /**
+     * 查看某学生在某知识大类下所有知识点的测试结果（正确率）与学习百分比
+     *
+     * @param studentId  学生ID
+     * @param categoryId 知识大类ID
+     * @return 该大类下各知识点的测试正确率与学习进度
+     */
+    CategoryKnowledgeStatsResponse getCategoryKnowledgeStats(Integer studentId, Integer categoryId);
 }

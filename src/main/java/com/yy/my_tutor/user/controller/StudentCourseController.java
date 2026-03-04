@@ -2,6 +2,8 @@ package com.yy.my_tutor.user.controller;
 
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.math.domain.KnowledgeCategory;
+import com.yy.my_tutor.user.domain.CategoryKnowledgeStatsRequest;
+import com.yy.my_tutor.user.domain.CategoryKnowledgeStatsResponse;
 import com.yy.my_tutor.user.domain.CategoryWithProgress;
 import com.yy.my_tutor.user.domain.KnowledgePointWithProgress;
 import com.yy.my_tutor.user.domain.LearningProgressStats;
@@ -212,6 +214,29 @@ public class StudentCourseController {
         } catch (Exception e) {
             log.error("获取知识点详情过程中发生异常: {}", e.getMessage(), e);
             return RespResult.error("获取知识点详情失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查看某学生在某知识大类下所有知识点的测试结果（正确率）与学习百分比
+     *
+     * @param request 请求体，包含 studentId、categoryId
+     * @return 该大类下各知识点的测试正确率与学习进度
+     */
+    @PostMapping("/knowledge-stats")
+    public RespResult<CategoryKnowledgeStatsResponse> getCategoryKnowledgeStats(@RequestBody CategoryKnowledgeStatsRequest request) {
+        if (request == null || request.getStudentId() == null || request.getCategoryId() == null) {
+            return RespResult.error("studentId 和 categoryId 不能为空");
+        }
+        Integer studentId = request.getStudentId();
+        Integer categoryId = request.getCategoryId();
+        log.info("获取学生 {} 知识大类 {} 下知识点测试与学习统计", studentId, categoryId);
+        try {
+            CategoryKnowledgeStatsResponse stats = studentRegistrationService.getCategoryKnowledgeStats(studentId, categoryId);
+            return RespResult.success("获取成功", stats);
+        } catch (Exception e) {
+            log.error("获取知识点测试与学习统计异常: {}", e.getMessage(), e);
+            return RespResult.error("获取失败: " + e.getMessage());
         }
     }
 }
