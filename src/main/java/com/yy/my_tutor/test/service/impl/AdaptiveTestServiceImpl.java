@@ -131,8 +131,8 @@ public class AdaptiveTestServiceImpl implements AdaptiveTestService {
             throw new RuntimeException("无法生成足够的题目");
         }
 
-        // 8. 打乱题目顺序
-        Collections.shuffle(allQuestions);
+        // 8. 按难度从简单到难排序
+        allQuestions.sort(Comparator.comparingInt(Question::getDifficultyLevel));
 
         // 9. 获取上次测验记录ID — 始终查最近完成记录
         Integer previousTestRecordId = null;
@@ -351,8 +351,8 @@ public class AdaptiveTestServiceImpl implements AdaptiveTestService {
             throw new RuntimeException("无法生成足够的题目");
         }
 
-        // 6. 打乱题目顺序
-        Collections.shuffle(allQuestions);
+        // 6. 按难度从简单到难排序
+        allQuestions.sort(Comparator.comparingInt(Question::getDifficultyLevel));
 
         // 7. 获取上次测验记录ID
         Integer previousTestRecordId = null;
