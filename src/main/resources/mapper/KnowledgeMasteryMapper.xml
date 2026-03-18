@@ -80,4 +80,14 @@
         WHERE id = #{id}
     </update>
 
+    <select id="findMasteryByStudentAndKnowledgePointIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM knowledge_mastery
+        WHERE student_id = #{studentId} AND delete_flag = 'N'
+        AND knowledge_point_id IN
+        <foreach collection="knowledgePointIds" item="kpId" open="(" separator="," close=")">
+            #{kpId}
+        </foreach>
+    </select>
+
 </mapper>

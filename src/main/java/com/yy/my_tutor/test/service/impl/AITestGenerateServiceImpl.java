@@ -3,16 +3,13 @@ package com.yy.my_tutor.test.service.impl;
 import com.yy.my_tutor.course.service.CourseGenerateService;
 import com.yy.my_tutor.math.domain.KnowledgePoint;
 import com.yy.my_tutor.math.domain.Question;
-import com.yy.my_tutor.math.mapper.QuestionMapper;
 import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.test.domain.*;
-import com.yy.my_tutor.test.job.QuestionPoolFillJob;
-import com.yy.my_tutor.test.mapper.StudentTestAnswerMapper;
 import com.yy.my_tutor.test.mapper.StudentTestRecordMapper;
 import com.yy.my_tutor.test.mapper.TestMapper;
 import com.yy.my_tutor.test.mapper.TestQuestionMapper;
 import com.yy.my_tutor.test.service.AITestGenerateService;
-import com.yy.my_tutor.test.service.QuestionGenerateService;
+import com.yy.my_tutor.test.service.QuestionSourceService;
 import com.yy.my_tutor.test.service.StudentTestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,21 +26,11 @@ import java.util.stream.Collectors;
 @Service
 public class AITestGenerateServiceImpl implements AITestGenerateService {
 
-    private static final int LOW_STOCK_THRESHOLD = 10;
-    private static final int REPLENISH_TARGET = 20;
-    private static final int REPLENISH_BATCH_SIZE = 5;
-
     @Resource
     private KnowledgePointService knowledgePointService;
 
     @Resource
-    private QuestionMapper questionMapper;
-
-    @Resource
-    private QuestionGenerateService questionGenerateService;
-
-    @Resource
-    private StudentTestAnswerMapper studentTestAnswerMapper;
+    private QuestionSourceService questionSourceService;
 
     @Resource
     private TestMapper testMapper;
@@ -59,9 +46,6 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
 
     @Resource
     private CourseGenerateService courseGenerateService;
-
-    @Resource
-    private QuestionPoolFillJob questionPoolFillJob;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -86,7 +70,7 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
         }
 
         // 4. 获取题目（优先从题库，不足则AI生成，固定单选类型）
-        List<Question> questions = getOrGenerateQuestions(
+        List<Question> questions = questionSourceService.getQuestions(
                 request.getStudentId(),
                 Collections.singletonList(request.getKnowledgePointId()),
                 request.getQuestionCount(),
@@ -157,7 +141,7 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
             KnowledgePoint kp = knowledgePoints.get(i);
             int count = perPointCount + (i < remainder ? 1 : 0);
 
-            List<Question> questions = getOrGenerateQuestions(
+            List<Question> questions = questionSourceService.getQuestions(
                     request.getStudentId(),
                     Collections.singletonList(kp.getId()),
                     count,
@@ -204,112 +188,6 @@ public class AITestGenerateServiceImpl implements AITestGenerateService {
         if (request.getQuestionCount() == null || request.getQuestionCount() <= 0) {
             throw new IllegalArgumentException("题目数量必须大于0");
         }
-    }
-
-    /**
-     * 获取或生成题目
-     * 优先从题库获取学生未做过的题目，不足时优先复用间隔最久的已做题目，仍不足则AI生成补充
-     * 题目类型固定为单选（1）
-     */
-    private List<Question> getOrGenerateQuestions(Integer studentId, List<Integer> knowledgePointIds,
-                                                   int count, Integer difficultyLevel,
-                                                   Boolean saveToBank) {
-        // 固定题目类型为单选
-        final Integer questionType = 1;
-        List<Question> result = new ArrayList<>();
-
-        // 1. 查询学生已做过的题目ID
-        List<Integer> doneQuestionIds = studentTestAnswerMapper.findDoneQuestionIdsByStudentId(studentId);
-        if (doneQuestionIds == null) {
-            doneQuestionIds = new ArrayList<>();
-        }
-
-        log.info("Student {} has done {} questions", studentId, doneQuestionIds.size());
-
-        // 2. 从题库查询未做过的题目
-        List<Question> availableQuestions;
-        if (knowledgePointIds.size() == 1) {
-            availableQuestions = questionMapper.findUndoneQuestionsByKnowledgePoint(
-                    knowledgePointIds.get(0), difficultyLevel, doneQuestionIds);
-        } else {
-            availableQuestions = questionMapper.findUndoneQuestionsByKnowledgePoints(
-                    knowledgePointIds, difficultyLevel, doneQuestionIds);
-        }
-
-        log.info("Found {} undone questions in question bank", availableQuestions != null ? availableQuestions.size() : 0);
-
-        // 检测题库存量低，异步触发补充（不影响当前请求的返回）
-        if (availableQuestions == null || availableQuestions.size() < LOW_STOCK_THRESHOLD) {
-            for (Integer kpId : knowledgePointIds) {
-                questionPoolFillJob.asyncFillForKnowledgePoint(kpId, difficultyLevel, REPLENISH_TARGET, REPLENISH_BATCH_SIZE);
-            }
-        }
-
-        // 3. 如果题库中有足够的题目，直接使用
-        if (availableQuestions != null && availableQuestions.size() >= count) {
-            Collections.shuffle(availableQuestions);
-            return availableQuestions.subList(0, count);
-        }
-
-        // 4. 题库题目不足，先添加所有未做过的题目
-        if (availableQuestions != null && !availableQuestions.isEmpty()) {
-            result.addAll(availableQuestions);
-        }
-
-        // 5. 从已做过的题中选间隔最久的补充（兜底复用）
-        int stillNeed = count - result.size();
-        if (stillNeed > 0 && !doneQuestionIds.isEmpty()) {
-            log.info("Undone questions insufficient, trying to reuse {} least recently done questions", stillNeed);
-            List<Question> leastRecentlyDone = questionMapper.findLeastRecentlyDoneQuestions(
-                    knowledgePointIds, difficultyLevel, doneQuestionIds, studentId, stillNeed);
-            if (leastRecentlyDone != null && !leastRecentlyDone.isEmpty()) {
-                result.addAll(leastRecentlyDone);
-                log.info("Reused {} least recently done questions as fallback", leastRecentlyDone.size());
-            }
-        }
-
-        // 6. 如果仍不足，再实时AI生成兜底
-        int needGenerate = count - result.size();
-        if (needGenerate > 0) {
-            log.info("Need to generate {} more questions via AI", needGenerate);
-
-            // 为每个知识点生成题目
-            int perPointGenerate = Math.max(1, needGenerate / knowledgePointIds.size());
-            int remainderGenerate = needGenerate % knowledgePointIds.size();
-
-            for (int i = 0; i < knowledgePointIds.size() && result.size() < count; i++) {
-                Integer kpId = knowledgePointIds.get(i);
-                KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
-                if (kp == null) {
-                    continue;
-                }
-
-                int toGenerate = perPointGenerate + (i < remainderGenerate ? 1 : 0);
-                toGenerate = Math.min(toGenerate, count - result.size());
-
-                if (toGenerate <= 0) {
-                    continue;
-                }
-
-                try {
-                    List<Question> generated;
-                    if (Boolean.TRUE.equals(saveToBank)) {
-                        generated = questionGenerateService.generateAndSaveQuestions(
-                                kp, toGenerate, difficultyLevel, questionType);
-                    } else {
-                        generated = questionGenerateService.generateQuestions(
-                                kp, toGenerate, difficultyLevel, questionType);
-                    }
-                    result.addAll(generated);
-                    log.info("Generated {} questions for knowledge point {}", generated.size(), kp.getPointName());
-                } catch (Exception e) {
-                    log.error("Failed to generate questions for knowledge point {}: {}",
-                            kp.getPointName(), e.getMessage());
-                }
-            }
-        }
-
-        return result;
     }
 
     /**

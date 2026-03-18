@@ -2,8 +2,10 @@ package com.yy.my_tutor.test.controller;
 
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.test.domain.GenerateAITestRequest;
+import com.yy.my_tutor.test.domain.GenerateAdaptiveTestRequest;
 import com.yy.my_tutor.test.domain.TestWithQuestionsDTO;
 import com.yy.my_tutor.test.service.AITestGenerateService;
+import com.yy.my_tutor.test.service.AdaptiveTestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,9 @@ public class AITestController {
 
     @Resource
     private AITestGenerateService aiTestGenerateService;
+
+    @Resource
+    private AdaptiveTestService adaptiveTestService;
 
     /**
      * 根据单个知识点生成 AI 测试
@@ -89,6 +94,72 @@ public class AITestController {
         } catch (Exception e) {
             log.error("Failed to generate AI test by category", e);
             return RespResult.error("AI测试生成失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 生成自适应混合难度测验
+     * POST /api/ai-test/generate-adaptive
+     *
+     * 请求示例：
+     * {
+     *   "studentId": 1,
+     *   "categoryId": 5,
+     *   "questionCount": 10,
+     *   "gradeId": 3            // 可选
+     * }
+     *
+     * 难度分配、上次测验记录、测试名称均由后台自动生成。
+     *
+     * @param request 自适应测验请求
+     * @return 测试详情（包含混合难度题目列表）
+     */
+    @PostMapping("/generate-adaptive")
+    public RespResult<TestWithQuestionsDTO> generateAdaptiveTest(
+            @RequestBody GenerateAdaptiveTestRequest request) {
+        log.info("Generating adaptive test: {}", request);
+
+        try {
+            TestWithQuestionsDTO result = adaptiveTestService.generateAdaptiveTest(request);
+            return RespResult.success("自适应测验生成成功", result);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request: {}", e.getMessage());
+            return RespResult.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to generate adaptive test", e);
+            return RespResult.error("自适应测验生成失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 按单个知识点生成自适应混合难度测验
+     * POST /api/ai-test/generate-adaptive-by-kp
+     *
+     * 请求示例：
+     * {
+     *   "studentId": 1,
+     *   "knowledgePointId": 100,
+     *   "questionCount": 5,
+     *   "gradeId": 3            // 可选
+     * }
+     *
+     * @param request 自适应测验请求
+     * @return 测试详情（包含混合难度题目列表）
+     */
+    @PostMapping("/generate-adaptive-by-kp")
+    public RespResult<TestWithQuestionsDTO> generateAdaptiveTestByKnowledgePoint(
+            @RequestBody GenerateAdaptiveTestRequest request) {
+        log.info("Generating adaptive test by knowledge point: {}", request);
+
+        try {
+            TestWithQuestionsDTO result = adaptiveTestService.generateAdaptiveTestByKnowledgePoint(request);
+            return RespResult.success("自适应测验生成成功", result);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request: {}", e.getMessage());
+            return RespResult.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to generate adaptive test by knowledge point", e);
+            return RespResult.error("自适应测验生成失败: " + e.getMessage());
         }
     }
 }

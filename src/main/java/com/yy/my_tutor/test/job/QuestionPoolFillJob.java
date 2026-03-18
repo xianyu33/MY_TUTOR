@@ -4,6 +4,10 @@ import com.yy.my_tutor.math.domain.KnowledgePoint;
 import com.yy.my_tutor.math.domain.Question;
 import com.yy.my_tutor.math.mapper.QuestionMapper;
 import com.yy.my_tutor.math.service.KnowledgePointService;
+import com.yy.my_tutor.test.domain.AdaptiveStrategyHelper;
+import com.yy.my_tutor.test.domain.DifficultyDistribution;
+import com.yy.my_tutor.test.domain.KnowledgeMastery;
+import com.yy.my_tutor.test.mapper.KnowledgeMasteryMapper;
 import com.yy.my_tutor.test.service.QuestionGenerateService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +35,8 @@ public class QuestionPoolFillJob {
     private static final long SLEEP_BETWEEN_BATCHES_MS = 2000;
     private static final List<Integer> DIFFICULTY_LEVELS = Arrays.asList(1, 2, 3);
     private static final int QUESTION_TYPE = 1; // 单选题
+    private static final int PREDICTIVE_LOW_STOCK_THRESHOLD = 20;
+    private static final int PREDICTIVE_BATCH_SIZE = 5;
 
     @Resource
     private KnowledgePointService knowledgePointService;
@@ -40,6 +46,9 @@ public class QuestionPoolFillJob {
 
     @Resource
     private QuestionGenerateService questionGenerateService;
+
+    @Resource
+    private KnowledgeMasteryMapper knowledgeMasteryMapper;
 
     // 异步补充：去重 map 和线程池
     private final ConcurrentHashMap<String, Boolean> pendingFills = new ConcurrentHashMap<>();
@@ -61,7 +70,7 @@ public class QuestionPoolFillJob {
 
     @PostConstruct
     public void init() {
-        asyncFillExecutor = Executors.newFixedThreadPool(2, r -> {
+        asyncFillExecutor = Executors.newFixedThreadPool(4, r -> {
             Thread t = new Thread(r, "async-pool-fill");
             t.setDaemon(true);
             return t;
@@ -363,6 +372,86 @@ public class QuestionPoolFillJob {
                 log.error("异步补充失败: kpId={}, difficulty={}, error={}", kpId, difficultyLevel, e.getMessage());
             } finally {
                 pendingFills.remove(key);
+            }
+        });
+    }
+
+    /**
+     * 预测性预填充：交卷后根据学生掌握数据预测下次自适应测验会命中的 (kpId, difficulty) 组合，
+     * 提前补充库存不足的组合。一个 kpId 低库存则三个难度一起补。
+     *
+     * @param studentId  学生ID
+     * @param categoryId 知识类型ID
+     */
+    public void asyncPredictiveFillForCategory(Integer studentId, Integer categoryId) {
+        asyncFillExecutor.submit(() -> {
+            try {
+                log.info("预测性预填充开始: studentId={}, categoryId={}", studentId, categoryId);
+
+                // 1. 查该分类下所有知识点
+                List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryId(categoryId);
+                if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+                    log.warn("预测性预填充跳过: categoryId={} 下无知识点", categoryId);
+                    return;
+                }
+
+                List<Integer> allKpIds = new ArrayList<>();
+                for (KnowledgePoint kp : knowledgePoints) {
+                    allKpIds.add(kp.getId());
+                }
+
+                // 2. 获取掌握数据
+                List<KnowledgeMastery> masteryList = knowledgeMasteryMapper
+                        .findMasteryByStudentAndKnowledgePointIds(studentId, allKpIds);
+                Map<Integer, KnowledgeMastery> masteryMap = new HashMap<>();
+                if (masteryList != null) {
+                    for (KnowledgeMastery m : masteryList) {
+                        masteryMap.put(m.getKnowledgePointId(), m);
+                    }
+                }
+
+                // 3. 复用分桶逻辑预测会命中哪些知识点
+                AdaptiveStrategyHelper.BucketResult buckets = AdaptiveStrategyHelper.bucketKnowledgePoints(allKpIds, masteryMap);
+
+                // 4. 复用难度分配算法预测难度分布
+                Map<Integer, Integer> diffPercentages = AdaptiveStrategyHelper.computeAdaptiveDifficultyDistribution(masteryMap, allKpIds);
+                DifficultyDistribution distribution = new DifficultyDistribution(diffPercentages);
+                // 用 10 题作为参考来计算各难度是否会被命中
+                Map<Integer, Integer> difficultyCounts = distribution.computeCounts(10);
+
+                // 5. 收集所有会被命中的知识点
+                Set<Integer> predictedKpIds = new HashSet<>();
+                predictedKpIds.addAll(buckets.getWeakKpIds());
+                predictedKpIds.addAll(buckets.getImprovingKpIds());
+                // 已掌握的桶也可能被命中（分配了 masteredCount）
+                predictedKpIds.addAll(buckets.getMasteredKpIds());
+
+                // 6. 对每个知识点检查库存，低库存则三个难度一起补
+                int fillTriggered = 0;
+                for (Integer kpId : predictedKpIds) {
+                    boolean anyLowStock = false;
+                    for (Integer diffLevel : difficultyCounts.keySet()) {
+                        int stock = questionMapper.countByKnowledgePointAndDifficulty(kpId, diffLevel);
+                        if (stock < PREDICTIVE_LOW_STOCK_THRESHOLD) {
+                            anyLowStock = true;
+                            break;
+                        }
+                    }
+
+                    if (anyLowStock) {
+                        // 一个 kpId 低库存 → 三个难度一起补
+                        for (Integer diffLevel : DIFFICULTY_LEVELS) {
+                            asyncFillForKnowledgePoint(kpId, diffLevel, DEFAULT_TARGET_COUNT, PREDICTIVE_BATCH_SIZE);
+                            fillTriggered++;
+                        }
+                    }
+                }
+
+                log.info("预测性预填充完成: studentId={}, categoryId={}, 预测知识点数={}, 触发补充任务数={}",
+                        studentId, categoryId, predictedKpIds.size(), fillTriggered);
+
+            } catch (Exception e) {
+                log.error("预测性预填充失败: studentId={}, categoryId={}, error={}", studentId, categoryId, e.getMessage());
             }
         });
     }

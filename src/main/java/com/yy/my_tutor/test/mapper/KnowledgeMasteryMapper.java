@@ -26,6 +26,12 @@ public interface KnowledgeMasteryMapper {
      * 根据掌握程度查询
      */
     List<KnowledgeMastery> findMasteryByLevel(@Param("studentId") Integer studentId, @Param("masteryLevel") Integer masteryLevel);
+
+    /**
+     * 根据学生ID和知识点ID列表批量查询掌握情况
+     */
+    List<KnowledgeMastery> findMasteryByStudentAndKnowledgePointIds(@Param("studentId") Integer studentId,
+                                                                     @Param("knowledgePointIds") List<Integer> knowledgePointIds);
     
     /**
      * 插入掌握情况

@@ -11,6 +11,8 @@
         <result column="total_points" property="totalPoints"/>
         <result column="time_limit" property="timeLimit"/>
         <result column="difficulty_level" property="difficultyLevel"/>
+        <result column="difficulty_distribution" property="difficultyDistribution"/>
+        <result column="previous_test_record_id" property="previousTestRecordId"/>
         <result column="test_type" property="testType"/>
         <result column="status" property="status"/>
         <result column="create_at" property="createAt"/>
@@ -22,7 +24,7 @@
 
     <sql id="Base_Columns">
         id, test_name, grade_id, knowledge_point_ids, total_questions, total_points, time_limit,
-        difficulty_level, test_type, status, create_at, create_by, update_at, update_by, delete_flag
+        difficulty_level, difficulty_distribution, previous_test_record_id, test_type, status, create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
     <select id="findAllTests" resultMap="BaseResultMap">
@@ -60,11 +62,13 @@
     </select>
 
     <insert id="insertTest" parameterType="com.yy.my_tutor.test.domain.Test" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO test (test_name, grade_id, knowledge_point_ids, total_questions, total_points, 
-                         time_limit, difficulty_level, test_type, status, create_at, create_by, 
+        INSERT INTO test (test_name, grade_id, knowledge_point_ids, total_questions, total_points,
+                         time_limit, difficulty_level, difficulty_distribution, previous_test_record_id,
+                         test_type, status, create_at, create_by,
                          update_at, update_by, delete_flag)
-        VALUES (#{testName}, #{gradeId}, #{knowledgePointIds}, #{totalQuestions}, #{totalPoints}, 
-                #{timeLimit}, #{difficultyLevel}, #{testType}, #{status}, NOW(), #{createBy}, 
+        VALUES (#{testName}, #{gradeId}, #{knowledgePointIds}, #{totalQuestions}, #{totalPoints},
+                #{timeLimit}, #{difficultyLevel}, #{difficultyDistribution}, #{previousTestRecordId},
+                #{testType}, #{status}, NOW(), #{createBy},
                 NOW(), #{updateBy}, 'N')
     </insert>
 
@@ -77,6 +81,8 @@
             total_points = #{totalPoints},
             time_limit = #{timeLimit},
             difficulty_level = #{difficultyLevel},
+            difficulty_distribution = #{difficultyDistribution},
+            previous_test_record_id = #{previousTestRecordId},
             test_type = #{testType},
             status = #{status},
             update_at = NOW(),

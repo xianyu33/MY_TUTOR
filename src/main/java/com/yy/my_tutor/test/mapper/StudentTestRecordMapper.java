@@ -72,6 +72,16 @@ public interface StudentTestRecordMapper {
     List<StudentTestRecord> findTestRecordsByCategoryAndDifficulty(@Param("studentId") Integer studentId,
                                                                     @Param("categoryId") Integer categoryId,
                                                                     @Param("difficultyLevel") Integer difficultyLevel);
+
+    /**
+     * 查询学生最近一次已完成的测试记录
+     */
+    StudentTestRecord findLatestCompletedRecordByStudentId(@Param("studentId") Integer studentId);
+
+    /**
+     * 按测试名称前缀计数（用于生成当日序号）
+     */
+    int countByStudentAndTestNamePrefix(@Param("studentId") Integer studentId, @Param("testNamePrefix") String testNamePrefix);
 }
 
 

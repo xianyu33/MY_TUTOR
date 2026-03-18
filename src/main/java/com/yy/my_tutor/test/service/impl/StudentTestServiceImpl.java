@@ -6,6 +6,7 @@ import com.yy.my_tutor.math.service.GradeService;
 import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.math.mapper.QuestionMapper;
 import com.yy.my_tutor.test.domain.BatchAnswerRequest;
+import com.yy.my_tutor.test.domain.KnowledgeMastery;
 import com.yy.my_tutor.test.domain.StudentTestAnswer;
 import com.yy.my_tutor.test.domain.StudentTestRecord;
 import com.yy.my_tutor.test.domain.Test;
@@ -14,11 +15,13 @@ import com.yy.my_tutor.test.domain.TestAnalysisResult;
 import com.yy.my_tutor.test.domain.TestQuestion;
 import com.yy.my_tutor.test.domain.TestQuestionDetail;
 import com.yy.my_tutor.test.domain.TestWithQuestionsDTO;
+import com.yy.my_tutor.test.mapper.KnowledgeMasteryMapper;
 import com.yy.my_tutor.test.mapper.StudentTestAnswerMapper;
 import com.yy.my_tutor.test.mapper.StudentTestRecordMapper;
 import com.yy.my_tutor.test.mapper.TestAnalysisReportMapper;
 import com.yy.my_tutor.test.mapper.TestMapper;
 import com.yy.my_tutor.test.mapper.TestQuestionMapper;
+import com.yy.my_tutor.test.job.QuestionPoolFillJob;
 import com.yy.my_tutor.test.service.StudentTestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +62,12 @@ public class StudentTestServiceImpl implements StudentTestService {
 
     @Autowired
     private TestAnalysisReportMapper testAnalysisReportMapper;
+
+    @Autowired
+    private KnowledgeMasteryMapper knowledgeMasteryMapper;
+
+    @Autowired
+    private QuestionPoolFillJob questionPoolFillJob;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -1006,11 +1015,102 @@ public class StudentTestServiceImpl implements StudentTestService {
             }
 
             log.info("批量提交答案成功，测试记录: {}, 得分: {}/{}", testRecordId, earnedPoints, record.getTotalPoints());
+
+            // 11. 更新 KnowledgeMastery（自适应测验依赖此数据）
+            updateKnowledgeMastery(studentId, knowledgePointTotals, knowledgePointStats);
+
+            // 12. 异步触发预测性预填充（为下次自适应测验暖库）
+            Set<Integer> categoryIds = new HashSet<>();
+            for (Integer kpId : knowledgePointTotals.keySet()) {
+                KnowledgePoint kp = knowledgePointService.findKnowledgePointById(kpId);
+                if (kp != null && kp.getCategoryId() != null) {
+                    categoryIds.add(kp.getCategoryId());
+                }
+            }
+            for (Integer catId : categoryIds) {
+                questionPoolFillJob.asyncPredictiveFillForCategory(studentId, catId);
+            }
+
             return result;
 
         } catch (Exception e) {
             log.error("批量提交答案时发生异常: {}", e.getMessage(), e);
             return null;
+        }
+    }
+
+    /**
+     * 更新知识点掌握情况（累加本次测验数据）
+     */
+    private void updateKnowledgeMastery(Integer studentId,
+                                         Map<Integer, Integer> knowledgePointTotals,
+                                         Map<Integer, Integer> knowledgePointStats) {
+        for (Integer kpId : knowledgePointTotals.keySet()) {
+            int thisTotal = knowledgePointTotals.get(kpId);
+            int thisCorrect = knowledgePointStats.getOrDefault(kpId, 0);
+
+            try {
+                KnowledgeMastery existing = knowledgeMasteryMapper.findMasteryByStudentAndKnowledge(studentId, kpId);
+                if (existing != null) {
+                    // 累加
+                    int newTotalTests = (existing.getTotalTests() != null ? existing.getTotalTests() : 0) + 1;
+                    int newTotalQuestions = (existing.getTotalQuestions() != null ? existing.getTotalQuestions() : 0) + thisTotal;
+                    int newCorrectAnswers = (existing.getCorrectAnswers() != null ? existing.getCorrectAnswers() : 0) + thisCorrect;
+
+                    BigDecimal newAccuracy = BigDecimal.ZERO;
+                    if (newTotalQuestions > 0) {
+                        newAccuracy = new BigDecimal(newCorrectAnswers)
+                                .divide(new BigDecimal(newTotalQuestions), 4, BigDecimal.ROUND_HALF_UP)
+                                .multiply(new BigDecimal(100));
+                    }
+
+                    existing.setTotalTests(newTotalTests);
+                    existing.setTotalQuestions(newTotalQuestions);
+                    existing.setCorrectAnswers(newCorrectAnswers);
+                    existing.setAccuracyRate(newAccuracy);
+                    existing.setMasteryLevel(computeMasteryLevel(newAccuracy));
+                    existing.setLastTestTime(new Date());
+
+                    knowledgeMasteryMapper.updateKnowledgeMastery(existing);
+                } else {
+                    // 新建
+                    BigDecimal accuracy = BigDecimal.ZERO;
+                    if (thisTotal > 0) {
+                        accuracy = new BigDecimal(thisCorrect)
+                                .divide(new BigDecimal(thisTotal), 4, BigDecimal.ROUND_HALF_UP)
+                                .multiply(new BigDecimal(100));
+                    }
+
+                    KnowledgeMastery mastery = new KnowledgeMastery();
+                    mastery.setStudentId(studentId);
+                    mastery.setKnowledgePointId(kpId);
+                    mastery.setTotalTests(1);
+                    mastery.setTotalQuestions(thisTotal);
+                    mastery.setCorrectAnswers(thisCorrect);
+                    mastery.setAccuracyRate(accuracy);
+                    mastery.setMasteryLevel(computeMasteryLevel(accuracy));
+                    mastery.setLastTestTime(new Date());
+                    mastery.setDeleteFlag("N");
+
+                    knowledgeMasteryMapper.insertKnowledgeMastery(mastery);
+                }
+            } catch (Exception e) {
+                log.error("更新知识点掌握情况失败，知识点ID: {}, 错误: {}", kpId, e.getMessage());
+            }
+        }
+        log.info("更新知识点掌握情况完成，学生ID: {}, 知识点数: {}", studentId, knowledgePointTotals.size());
+    }
+
+    /**
+     * 根据正确率计算掌握等级：1=薄弱 2=待提高 3=已掌握
+     */
+    private int computeMasteryLevel(BigDecimal accuracyRate) {
+        if (accuracyRate.compareTo(new BigDecimal(50)) < 0) {
+            return 1;
+        } else if (accuracyRate.compareTo(new BigDecimal(80)) < 0) {
+            return 2;
+        } else {
+            return 3;
         }
     }
 

@@ -30,6 +30,8 @@ public class Test implements Serializable {
     private Integer totalPoints;
     private Integer timeLimit;
     private Integer difficultyLevel;
+    private String difficultyDistribution;   // {"1":30,"2":40,"3":30}
+    private Integer previousTestRecordId;
     private Integer testType;
     private Integer status;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

@@ -146,6 +146,21 @@
         ORDER BY str.create_at DESC
     </select>
 
+    <select id="findLatestCompletedRecordByStudentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM student_test_record
+        WHERE student_id = #{studentId} AND test_status = 2 AND delete_flag = 'N'
+        ORDER BY submit_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="countByStudentAndTestNamePrefix" resultType="int">
+        SELECT COUNT(*) FROM student_test_record
+        WHERE student_id = #{studentId}
+        AND test_name LIKE CONCAT(#{testNamePrefix}, '%')
+        AND delete_flag = 'N'
+    </select>
+
 </mapper>
 
 
