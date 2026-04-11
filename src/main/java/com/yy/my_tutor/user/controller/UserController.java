@@ -198,8 +198,10 @@ public class UserController {
             String firstName = extractFirstName(user.getUsername());
             String loginLink = "https://www.mytutor.top/loginNew";
             try {
-                GoDaddyEmailSender.sendWelcomeEmail(user.getEmail(), user.getUsername(), loginLink);
-                return RespResult.success("注册成功，已自动分配课程和生成测试题，并已发送欢迎邮件", true);
+                if (!user.getEmail().isEmpty()) {
+                    GoDaddyEmailSender.sendWelcomeEmail(user.getEmail(), user.getUsername(), loginLink);
+                    return RespResult.success("注册成功，已自动分配课程和生成测试题，并已发送欢迎邮件", true);
+                }
             } catch (Exception e) {
                 log.error("发送欢迎邮件失败: {}, error={}", user.getEmail(), e.getMessage(), e);
                 return RespResult.success("注册成功，已自动分配课程和生成测试题，但欢迎邮件发送失败", true);
