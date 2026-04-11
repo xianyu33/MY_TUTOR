@@ -394,7 +394,7 @@ public class AdaptiveTestServiceImpl implements AdaptiveTestService {
 
         String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
-        String prefix = "自适应测验 - " + pointName + " (" + dateStr + ")";
+        String prefix = "Adaptive Test - " + pointName + " (" + dateStr + ")";
         String prefixFr = "Test Adaptatif - " + pointNameFr + " (" + dateStr + ")";
 
         int count = studentTestRecordMapper.countByStudentAndTestNamePrefix(studentId, prefix);
