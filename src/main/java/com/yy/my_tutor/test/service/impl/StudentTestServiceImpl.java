@@ -565,6 +565,17 @@ public class StudentTestServiceImpl implements StudentTestService {
                 return null;
             }
 
+            // 3.1 当前用户（该测试记录所属学生）在本场测试中的答题记录，按题目 ID 映射（同题多次则保留最后一次）
+            List<StudentTestAnswer> answerRows = studentTestAnswerMapper.findAnswersByTestRecordId(testRecordId);
+            Map<Integer, StudentTestAnswer> answerByQuestionId = new HashMap<>();
+            if (answerRows != null) {
+                for (StudentTestAnswer row : answerRows) {
+                    if (row.getQuestionId() != null) {
+                        answerByQuestionId.put(row.getQuestionId(), row);
+                    }
+                }
+            }
+
             // 4. 构建题目详情列表
             List<TestQuestionDetail> questionDetails = new ArrayList<>();
             int easyCount = 0;
@@ -598,6 +609,16 @@ public class StudentTestServiceImpl implements StudentTestService {
                     if (kp != null) {
                         detail.setKnowledgePointName(kp.getPointName());
                         detail.setKnowledgePointNameFr(kp.getPointNameFr());
+                    }
+
+                    // 合并该题的学生作答（与测试记录 studentId 一致，数据来自 student_test_answer）
+                    StudentTestAnswer ans = answerByQuestionId.get(question.getId());
+                    if (ans != null) {
+                        detail.setStudentAnswer(ans.getStudentAnswer());
+                        if (ans.getIsCorrect() != null) {
+                            detail.setIsCorrect(ans.getIsCorrect() == 1);
+                        }
+                        detail.setEarnedPoints(ans.getEarnedPoints());
                     }
 
                     // 统计难度分布

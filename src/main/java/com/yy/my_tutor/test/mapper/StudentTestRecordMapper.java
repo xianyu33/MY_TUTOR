@@ -1,6 +1,7 @@
 package com.yy.my_tutor.test.mapper;
 
 import com.yy.my_tutor.test.domain.StudentTestRecord;
+import com.yy.my_tutor.test.domain.TestRecordKnowledgeScore;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -65,6 +66,14 @@ public interface StudentTestRecordMapper {
      */
     List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(@Param("studentId") Integer studentId,
                                                                            @Param("knowledgePointIds") List<Integer> knowledgePointIds);
+
+    /**
+     * 批量计算：每条测试记录在指定知识点下的题目满分与已得分数
+     */
+    List<TestRecordKnowledgeScore> findKnowledgePointScoresForTestRecords(
+            @Param("studentId") Integer studentId,
+            @Param("knowledgePointIds") List<Integer> knowledgePointIds,
+            @Param("testRecordIds") List<Integer> testRecordIds);
     
     /**
      * 根据学生ID、知识类型和难度等级查询测试记录

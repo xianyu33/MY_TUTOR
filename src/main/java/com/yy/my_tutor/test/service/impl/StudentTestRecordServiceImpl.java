@@ -1,14 +1,19 @@
 package com.yy.my_tutor.test.service.impl;
 
 import com.yy.my_tutor.test.domain.StudentTestRecord;
+import com.yy.my_tutor.test.domain.TestRecordKnowledgeScore;
 import com.yy.my_tutor.test.mapper.StudentTestRecordMapper;
 import com.yy.my_tutor.test.service.StudentTestRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 学生测试记录服务实现类
@@ -87,7 +92,41 @@ public class StudentTestRecordServiceImpl implements StudentTestRecordService {
     
     @Override
     public List<StudentTestRecord> findTestRecordsByStudentIdAndKnowledgePointIds(Integer studentId, List<Integer> knowledgePointIds) {
-        return testRecordMapper.findTestRecordsByStudentIdAndKnowledgePointIds(studentId, knowledgePointIds);
+        List<StudentTestRecord> records = testRecordMapper.findTestRecordsByStudentIdAndKnowledgePointIds(studentId, knowledgePointIds);
+        if (records == null || records.isEmpty() || knowledgePointIds == null || knowledgePointIds.isEmpty()) {
+            return records;
+        }
+        List<Integer> recordIds = records.stream()
+                .map(StudentTestRecord::getId)
+                .filter(id -> id != null)
+                .collect(Collectors.toList());
+        if (recordIds.isEmpty()) {
+            return records;
+        }
+        List<TestRecordKnowledgeScore> kpScores = testRecordMapper.findKnowledgePointScoresForTestRecords(
+                studentId, knowledgePointIds, recordIds);
+        if (kpScores == null || kpScores.isEmpty()) {
+            return records;
+        }
+        Map<Integer, TestRecordKnowledgeScore> scoreMap = kpScores.stream()
+                .filter(s -> s.getTestRecordId() != null)
+                .collect(Collectors.toMap(TestRecordKnowledgeScore::getTestRecordId, Function.identity(), (a, b) -> a));
+        for (StudentTestRecord r : records) {
+            TestRecordKnowledgeScore s = scoreMap.get(r.getId());
+            if (s == null) {
+                continue;
+            }
+            r.setKnowledgePointEarnedPoints(s.getEarnedPoints());
+            r.setKnowledgePointTotalPoints(s.getTotalPoints());
+            Integer total = s.getTotalPoints();
+            Integer earned = s.getEarnedPoints();
+            if (total != null && total > 0 && earned != null) {
+                r.setKnowledgePointScorePercentage(new BigDecimal(earned)
+                        .divide(new BigDecimal(total), 4, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal(100)));
+            }
+        }
+        return records;
     }
     
     @Override

@@ -128,6 +128,30 @@
         ORDER BY str.create_at DESC
     </select>
 
+    <!-- 每条测试记录在指定知识点下的题目满分与已得分（用于按知识点查询历史记录时展示本场该知识点得分） -->
+    <select id="findKnowledgePointScoresForTestRecords" resultType="com.yy.my_tutor.test.domain.TestRecordKnowledgeScore">
+        SELECT str.id AS testRecordId,
+               CAST(SUM(COALESCE(sta.earned_points, 0)) AS SIGNED) AS earnedPoints,
+               CAST(SUM(tq.points) AS SIGNED) AS totalPoints
+        FROM student_test_record str
+        INNER JOIN test_question tq ON str.test_id = tq.test_id
+        INNER JOIN question q ON tq.question_id = q.id AND q.delete_flag = 'N'
+        LEFT JOIN student_test_answer sta ON sta.test_record_id = str.id
+            AND sta.question_id = q.id
+            AND sta.student_id = str.student_id
+        WHERE str.student_id = #{studentId}
+          AND str.delete_flag = 'N'
+          AND q.knowledge_point_id IN
+          <foreach collection="knowledgePointIds" item="kpId" open="(" separator="," close=")">
+              #{kpId}
+          </foreach>
+          AND str.id IN
+          <foreach collection="testRecordIds" item="rid" open="(" separator="," close=")">
+              #{rid}
+          </foreach>
+        GROUP BY str.id
+    </select>
+
     <select id="findTestRecordsByCategoryAndDifficulty" resultMap="BaseResultMap">
         SELECT DISTINCT str.id, str.student_id, str.test_id, str.test_name, str.test_name_fr,
                str.start_time, str.end_time, str.submit_time, str.time_spent,

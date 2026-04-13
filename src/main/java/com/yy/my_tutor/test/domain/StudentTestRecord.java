@@ -46,6 +46,19 @@ public class StudentTestRecord implements Serializable {
     private String updateBy;
     private String deleteFlag;
     
+    /**
+     * 在按知识点筛选接口中：本次测验里，属于所筛选知识点的题目得分合计（非整场测验总分）
+     */
+    private Integer knowledgePointEarnedPoints;
+    /**
+     * 在按知识点筛选接口中：本次测验里，属于所筛选知识点的题目满分合计
+     */
+    private Integer knowledgePointTotalPoints;
+    /**
+     * 知识点维度得分率（0-100），由 knowledgePointEarnedPoints / knowledgePointTotalPoints 计算
+     */
+    private BigDecimal knowledgePointScorePercentage;
+
     // 关联对象
     private Test test;
     private List<StudentTestAnswer> answers;
