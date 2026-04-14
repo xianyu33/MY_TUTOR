@@ -15,6 +15,7 @@ import com.yy.my_tutor.user.service.UserService;
 import com.yy.my_tutor.util.CaptchaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -181,6 +182,7 @@ public class UserController {
      * 用户注册
      */
     @PostMapping("/register")
+    @Transactional(rollbackFor = Exception.class)
     public RespResult<Boolean> register(@RequestBody User user) {
         log.info("用户注册: {}", user.getUserAccount());
 
@@ -191,9 +193,6 @@ public class UserController {
         // 使用新的学生注册服务，自动分配课程和生成测试题
         boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {
-            if (!StringUtils.hasText(user.getEmail())) {
-                throw new CustomException("邮箱不能为空");
-            }
 
             String firstName = extractFirstName(user.getUsername());
             String loginLink = "https://www.mytutor.top/loginNew";
