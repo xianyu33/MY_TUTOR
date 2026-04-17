@@ -579,6 +579,9 @@ public class StudentRegistrationServiceImpl implements StudentRegistrationServic
             // 2. 为每个分类创建增强信息对象
             List<CategoryWithProgress> result = new ArrayList<>();
             for (StudentCategoryBinding binding : bindings) {
+                if (binding.getTotalKnowledgePoints() == null || binding.getTotalKnowledgePoints() <= 0) {
+                    continue;
+                }
                 CategoryWithProgress categoryWithProgress = new CategoryWithProgress();
                 
                 // 获取分类基本信息
@@ -850,17 +853,29 @@ public class StudentRegistrationServiceImpl implements StudentRegistrationServic
         KnowledgeCategory category = knowledgeCategoryService.findCategoryById(categoryId);
         if (category == null) {
             log.warn("知识大类不存在: {}", categoryId);
-            response.setItems(Collections.emptyList());
-            return response;
+            return null;
         }
+
+        // 仅统计已为学生分配（student_category_binding）的知识大类
+        StudentCategoryBinding categoryBinding = studentCategoryBindingService.findStudentCategoryBindingByStudentAndCategory(studentId, categoryId);
+        if (categoryBinding == null) {
+            log.warn("学生 {} 未分配/绑定知识大类 {}", studentId, categoryId);
+            return null;
+        }
+
+        List<KnowledgePoint> knowledgePoints;
+        if (categoryBinding.getGradeId() != null) {
+            knowledgePoints = knowledgePointService.findKnowledgePointsByGradeAndCategory(categoryBinding.getGradeId(), categoryId);
+        } else {
+            knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryId(categoryId);
+        }
+        if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+            log.warn("知识大类 {} 下无知识点，不返回统计数据", categoryId);
+            return null;
+        }
+
         response.setCategoryName(category.getCategoryName());
         response.setCategoryNameFr(category.getCategoryNameFr());
-
-        List<KnowledgePoint> knowledgePoints = knowledgePointService.findKnowledgePointsByCategoryId(categoryId);
-        if (knowledgePoints == null || knowledgePoints.isEmpty()) {
-            response.setItems(Collections.emptyList());
-            return response;
-        }
 
         List<KnowledgePointTestStats> testStatsList = studentTestAnswerMapper.findTestStatsByStudentAndCategory(studentId, categoryId);
         Map<Integer, KnowledgePointTestStats> testStatsMap = testStatsList == null ? new HashMap<>() :

@@ -103,7 +103,7 @@ public interface StudentRegistrationService {
      *
      * @param studentId  学生ID
      * @param categoryId 知识大类ID
-     * @return 该大类下各知识点的测试正确率与学习进度
+     * @return 该大类下各知识点的测试正确率与学习进度；知识大类不存在、学生未绑定该分类、或分类下无知识点时返回 null
      */
     CategoryKnowledgeStatsResponse getCategoryKnowledgeStats(Integer studentId, Integer categoryId);
 }

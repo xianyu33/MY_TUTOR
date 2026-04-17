@@ -69,6 +69,13 @@ public class StudentDetailDTO implements Serializable {
         private Integer completedKnowledgePoints;
         private Integer inProgressKnowledgePoints;
         private Integer notStartedKnowledgePoints;
+        /**
+         * 该知识大类下各知识点（小类）完成度百分比之和（每个小类 0～100，合计最大为 知识点数×100）
+         */
+        private java.math.BigDecimal knowledgePointProgressSum;
+        /**
+         * 大类整体进度 = knowledgePointProgressSum / totalKnowledgePoints（各小类完成度的算术平均）
+         */
         private java.math.BigDecimal overallProgress;
         private Integer easyCount;
         private Integer mediumCount;

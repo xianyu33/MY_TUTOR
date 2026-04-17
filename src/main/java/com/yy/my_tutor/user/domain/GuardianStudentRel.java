@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -37,6 +38,11 @@ public class GuardianStudentRel implements Serializable {
     // 关联对象
     private Parent guardian;
     private User student;
+
+    /**
+     * 该学生各知识大类（知识点分类）的学习进度统计（仅 listByGuardian 等接口填充）
+     */
+    private List<StudentDetailDTO.CategoryLearningProgress> categoryLearningProgress;
 }
 
 

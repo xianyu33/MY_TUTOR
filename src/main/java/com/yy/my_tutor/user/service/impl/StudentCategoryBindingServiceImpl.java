@@ -325,9 +325,25 @@ public class StudentCategoryBindingServiceImpl implements StudentCategoryBinding
                 // 更新统计信息
                 updateStudyStatistics(studentId, binding.getCategoryId());
             }
-            
-            log.info("获取学生 {} 分类学习进度详情成功，共 {} 个分类", studentId, bindings.size());
-            return bindings;
+
+            // totalKnowledgePoints 为 0 的分类不返回（分类下无知识点或未计入）
+            List<StudentCategoryBinding> filtered = new ArrayList<>();
+            for (StudentCategoryBinding b : bindings) {
+                StudentCategoryBinding db = studentCategoryBindingMapper.findStudentCategoryBindingByStudentAndCategory(studentId, b.getCategoryId());
+                if (db != null && db.getTotalKnowledgePoints() != null && db.getTotalKnowledgePoints() > 0) {
+                    b.setTotalKnowledgePoints(db.getTotalKnowledgePoints());
+                    b.setCompletedKnowledgePoints(db.getCompletedKnowledgePoints());
+                    b.setInProgressKnowledgePoints(db.getInProgressKnowledgePoints());
+                    b.setNotStartedKnowledgePoints(db.getNotStartedKnowledgePoints());
+                    b.setOverallProgress(db.getOverallProgress());
+                    b.setTotalStudyDuration(db.getTotalStudyDuration());
+                    b.setLastStudyTime(db.getLastStudyTime());
+                    filtered.add(b);
+                }
+            }
+
+            log.info("获取学生 {} 分类学习进度详情成功，共 {} 个分类（已过滤 totalKnowledgePoints=0）", studentId, filtered.size());
+            return filtered;
             
         } catch (Exception e) {
             log.error("获取学生分类学习进度详情过程中发生异常: {}", e.getMessage(), e);
@@ -367,6 +383,19 @@ public class StudentCategoryBindingServiceImpl implements StudentCategoryBinding
             
             // 更新统计信息
             updateStudyStatistics(studentId, categoryId);
+
+            StudentCategoryBinding refreshed = studentCategoryBindingMapper.findStudentCategoryBindingByStudentAndCategory(studentId, categoryId);
+            if (refreshed == null || refreshed.getTotalKnowledgePoints() == null || refreshed.getTotalKnowledgePoints() <= 0) {
+                log.warn("学生 {} 分类 {} totalKnowledgePoints 为 0，不返回", studentId, categoryId);
+                return null;
+            }
+            binding.setTotalKnowledgePoints(refreshed.getTotalKnowledgePoints());
+            binding.setCompletedKnowledgePoints(refreshed.getCompletedKnowledgePoints());
+            binding.setInProgressKnowledgePoints(refreshed.getInProgressKnowledgePoints());
+            binding.setNotStartedKnowledgePoints(refreshed.getNotStartedKnowledgePoints());
+            binding.setOverallProgress(refreshed.getOverallProgress());
+            binding.setTotalStudyDuration(refreshed.getTotalStudyDuration());
+            binding.setLastStudyTime(refreshed.getLastStudyTime());
             
             log.info("获取学生 {} 分类 {} 学习进度详情成功", studentId, categoryId);
             return binding;

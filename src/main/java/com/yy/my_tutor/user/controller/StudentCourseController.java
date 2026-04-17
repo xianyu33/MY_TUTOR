@@ -233,6 +233,9 @@ public class StudentCourseController {
         log.info("获取学生 {} 知识大类 {} 下知识点测试与学习统计", studentId, categoryId);
         try {
             CategoryKnowledgeStatsResponse stats = studentRegistrationService.getCategoryKnowledgeStats(studentId, categoryId);
+            if (stats == null) {
+                return RespResult.error("知识大类不存在、未向该学生分配此分类、或该分类下暂无知识点");
+            }
             return RespResult.success("获取成功", stats);
         } catch (Exception e) {
             log.error("获取知识点测试与学习统计异常: {}", e.getMessage(), e);
