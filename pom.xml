@@ -16,6 +16,8 @@
     <url/>
     <properties>
         <java.version>1.8</java.version>
+        <!-- 覆盖父 POM：Ark/Volcengine SDK 需要 Jackson ≥2.12（含 PropertyNamingStrategies），Boot 2.4.4 默认 2.11 会 NoClassDefFoundError -->
+        <jackson-bom.version>2.13.5</jackson-bom.version>
     </properties>
     <dependencies>
         <dependency>
@@ -66,8 +68,8 @@
         <dependency>
             <groupId>com.volcengine</groupId>
             <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
-            <!-- 替换'LATEST' 为 SDK 最新版本号：https://central.sonatype.com/artifact/com.volcengine/volcengine-java-sdk-ark-runtime -->
-            <version>LATEST</version>
+            <!-- 固定版本，避免 LATEST 与 Boot 自带 Jackson 版本漂移导致 NoClassDefFoundError -->
+            <version>0.2.25</version>
         </dependency>
 
         <dependency>
@@ -116,11 +118,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <!-- 可选：对象序列化工具（推荐） -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
