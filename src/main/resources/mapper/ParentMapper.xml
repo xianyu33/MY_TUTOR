@@ -11,6 +11,7 @@
         <result column="password" property="password" jdbcType="VARCHAR"/>
         <result column="tel" property="tel" jdbcType="VARCHAR"/>
         <result column="country" property="country" jdbcType="VARCHAR"/>
+        <result column="city" property="city" jdbcType="VARCHAR"/>
         <result column="email" property="email" jdbcType="VARCHAR"/>
         <result column="grade" property="grade" jdbcType="VARCHAR"/>
         <result column="school" property="school" jdbcType="VARCHAR"/>
@@ -25,7 +26,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status, avatar_url,
+        id, user_account, username, sex, age, password, tel, country, city, email, grade, school, type, approval_status, avatar_url,
         create_at, create_by, update_at, update_by, delete_flag
     </sql>
 
@@ -46,11 +47,11 @@
 
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.Parent" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
         insert into parent (
-            user_account, username, sex, age, password, tel, country, email, grade, school, type, approval_status, avatar_url,
+            user_account, username, sex, age, password, tel, country, city, email, grade, school, type, approval_status, avatar_url,
             create_at, create_by, update_at, update_by, delete_flag
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
-            #{country}, #{email}, #{grade}, #{school}, #{type}, #{approvalStatus}, #{avatarUrl}, #{createAt}, #{createBy}, #{updateAt},
+            #{country}, #{city}, #{email}, #{grade}, #{school}, #{type}, #{approvalStatus}, #{avatarUrl}, #{createAt}, #{createBy}, #{updateAt},
             #{updateBy}, #{deleteFlag}
         )
     </insert>
@@ -64,6 +65,7 @@
             <if test="age != null">age = #{age},</if>
             <if test="tel != null">tel = #{tel},</if>
             <if test="country != null">country = #{country},</if>
+            <if test="city != null">city = #{city},</if>
             <if test="email != null">email = #{email},</if>
             <if test="grade != null">grade = #{grade},</if>
             <if test="school != null">school = #{school},</if>

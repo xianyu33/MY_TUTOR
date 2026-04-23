@@ -193,18 +193,18 @@ public class UserController {
         // 使用新的学生注册服务，自动分配课程和生成测试题
         boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {
-
-            String firstName = extractFirstName(user.getUsername());
-            String loginLink = "https://www.mytutor.top/loginNew";
-            try {
-                if (!user.getEmail().isEmpty()) {
+            // 邮箱可选：有邮箱时发送欢迎邮件，无邮箱仍视为注册成功
+            if (StringUtils.hasText(user.getEmail())) {
+                String loginLink = "https://www.mytutor.top/loginNew";
+                try {
                     GoDaddyEmailSender.sendWelcomeEmail(user.getEmail(), user.getUsername(), loginLink);
                     return RespResult.success("注册成功，已自动分配课程和生成测试题，并已发送欢迎邮件", true);
+                } catch (Exception e) {
+                    log.error("发送欢迎邮件失败: {}, error={}", user.getEmail(), e.getMessage(), e);
+                    return RespResult.success("注册成功，已自动分配课程和生成测试题，但欢迎邮件发送失败", true);
                 }
-            } catch (Exception e) {
-                log.error("发送欢迎邮件失败: {}, error={}", user.getEmail(), e.getMessage(), e);
-                return RespResult.success("注册成功，已自动分配课程和生成测试题，但欢迎邮件发送失败", true);
             }
+            return RespResult.success("注册成功，已自动分配课程和生成测试题", true);
         }
         return RespResult.error("注册失败，用户可能已存在");
     }
@@ -276,18 +276,5 @@ public class UserController {
 
         List<User> students = userService.findStudentsByName(user.getUsername());
         return RespResult.success(students);
-    }
-
-    private String extractFirstName(String username) {
-        if (!StringUtils.hasText(username)) {
-            return "there";
-        }
-        String trimmed = username.trim();
-        // 取第一个空格前的片段作为 First Name
-        String[] parts = trimmed.split("\\s+");
-        if (parts.length > 0 && StringUtils.hasText(parts[0])) {
-            return parts[0];
-        }
-        return trimmed;
     }
 }

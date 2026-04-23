@@ -25,6 +25,8 @@ public class User implements Serializable {
     private String password;
     private String tel;
     private String country;
+    /** 城市 */
+    private String city;
     private String email;
     private String grade;
     private String school;

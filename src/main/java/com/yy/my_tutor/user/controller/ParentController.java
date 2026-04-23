@@ -37,19 +37,18 @@ public class ParentController {
         log.info("新增家长: {}", JSON.toJSONString(parent));
         boolean result = parentService.addParent(parent);
         if (result) {
-            if (!StringUtils.hasText(parent.getEmail())) {
-                throw new CustomException("邮箱不能为空");
+            // 邮箱可选：有邮箱时发送欢迎邮件
+            if (StringUtils.hasText(parent.getEmail())) {
+                String loginLink = "https://www.mytutor.top/loginNew";
+                try {
+                    GoDaddyEmailSender.sendWelcomeEmail(parent.getEmail(), parent.getUsername(), loginLink);
+                    return RespResult.success("新增成功，并已发送欢迎邮件", true);
+                } catch (Exception e) {
+                    log.error("发送欢迎邮件失败: {}, error={}", parent.getEmail(), e.getMessage(), e);
+                    return RespResult.success("新增成功，但欢迎邮件发送失败", true);
+                }
             }
-
-            String firstName = extractFirstName(parent.getUsername());
-            String loginLink = "https://www.mytutor.top/loginNew";
-            try {
-                GoDaddyEmailSender.sendWelcomeEmail(parent.getEmail(), parent.getUsername(), loginLink);
-                return RespResult.success("新增成功，并已发送欢迎邮件", true);
-            } catch (Exception e) {
-                log.error("发送欢迎邮件失败: {}, error={}", parent.getEmail(), e.getMessage(), e);
-                return RespResult.success("新增成功，但欢迎邮件发送失败", true);
-            }
+            return RespResult.success("新增成功", true);
         }
         return RespResult.error("新增失败");
     }
@@ -244,18 +243,5 @@ public class ParentController {
             return header.substring(7);
         }
         return null;
-    }
-
-    private String extractFirstName(String username) {
-        if (!StringUtils.hasText(username)) {
-            return "there";
-        }
-        String trimmed = username.trim();
-        // 取第一个空格前的片段作为 First Name
-        String[] parts = trimmed.split("\\s+");
-        if (parts.length > 0 && StringUtils.hasText(parts[0])) {
-            return parts[0];
-        }
-        return trimmed;
     }
 } 
