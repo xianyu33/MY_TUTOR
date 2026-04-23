@@ -12,6 +12,7 @@ import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.StudentRegistrationService;
 import com.yy.my_tutor.user.service.UserService;
+import com.yy.my_tutor.user.service.WelcomeEmailService;
 import com.yy.my_tutor.util.CaptchaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class UserController {
 
     @Autowired
     private StudentRegistrationService studentRegistrationService;
+
+    @Autowired
+    private WelcomeEmailService welcomeEmailService;
 
     @Autowired
     private UserMapper userMapper;
@@ -193,16 +197,10 @@ public class UserController {
         // 使用新的学生注册服务，自动分配课程和生成测试题
         boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {
-            // 邮箱可选：有邮箱时发送欢迎邮件，无邮箱仍视为注册成功
+            // 有邮箱时后台异步发欢迎邮件，不阻塞注册响应
             if (StringUtils.hasText(user.getEmail())) {
-                String loginLink = "https://www.mytutor.top/loginNew";
-                try {
-                    GoDaddyEmailSender.sendWelcomeEmail(user.getEmail(), user.getUsername(), loginLink);
-                    return RespResult.success("注册成功，已自动分配课程和生成测试题，并已发送欢迎邮件", true);
-                } catch (Exception e) {
-                    log.error("发送欢迎邮件失败: {}, error={}", user.getEmail(), e.getMessage(), e);
-                    return RespResult.success("注册成功，已自动分配课程和生成测试题，但欢迎邮件发送失败", true);
-                }
+                welcomeEmailService.sendWelcomeAsync(user.getEmail(), user.getUsername());
+                return RespResult.success("注册成功，已自动分配课程和生成测试题。欢迎邮件将在后台发送", true);
             }
             return RespResult.success("注册成功，已自动分配课程和生成测试题", true);
         }

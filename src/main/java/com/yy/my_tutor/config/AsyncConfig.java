@@ -21,4 +21,18 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    /**
+     * 欢迎邮件等 SMTP 操作耗时长，用独立小线程池与业务翻译等任务隔离。
+     */
+    @Bean(name = "emailAsyncExecutor")
+    public Executor emailAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(200);
+        executor.setThreadNamePrefix("email-welcome-");
+        executor.initialize();
+        return executor;
+    }
 }

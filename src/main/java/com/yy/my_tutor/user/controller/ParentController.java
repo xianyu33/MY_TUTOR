@@ -3,12 +3,12 @@ package com.yy.my_tutor.user.controller;
 import com.alibaba.fastjson.JSON;
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.config.CustomException;
-import com.yy.my_tutor.config.GoDaddyEmailSender;
 import com.yy.my_tutor.security.JwtTokenUtil;
 import com.yy.my_tutor.user.domain.Parent;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.ParentService;
+import com.yy.my_tutor.user.service.WelcomeEmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -29,6 +29,9 @@ public class ParentController {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private WelcomeEmailService welcomeEmailService;
+
     /**
      * 新增家长
      */
@@ -37,16 +40,9 @@ public class ParentController {
         log.info("新增家长: {}", JSON.toJSONString(parent));
         boolean result = parentService.addParent(parent);
         if (result) {
-            // 邮箱可选：有邮箱时发送欢迎邮件
             if (StringUtils.hasText(parent.getEmail())) {
-                String loginLink = "https://www.mytutor.top/loginNew";
-                try {
-                    GoDaddyEmailSender.sendWelcomeEmail(parent.getEmail(), parent.getUsername(), loginLink);
-                    return RespResult.success("新增成功，并已发送欢迎邮件", true);
-                } catch (Exception e) {
-                    log.error("发送欢迎邮件失败: {}, error={}", parent.getEmail(), e.getMessage(), e);
-                    return RespResult.success("新增成功，但欢迎邮件发送失败", true);
-                }
+                welcomeEmailService.sendWelcomeAsync(parent.getEmail(), parent.getUsername());
+                return RespResult.success("新增成功。欢迎邮件将在后台发送", true);
             }
             return RespResult.success("新增成功", true);
         }
