@@ -76,6 +76,11 @@ public class User implements Serializable {
      */
     private Integer approvalStatus;
 
+    /**
+     * 邮箱校验状态：0-未校验，1-已校验
+     */
+    private Integer emailVerified;
+
     private List<ChatMessage> chatMessages;
 
 }

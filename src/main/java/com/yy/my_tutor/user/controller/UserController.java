@@ -13,6 +13,7 @@ import com.yy.my_tutor.user.mapper.UserMapper;
 import com.yy.my_tutor.user.service.StudentRegistrationService;
 import com.yy.my_tutor.user.service.UserService;
 import com.yy.my_tutor.user.service.WelcomeEmailService;
+import com.yy.my_tutor.user.service.EmailVerificationService;
 import com.yy.my_tutor.util.CaptchaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ public class UserController {
 
     @Autowired
     private WelcomeEmailService welcomeEmailService;
+
+    @Autowired
+    private EmailVerificationService emailVerificationService;
 
     @Autowired
     private UserMapper userMapper;
@@ -150,6 +154,14 @@ public class UserController {
             }
         }
 
+        // 检查邮箱是否未校验（仅对学生用户，且有邮箱的才需要校验）
+        if (checkUser != null && "S".equals(checkUser.getRole())
+                && checkUser.getEmail() != null && !checkUser.getEmail().isEmpty()) {
+            if (checkUser.getEmailVerified() == null || checkUser.getEmailVerified() == 0) {
+                return RespResult.error("Please verify your email first. A verification link has been sent to your email.");
+            }
+        }
+
         return RespResult.error("用户名或密码错误");
     }
 
@@ -197,14 +209,30 @@ public class UserController {
         // 使用新的学生注册服务，自动分配课程和生成测试题
         boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {
-            // 有邮箱时后台异步发欢迎邮件，不阻塞注册响应
-            if (StringUtils.hasText(user.getEmail())) {
-                welcomeEmailService.sendWelcomeAsync(user.getEmail(), user.getUsername());
-                return RespResult.success("注册成功，已自动分配课程和生成测试题。欢迎邮件将在后台发送", true);
+            if (StringUtils.hasText(user.getEmail()) && user.getEmailVerified() == null) {
+                emailVerificationService.sendVerificationEmailAsync(user.getEmail(), user.getUsername());
+                return RespResult.success("注册成功，已自动分配课程和生成测试题。请前往邮箱完成校验后登录", true);
             }
             return RespResult.success("注册成功，已自动分配课程和生成测试题", true);
         }
         return RespResult.error("注册失败，用户可能已存在");
+    }
+
+    /**
+     * 邮箱校验
+     */
+    @PostMapping("/verify-email")
+    public RespResult<Boolean> verifyEmail(@RequestBody Map<String, String> params) {
+        String code = params.get("code");
+        if (!StringUtils.hasText(code)) {
+            throw new CustomException("校验码不能为空");
+        }
+
+        boolean verified = emailVerificationService.verifyEmail(code);
+        if (verified) {
+            return RespResult.success("邮箱校验成功，现在可以登录了", true);
+        }
+        return RespResult.error("校验链接无效或已过期");
     }
 
 

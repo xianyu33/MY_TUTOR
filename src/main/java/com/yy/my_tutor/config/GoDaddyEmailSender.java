@@ -130,4 +130,64 @@ public class GoDaddyEmailSender {
                 .replace("'", "&#39;");
     }
 
+    /**
+     * 发送注册后的邮箱校验邮件
+     *
+     * @param email            收件人邮箱
+     * @param firstName        用户名
+     * @param verificationLink 校验链接（包含校验code）
+     */
+    public static void sendVerificationEmail(String email, String firstName, String verificationLink) {
+        final String username = "info@mytec-edu.com";
+        final String password = "mytectutor";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtpout.secureserver.net");
+        props.put("mail.smtp.port", "465");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.enable", "true");
+        props.put("mail.smtp.ssl.trust", "*");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        String safeFirstName = escapeHtml(firstName);
+        String safeLink = escapeHtml(verificationLink);
+
+        String subject = "Verify Your Email – MYTutor";
+
+        String content = "<div style=\"font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#000;\">"
+                + "<p>Hi " + safeFirstName + ",</p>"
+                + "<p>Thank you for registering with MYTutor!</p>"
+                + "<p>Please verify your email address by clicking the link below:</p>"
+                + "<p><a href=\"" + safeLink + "\" style=\"display:inline-block;padding:12px 24px;background-color:#4CAF50;color:#fff;text-decoration:none;border-radius:4px;\">Verify Email</a></p>"
+                + "<p>Or copy and paste this link into your browser:</p>"
+                + "<p>" + safeLink + "</p>"
+                + "<p>This link is valid for 24 hours. After verification, you can log in to your account.</p>"
+                + "<p>If you did not create this account, please ignore this email.</p>"
+                + "<p>Best regards,</p>"
+                + "<p>The MYTutor Team</p>"
+                + "<p>www.mytutor.top</p>"
+                + "</div>";
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+            message.setSubject(subject);
+            message.setContent(content, "text/html;charset=UTF-8");
+            Transport.send(message);
+            System.out.println("Verification email sent successfully!");
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

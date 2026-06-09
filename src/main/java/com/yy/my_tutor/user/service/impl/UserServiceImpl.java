@@ -55,6 +55,12 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        // 检查学生邮箱是否已校验（有邮箱才需要校验）
+        if (user.getEmailVerified() != null && user.getEmailVerified() == 0) {
+            log.info("学生邮箱未校验，无法登录: {}", userAccount);
+            return null;
+        }
+
         // 隐藏敏感信息
         user.setPassword(null);
         //增加 token
@@ -80,6 +86,9 @@ public class UserServiceImpl implements UserService {
         user.setCreateAt(new Date());
         user.setUpdateAt(new Date());
         user.setDeleteFlag("0");
+        if (user.getEmailVerified() == null) {
+            user.setEmailVerified(0);
+        }
 
         // 密码加密
         String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));
@@ -98,6 +107,9 @@ public class UserServiceImpl implements UserService {
         user.setCreateAt(new Date());
         user.setUpdateAt(new Date());
         user.setDeleteFlag("0");
+        if (user.getEmailVerified() == null) {
+            user.setEmailVerified(0);
+        }
 
         // 密码加密
         String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));

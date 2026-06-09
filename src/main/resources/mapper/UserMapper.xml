@@ -25,11 +25,12 @@
         <result column="role" property="role"  jdbcType="VARCHAR"/>
         <result column="type" property="type" jdbcType="TINYINT"/>
         <result column="approval_status" property="approvalStatus" jdbcType="TINYINT"/>
+        <result column="email_verified" property="emailVerified" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id, user_account, username, sex, age, password, tel, country, city, email, grade, school,
-        create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url
+        create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url, email_verified
     </sql>
     <update id="update">
         update user
@@ -45,6 +46,7 @@
             <if test="grade != null">grade = #{grade},</if>
             <if test="school != null">school = #{school},</if>
             <if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
+            <if test="emailVerified != null">email_verified = #{emailVerified},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
         </set>
@@ -78,7 +80,7 @@
         UNION
         select
         id, user_account, username, sex, age, password, tel, country, city, email, grade, school,
-        create_at, create_by, update_at, update_by, delete_flag, null AS parent_id, avatar_url,"P" AS role, type, approval_status
+        create_at, create_by, update_at, update_by, delete_flag, null AS parent_id, avatar_url,"P" AS role, type, approval_status, NULL AS email_verified
         from parent
         where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
     </select>
@@ -105,11 +107,11 @@
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.User">
         insert into user (
             user_account, username, sex, age, password, tel, country, city, email, grade, school,
-            create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url
+            create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url, email_verified
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
             #{country}, #{city}, #{email}, #{grade}, #{school}, #{createAt}, #{createBy}, #{updateAt},
-            #{updateBy}, #{deleteFlag}, #{parentId}, #{avatarUrl}
+            #{updateBy}, #{deleteFlag}, #{parentId}, #{avatarUrl}, #{emailVerified}
         )
     </insert>
 
@@ -123,4 +125,9 @@
         </if>
         order by create_at desc
     </select>
+
+    <update id="updateEmailVerified">
+        update user set email_verified = #{emailVerified}, update_at = NOW()
+        where email = #{email} and delete_flag = '0'
+    </update>
 </mapper>
