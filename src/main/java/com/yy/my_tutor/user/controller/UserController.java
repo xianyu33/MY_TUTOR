@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,6 +161,12 @@ public class UserController {
             if (checkUser.getEmailVerified() == null || checkUser.getEmailVerified() == 0) {
                 return RespResult.error("Please verify your email first. A verification link has been sent to your email.");
             }
+        }
+
+        // 检查账号是否已过期
+        if (checkUser != null && checkUser.getExpireTime() != null
+                && checkUser.getExpireTime().before(new Date())) {
+            return RespResult.error("Your account has expired. Please contact the administrator to renew.");
         }
 
         return RespResult.error("用户名或密码错误");

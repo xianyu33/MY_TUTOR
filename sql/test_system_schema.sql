@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `country` VARCHAR(10) DEFAULT 'CHN' COMMENT '国家',
   `email` VARCHAR(100) COMMENT '邮箱',
   `email_verified` TINYINT DEFAULT 0 COMMENT '邮箱校验状态：0-未校验，1-已校验',
+  `expire_time` DATETIME COMMENT '账号有效期',
   `grade` VARCHAR(10) COMMENT '年级',
   `role` CHAR(1) DEFAULT 'S' COMMENT '角色：P-家长，S-学生，T-老师',
   `create_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

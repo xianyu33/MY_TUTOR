@@ -26,11 +26,12 @@
         <result column="type" property="type" jdbcType="TINYINT"/>
         <result column="approval_status" property="approvalStatus" jdbcType="TINYINT"/>
         <result column="email_verified" property="emailVerified" jdbcType="TINYINT"/>
+        <result column="expire_time" property="expireTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id, user_account, username, sex, age, password, tel, country, city, email, grade, school,
-        create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url, email_verified
+        create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url, email_verified, expire_time
     </sql>
     <update id="update">
         update user
@@ -47,6 +48,7 @@
             <if test="school != null">school = #{school},</if>
             <if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
             <if test="emailVerified != null">email_verified = #{emailVerified},</if>
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
         </set>
@@ -80,7 +82,7 @@
         UNION
         select
         id, user_account, username, sex, age, password, tel, country, city, email, grade, school,
-        create_at, create_by, update_at, update_by, delete_flag, null AS parent_id, avatar_url,"P" AS role, type, approval_status, NULL AS email_verified
+        create_at, create_by, update_at, update_by, delete_flag, null AS parent_id, avatar_url,"P" AS role, type, approval_status, NULL AS email_verified, NULL AS expire_time
         from parent
         where (user_account = #{userAccount} OR email = #{userAccount}) and delete_flag = '0'
     </select>
@@ -107,11 +109,11 @@
     <insert id="insert" parameterType="com.yy.my_tutor.user.domain.User">
         insert into user (
             user_account, username, sex, age, password, tel, country, city, email, grade, school,
-            create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url, email_verified
+            create_at, create_by, update_at, update_by, delete_flag, parent_id, avatar_url, email_verified, expire_time
         ) values (
             #{userAccount}, #{username}, #{sex}, #{age}, #{password}, #{tel},
             #{country}, #{city}, #{email}, #{grade}, #{school}, #{createAt}, #{createBy}, #{updateAt},
-            #{updateBy}, #{deleteFlag}, #{parentId}, #{avatarUrl}, #{emailVerified}
+            #{updateBy}, #{deleteFlag}, #{parentId}, #{avatarUrl}, #{emailVerified}, #{expireTime}
         )
     </insert>
 

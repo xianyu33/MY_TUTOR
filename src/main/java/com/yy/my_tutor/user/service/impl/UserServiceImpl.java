@@ -61,6 +61,12 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
+        // 检查账号是否已过期
+        if (user.getExpireTime() != null && user.getExpireTime().before(new Date())) {
+            log.info("账号已过期，无法登录: {}", userAccount);
+            return null;
+        }
+
         // 隐藏敏感信息
         user.setPassword(null);
         //增加 token
@@ -89,6 +95,9 @@ public class UserServiceImpl implements UserService {
         if (user.getEmailVerified() == null) {
             user.setEmailVerified(0);
         }
+        if (user.getExpireTime() == null) {
+            user.setExpireTime(new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000));
+        }
 
         // 密码加密
         String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));
@@ -109,6 +118,9 @@ public class UserServiceImpl implements UserService {
         user.setDeleteFlag("0");
         if (user.getEmailVerified() == null) {
             user.setEmailVerified(0);
+        }
+        if (user.getExpireTime() == null) {
+            user.setExpireTime(new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000));
         }
 
         // 密码加密
@@ -175,6 +187,12 @@ public class UserServiceImpl implements UserService {
             user.setCreateAt(new Date());
             user.setUpdateAt(new Date());
             user.setDeleteFlag("0");
+            if (user.getEmailVerified() == null) {
+                user.setEmailVerified(0);
+            }
+            if (user.getExpireTime() == null) {
+                user.setExpireTime(new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000));
+            }
             String encryptedPassword = DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8));
             user.setPassword(encryptedPassword);
             userMapper.insert(user);
