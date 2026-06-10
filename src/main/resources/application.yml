@@ -34,3 +34,22 @@ jwt:
   tokenHead: Bearer  #令牌前缀
   secret: junnan-oa-secret #JWT加解密使用的密钥
   expiration: 86400 #JWT的超期限时间秒(60*60*24)
+
+stripe:
+  mode: ${STRIPE_MODE:test}
+  api-key: ${STRIPE_API_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  api-version: 2024-06-20
+  default-currency: usd
+  supported-currencies: usd,eur,cny
+  checkout:
+    session-expires-after-hours: 24
+    success-url-template: https://mytutor.top/payment/success?orderNo={ORDER_NO}&session_id={CHECKOUT_SESSION_ID}
+    cancel-url-template: https://mytutor.top/payment/cancel?orderNo={ORDER_NO}
+    allowed-return-hosts: mytutor.top,localhost
+  refund:
+    window-days: 180
+  entitlement-cache:
+    ttl-seconds: 60
+  # 后台管理白名单(管理员 user_id 列表,逗号分隔)
+  admin-user-ids: ${STRIPE_ADMIN_USER_IDS:}
