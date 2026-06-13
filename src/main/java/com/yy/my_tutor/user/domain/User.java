@@ -76,6 +76,17 @@ public class User implements Serializable {
      */
     private Integer approvalStatus;
 
+    /**
+     * 邮箱校验状态：0-未校验，1-已校验
+     */
+    private Integer emailVerified;
+
+    /**
+     * 账号有效期
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date expireTime;
+
     private List<ChatMessage> chatMessages;
 
 }

@@ -44,4 +44,11 @@ public interface UserMapper {
      * @return 学生列表
      */
     List<User> findStudentsByName(@Param("name") String name);
+
+    /**
+     * 更新邮箱校验状态
+     * @param email 邮箱
+     * @param emailVerified 校验状态：1-已校验
+     */
+    void updateEmailVerified(@Param("email") String email, @Param("emailVerified") Integer emailVerified);
 }
