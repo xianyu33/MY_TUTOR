@@ -20,7 +20,7 @@ public class CheckoutSessionExpiredHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
+        Session session = EventObjectExtractor.get(event, Session.class);
         if (session == null) return HandlerResult.FAILED;
         PaymentOrder order = orderMapper.selectByStripeSessionId(session.getId());
         if (order == null) return HandlerResult.SKIPPED;

@@ -36,9 +36,9 @@ jwt:
   expiration: 86400 #JWT的超期限时间秒(60*60*24)
 
 stripe:
-  mode: ${STRIPE_MODE:test}
-  api-key: ${STRIPE_API_KEY:}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  mode: test
+  api-key: STRIPE_API_KEY_PLACEHOLDER
+  webhook-secret: STRIPE_WEBHOOK_SECRET_PLACEHOLDER
   api-version: 2024-06-20
   default-currency: usd
   supported-currencies: usd,eur,cny
@@ -51,5 +51,12 @@ stripe:
     window-days: 180
   entitlement-cache:
     ttl-seconds: 60
+  local-auth-bypass:
+    enabled: true
+    user-id: 1
+    admin: true
+    skip-beneficiary-validation: true
+    customer-email: local-payment-test@example.com
+    customer-name: Local Payment Test User
   # 后台管理白名单(管理员 user_id 列表,逗号分隔)
   admin-user-ids: ${STRIPE_ADMIN_USER_IDS:}

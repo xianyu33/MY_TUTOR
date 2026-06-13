@@ -22,7 +22,7 @@ public class SubscriptionDeletedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Subscription remote = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
+        Subscription remote = EventObjectExtractor.get(event, Subscription.class);
         if (remote == null) return HandlerResult.FAILED;
         PaymentSubscription local = subscriptionMapper.selectByStripeId(remote.getId());
         if (local == null) return HandlerResult.SKIPPED;

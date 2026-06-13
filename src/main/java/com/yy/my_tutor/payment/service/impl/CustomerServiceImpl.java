@@ -2,6 +2,7 @@ package com.yy.my_tutor.payment.service.impl;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.yy.my_tutor.payment.config.StripeConfig;
 import com.yy.my_tutor.payment.domain.entity.PaymentCustomer;
 import com.yy.my_tutor.payment.mapper.PaymentCustomerMapper;
 import com.yy.my_tutor.payment.service.CustomerService;
@@ -22,6 +23,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Resource private PaymentCustomerMapper customerMapper;
     @Resource private StripeClientService stripeClient;
     @Resource private UserMapper userMapper;
+    @Resource private StripeConfig stripeConfig;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -30,11 +32,16 @@ public class CustomerServiceImpl implements CustomerService {
         if (existing != null) return existing;
 
         User user = userMapper.findById(userId);
-        if (user == null) throw PaymentException.of("PAYMENT_USER_NOT_FOUND");
+        if (user == null && !stripeConfig.isLocalAuthBypassEnabled()) {
+            throw PaymentException.of("PAYMENT_USER_NOT_FOUND");
+        }
+
+        String email = user == null ? stripeConfig.getLocalAuthBypass().getCustomerEmail() : user.getEmail();
+        String name = user == null ? stripeConfig.getLocalAuthBypass().getCustomerName() : user.getUsername();
 
         Customer stripeCustomer;
         try {
-            stripeCustomer = stripeClient.createCustomer(user.getEmail(), userId, user.getUsername());
+            stripeCustomer = stripeClient.createCustomer(email, userId, name);
         } catch (StripeException e) {
             log.error("Stripe createCustomer failed for userId {}", userId, e);
             throw PaymentException.of("PAYMENT_STRIPE_UNAVAILABLE", e.getMessage());
@@ -43,7 +50,7 @@ public class CustomerServiceImpl implements CustomerService {
         PaymentCustomer c = new PaymentCustomer();
         c.setUserId(userId);
         c.setStripeCustomerId(stripeCustomer.getId());
-        c.setEmail(user.getEmail());
+        c.setEmail(email);
         c.setCreateBy(String.valueOf(userId));
         c.setUpdateBy(String.valueOf(userId));
         customerMapper.insert(c);

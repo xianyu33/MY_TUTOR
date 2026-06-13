@@ -19,7 +19,7 @@ public class ProductUpdatedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Product remote = (Product) event.getDataObjectDeserializer().getObject().orElse(null);
+        Product remote = EventObjectExtractor.get(event, Product.class);
         if (remote == null) return HandlerResult.SKIPPED;
         PaymentProduct local = productMapper.selectByStripeId(remote.getId());
         if (local == null) return HandlerResult.SKIPPED;

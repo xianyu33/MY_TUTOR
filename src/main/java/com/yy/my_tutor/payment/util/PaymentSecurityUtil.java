@@ -28,6 +28,9 @@ public class PaymentSecurityUtil {
     public Integer currentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null || "anonymousUser".equals(auth.getPrincipal())) {
+            if (stripeConfig.isLocalAuthBypassEnabled()) {
+                return stripeConfig.getLocalAuthBypass().getUserId();
+            }
             throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
         }
         String username = auth.getPrincipal().toString();
@@ -40,6 +43,9 @@ public class PaymentSecurityUtil {
 
     /** 当前用户必须是 admin(stripe.admin-user-ids 白名单);否则抛 PAYMENT_FORBIDDEN */
     public void requireAdmin() {
+        if (stripeConfig.isLocalAuthBypassAdmin()) {
+            return;
+        }
         Integer uid = currentUserId();
         if (!stripeConfig.isAdmin(uid)) {
             throw PaymentException.of("PAYMENT_FORBIDDEN", "管理员权限不足");

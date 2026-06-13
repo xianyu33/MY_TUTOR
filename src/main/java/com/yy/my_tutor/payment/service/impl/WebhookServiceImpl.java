@@ -61,17 +61,31 @@ public class WebhookServiceImpl implements WebhookService {
         record.setApiVersion(event.getApiVersion());
         record.setPayload(rawBody);
         int affected = eventMapper.insertIgnore(record);
-        if (affected == 0) {
-            log.info("Stripe event {} already processed, skip", event.getId());
-            return true;
-        }
         StripeEvent saved = eventMapper.selectByStripeEventId(event.getId());
+        if (affected == 0) {
+            if (saved == null) {
+                log.warn("Stripe event {} already exists but cannot be loaded, skip", event.getId());
+                return true;
+            }
+            if (saved.getProcessStatus() == null || saved.getProcessStatus() != 2) {
+                log.info("Stripe event {} already handled with status={}, skip", event.getId(), saved.getProcessStatus());
+                return true;
+            }
+            log.warn("Retry failed Stripe event {} type={}, retryCount={}",
+                    event.getId(), event.getType(), saved.getRetryCount());
+            saved.setProcessStatus(0);
+            saved.setLastError(null);
+            saved.setPayload(rawBody);
+            saved.setRetryCount((saved.getRetryCount() == null ? 0 : saved.getRetryCount()) + 1);
+            eventMapper.updateById(saved);
+        }
 
         // 3. dispatch
         EventHandler handler = handlerMap.get(event.getType());
         if (handler == null) {
             log.info("No handler registered for {}, mark SKIPPED", event.getType());
             saved.setProcessStatus(3);
+            saved.setLastError(null);
             saved.setProcessedAt(new Date());
             eventMapper.updateById(saved);
             return true;
@@ -81,9 +95,12 @@ public class WebhookServiceImpl implements WebhookService {
             HandlerResult result = handler.handle(event);
             saved.setProcessedAt(new Date());
             switch (result) {
-                case SUCCESS: saved.setProcessStatus(1); break;
-                case SKIPPED: saved.setProcessStatus(3); break;
+                case SUCCESS: saved.setProcessStatus(1);
+                              saved.setLastError(null); break;
+                case SKIPPED: saved.setProcessStatus(3);
+                              saved.setLastError(null); break;
                 case FAILED:  saved.setProcessStatus(2);
+                              saved.setRetryCount((saved.getRetryCount() == null ? 0 : saved.getRetryCount()) + 1);
                               saved.setLastError("handler returned FAILED"); break;
             }
             eventMapper.updateById(saved);

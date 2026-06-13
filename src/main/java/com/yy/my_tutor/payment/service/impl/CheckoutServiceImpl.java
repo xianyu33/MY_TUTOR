@@ -57,7 +57,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         }
 
         // 2. 受益学生校验
-        beneficiaryValidator.assertAccessible(payerUserId, req.getBeneficiaryStudentId());
+        if (!stripeConfig.isLocalAuthBypassSkipBeneficiaryValidation()) {
+            beneficiaryValidator.assertAccessible(payerUserId, req.getBeneficiaryStudentId());
+        }
 
         // 3. 校验 return URL
         validateReturnUrl(req.getSuccessUrl());

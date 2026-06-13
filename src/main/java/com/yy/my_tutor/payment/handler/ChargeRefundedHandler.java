@@ -28,7 +28,7 @@ public class ChargeRefundedHandler implements EventHandler {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HandlerResult handle(Event event) {
-        Charge charge = (Charge) event.getDataObjectDeserializer().getObject().orElse(null);
+        Charge charge = EventObjectExtractor.get(event, Charge.class);
         if (charge == null) return HandlerResult.FAILED;
 
         if (charge.getRefunds() != null && charge.getRefunds().getData() != null) {

@@ -19,7 +19,7 @@ public class PriceDeletedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Price remote = (Price) event.getDataObjectDeserializer().getObject().orElse(null);
+        Price remote = EventObjectExtractor.get(event, Price.class);
         if (remote == null) return HandlerResult.SKIPPED;
         PaymentPrice local = priceMapper.selectByStripeId(remote.getId());
         if (local == null) return HandlerResult.SKIPPED;

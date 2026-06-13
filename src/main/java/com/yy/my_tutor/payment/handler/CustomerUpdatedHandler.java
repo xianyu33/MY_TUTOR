@@ -19,7 +19,7 @@ public class CustomerUpdatedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Customer remote = (Customer) event.getDataObjectDeserializer().getObject().orElse(null);
+        Customer remote = EventObjectExtractor.get(event, Customer.class);
         if (remote == null) return HandlerResult.SKIPPED;
         PaymentCustomer local = customerMapper.selectByStripeId(remote.getId());
         if (local == null) return HandlerResult.SKIPPED;

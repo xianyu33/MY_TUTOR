@@ -31,7 +31,7 @@ public class CheckoutSessionCompletedHandler implements EventHandler {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HandlerResult handle(Event event) {
-        Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
+        Session session = EventObjectExtractor.get(event, Session.class);
         if (session == null) {
             log.warn("checkout.session.completed payload deserialize failed: {}", event.getId());
             return HandlerResult.FAILED;

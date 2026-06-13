@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class InvoiceCreatedHandler implements EventHandler {
     @Override public String eventType() { return "invoice.created"; }
     @Override public HandlerResult handle(Event event) {
-        Invoice inv = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
+        Invoice inv = EventObjectExtractor.get(event, Invoice.class);
         if (inv != null) log.info("invoice.created received: id={} subscription={}", inv.getId(), inv.getSubscription());
         return HandlerResult.SUCCESS;
     }

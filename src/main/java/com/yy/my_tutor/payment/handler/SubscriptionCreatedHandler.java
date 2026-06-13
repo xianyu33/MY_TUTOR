@@ -20,9 +20,9 @@ public class SubscriptionCreatedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Subscription sub = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
+        Subscription sub = EventObjectExtractor.get(event, Subscription.class);
         if (sub == null) return HandlerResult.FAILED;
-        PaymentSubscription local = upsertHelper.upsert(sub, event.getCreated(), sub.getMetadata());
+        PaymentSubscription local = upsertHelper.upsert(sub, event.getCreated(), sub.getMetadata(), event);
         if (local == null) return HandlerResult.SKIPPED;
         cacheInvalidator.invalidate(local.getBeneficiaryStudentId());
         return HandlerResult.SUCCESS;

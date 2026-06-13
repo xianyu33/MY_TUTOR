@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class PaymentMethodAttachedHandler implements EventHandler {
     @Override public String eventType() { return "payment_method.attached"; }
     @Override public HandlerResult handle(Event event) {
-        PaymentMethod pm = (PaymentMethod) event.getDataObjectDeserializer().getObject().orElse(null);
+        PaymentMethod pm = EventObjectExtractor.get(event, PaymentMethod.class);
         if (pm != null) log.info("payment_method.attached: id={} customer={}", pm.getId(), pm.getCustomer());
         return HandlerResult.SUCCESS;
     }

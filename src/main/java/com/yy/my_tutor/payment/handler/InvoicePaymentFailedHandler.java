@@ -21,7 +21,7 @@ public class InvoicePaymentFailedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
+        Invoice invoice = EventObjectExtractor.get(event, Invoice.class);
         if (invoice == null || invoice.getSubscription() == null) return HandlerResult.SKIPPED;
         PaymentSubscription sub = subscriptionMapper.selectByStripeId(invoice.getSubscription());
         if (sub == null) return HandlerResult.SKIPPED;

@@ -20,7 +20,7 @@ public class PaymentIntentFailedHandler implements EventHandler {
 
     @Override
     public HandlerResult handle(Event event) {
-        PaymentIntent pi = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElse(null);
+        PaymentIntent pi = EventObjectExtractor.get(event, PaymentIntent.class);
         if (pi == null) return HandlerResult.FAILED;
         PaymentOrder order = orderMapper.selectByPaymentIntentId(pi.getId());
         if (order == null) return HandlerResult.SKIPPED;

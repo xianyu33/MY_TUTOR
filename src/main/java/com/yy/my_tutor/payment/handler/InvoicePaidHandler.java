@@ -30,7 +30,7 @@ public class InvoicePaidHandler implements EventHandler {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HandlerResult handle(Event event) {
-        Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
+        Invoice invoice = EventObjectExtractor.get(event, Invoice.class);
         if (invoice == null) return HandlerResult.FAILED;
         if ("subscription_create".equals(invoice.getBillingReason())) return HandlerResult.SKIPPED;
         PaymentOrder exists = orderMapper.selectByInvoiceId(invoice.getId());

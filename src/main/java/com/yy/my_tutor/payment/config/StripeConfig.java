@@ -28,6 +28,7 @@ public class StripeConfig {
     private Checkout checkout = new Checkout();
     private Refund refund = new Refund();
     private EntitlementCache entitlementCache = new EntitlementCache();
+    private LocalAuthBypass localAuthBypass = new LocalAuthBypass();
     private List<Integer> adminUserIds;
 
     @PostConstruct
@@ -45,6 +46,21 @@ public class StripeConfig {
 
     public boolean isAdmin(Integer userId) {
         return userId != null && adminUserIds != null && adminUserIds.contains(userId);
+    }
+
+    public boolean isLocalAuthBypassEnabled() {
+        return localAuthBypass != null
+                && Boolean.TRUE.equals(localAuthBypass.getEnabled())
+                && localAuthBypass.getUserId() != null;
+    }
+
+    public boolean isLocalAuthBypassAdmin() {
+        return isLocalAuthBypassEnabled() && Boolean.TRUE.equals(localAuthBypass.getAdmin());
+    }
+
+    public boolean isLocalAuthBypassSkipBeneficiaryValidation() {
+        return isLocalAuthBypassEnabled()
+                && Boolean.TRUE.equals(localAuthBypass.getSkipBeneficiaryValidation());
     }
 
     public Set<String> supportedCurrenciesSet() {
@@ -67,5 +83,15 @@ public class StripeConfig {
     @Data
     public static class EntitlementCache {
         private Integer ttlSeconds = 60;
+    }
+
+    @Data
+    public static class LocalAuthBypass {
+        private Boolean enabled = false;
+        private Integer userId;
+        private Boolean admin = false;
+        private Boolean skipBeneficiaryValidation = false;
+        private String customerEmail = "local-payment-test@example.com";
+        private String customerName = "Local Payment Test User";
     }
 }
