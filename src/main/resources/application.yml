@@ -52,7 +52,7 @@ stripe:
   entitlement-cache:
     ttl-seconds: 60
   local-auth-bypass:
-    enabled: true
+    enabled: false
     user-id: 1
     admin: true
     skip-beneficiary-validation: true

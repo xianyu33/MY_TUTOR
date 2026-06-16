@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.payment.domain.dto.OrderDetailDTO;
 import com.yy.my_tutor.payment.domain.dto.OrderListItemDTO;
+import com.yy.my_tutor.payment.domain.dto.CreateCheckoutRequest;
+import com.yy.my_tutor.payment.domain.dto.DirectPaymentResponse;
 import com.yy.my_tutor.payment.domain.dto.SubscriptionDTO;
+import com.yy.my_tutor.payment.service.DirectPaymentService;
 import com.yy.my_tutor.payment.service.OrderService;
 import com.yy.my_tutor.payment.service.SubscriptionService;
 import com.yy.my_tutor.payment.util.PaymentSecurityUtil;
@@ -18,6 +21,7 @@ import java.util.Map;
 public class SubscriptionController {
 
     @Resource private SubscriptionService subscriptionService;
+    @Resource private DirectPaymentService directPaymentService;
     @Resource private OrderService orderService;
     @Resource private PaymentSecurityUtil securityUtil;
 
@@ -26,6 +30,12 @@ public class SubscriptionController {
                                                     @RequestParam(required = false) Integer beneficiaryStudentId) {
         Integer uid = securityUtil.currentUserId();
         return RespResult.data(subscriptionService.listMy(uid, status, beneficiaryStudentId));
+    }
+
+    @PostMapping("/api/payment/subscriptions/direct-create")
+    public RespResult<DirectPaymentResponse> directCreate(@RequestBody CreateCheckoutRequest req) {
+        Integer uid = securityUtil.currentUserId();
+        return RespResult.data(directPaymentService.createSubscription(req, uid));
     }
 
     @GetMapping("/api/payment/subscriptions/{id}")

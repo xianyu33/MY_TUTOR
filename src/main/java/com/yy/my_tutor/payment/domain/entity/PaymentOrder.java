@@ -22,6 +22,7 @@ public class PaymentOrder {
     private String status;
     private String stripeCheckoutSessionId;
     private String stripePaymentIntentId;
+    private String stripePaymentMethodId;
     private String stripeInvoiceId;
     private Integer subscriptionId;
     private Date paidAt;

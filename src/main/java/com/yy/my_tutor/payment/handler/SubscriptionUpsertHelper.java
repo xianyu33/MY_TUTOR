@@ -114,6 +114,7 @@ public class SubscriptionUpsertHelper {
         if (currentPeriodStart != null) local.setCurrentPeriodStart(new Date(currentPeriodStart * 1000L));
         if (currentPeriodEnd != null) local.setCurrentPeriodEnd(new Date(currentPeriodEnd * 1000L));
         local.setCancelAtPeriodEnd(Boolean.TRUE.equals(remote.getCancelAtPeriodEnd()) ? 1 : 0);
+        local.setStripePaymentMethodId(remote.getDefaultPaymentMethod());
         if (remote.getCanceledAt() != null) local.setCanceledAt(new Date(remote.getCanceledAt() * 1000L));
         if (remote.getEndedAt() != null) local.setEndedAt(new Date(remote.getEndedAt() * 1000L));
         local.setLatestInvoiceId(remote.getLatestInvoice());

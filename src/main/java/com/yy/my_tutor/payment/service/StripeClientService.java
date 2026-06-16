@@ -4,9 +4,12 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Event;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
 import com.stripe.model.Price;
 import com.stripe.model.Product;
 import com.stripe.model.Refund;
+import com.stripe.model.SetupIntent;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 
@@ -17,6 +20,7 @@ public interface StripeClientService {
     // ----- Customer -----
     Customer createCustomer(String email, Integer userId, String name) throws StripeException;
     Customer retrieveCustomer(String stripeCustomerId) throws StripeException;
+    Customer updateCustomerDefaultPaymentMethod(String stripeCustomerId, String paymentMethodId) throws StripeException;
 
     // ----- Product -----
     Product createProduct(String name, String description, Map<String, String> metadata) throws StripeException;
@@ -49,6 +53,19 @@ public interface StripeClientService {
     /** 创建 setup 模式 Session(用户换卡) */
     Session createSetupSession(String stripeCustomerId, String returnUrl,
                                Map<String, String> metadata) throws StripeException;
+
+    // ----- Payment Method / SetupIntent -----
+    SetupIntent createSetupIntent(String stripeCustomerId, Map<String, String> metadata) throws StripeException;
+    SetupIntent retrieveSetupIntent(String setupIntentId) throws StripeException;
+    PaymentMethod retrievePaymentMethod(String paymentMethodId) throws StripeException;
+    PaymentMethod detachPaymentMethod(String paymentMethodId) throws StripeException;
+
+    // ----- Direct payment -----
+    PaymentIntent createAndConfirmPaymentIntent(String stripeCustomerId, String paymentMethodId,
+                                                Long amount, String currency,
+                                                Map<String, String> metadata) throws StripeException;
+    Subscription createSubscription(String stripeCustomerId, String paymentMethodId,
+                                    String stripePriceId, Map<String, String> metadata) throws StripeException;
 
     // ----- Subscription -----
     Subscription retrieveSubscription(String stripeSubId) throws StripeException;

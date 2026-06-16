@@ -13,6 +13,7 @@ public class PaymentSubscription {
     @TableId(type = IdType.AUTO)
     private Integer id;
     private String stripeSubscriptionId;
+    private String stripePaymentMethodId;
     private Integer payerUserId;
     private Integer beneficiaryStudentId;
     private Integer productId;

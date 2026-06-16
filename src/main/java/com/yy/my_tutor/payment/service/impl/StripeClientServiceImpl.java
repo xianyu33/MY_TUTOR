@@ -4,19 +4,27 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Event;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
 import com.stripe.model.Price;
 import com.stripe.model.Product;
 import com.stripe.model.Refund;
+import com.stripe.model.SetupIntent;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.CustomerUpdateParams;
+import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.PaymentMethodDetachParams;
 import com.stripe.param.PriceCreateParams;
 import com.stripe.param.PriceUpdateParams;
 import com.stripe.param.ProductCreateParams;
 import com.stripe.param.ProductUpdateParams;
 import com.stripe.param.RefundCreateParams;
+import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SubscriptionCancelParams;
+import com.stripe.param.SubscriptionCreateParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.yy.my_tutor.payment.service.StripeClientService;
@@ -42,6 +50,16 @@ public class StripeClientServiceImpl implements StripeClientService {
     @Override
     public Customer retrieveCustomer(String stripeCustomerId) throws StripeException {
         return Customer.retrieve(stripeCustomerId);
+    }
+
+    @Override
+    public Customer updateCustomerDefaultPaymentMethod(String stripeCustomerId, String paymentMethodId) throws StripeException {
+        CustomerUpdateParams params = CustomerUpdateParams.builder()
+                .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
+                        .setDefaultPaymentMethod(paymentMethodId)
+                        .build())
+                .build();
+        return Customer.retrieve(stripeCustomerId).update(params);
     }
 
     @Override
@@ -139,6 +157,64 @@ public class StripeClientServiceImpl implements StripeClientService {
         if (metadata != null) metadata.forEach(b::putMetadata);
         return Session.create(b.build());
     }
+
+    @Override
+    public SetupIntent createSetupIntent(String stripeCustomerId, Map<String, String> metadata) throws StripeException {
+        SetupIntentCreateParams.Builder b = SetupIntentCreateParams.builder()
+                .setCustomer(stripeCustomerId)
+                .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION)
+                .addPaymentMethodType("card");
+        if (metadata != null) metadata.forEach(b::putMetadata);
+        return SetupIntent.create(b.build());
+    }
+
+    @Override
+    public SetupIntent retrieveSetupIntent(String setupIntentId) throws StripeException {
+        return SetupIntent.retrieve(setupIntentId);
+    }
+
+    @Override
+    public PaymentMethod retrievePaymentMethod(String paymentMethodId) throws StripeException {
+        return PaymentMethod.retrieve(paymentMethodId);
+    }
+
+    @Override
+    public PaymentMethod detachPaymentMethod(String paymentMethodId) throws StripeException {
+        return PaymentMethod.retrieve(paymentMethodId).detach(PaymentMethodDetachParams.builder().build());
+    }
+
+    @Override
+    public PaymentIntent createAndConfirmPaymentIntent(String stripeCustomerId, String paymentMethodId,
+                                                       Long amount, String currency,
+                                                       Map<String, String> metadata) throws StripeException {
+        PaymentIntentCreateParams.Builder b = PaymentIntentCreateParams.builder()
+                .setAmount(amount)
+                .setCurrency(currency)
+                .setCustomer(stripeCustomerId)
+                .setPaymentMethod(paymentMethodId)
+                .setConfirm(true)
+                .setOffSession(false)
+                .addPaymentMethodType("card");
+        if (metadata != null) metadata.forEach(b::putMetadata);
+        return PaymentIntent.create(b.build());
+    }
+
+    @Override
+    public Subscription createSubscription(String stripeCustomerId, String paymentMethodId,
+                                           String stripePriceId, Map<String, String> metadata) throws StripeException {
+        SubscriptionCreateParams.Item item = SubscriptionCreateParams.Item.builder()
+                .setPrice(stripePriceId)
+                .build();
+        SubscriptionCreateParams.Builder b = SubscriptionCreateParams.builder()
+                .setCustomer(stripeCustomerId)
+                .setDefaultPaymentMethod(paymentMethodId)
+                .addItem(item)
+                .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE)
+                .addExpand("latest_invoice.payment_intent");
+        if (metadata != null) metadata.forEach(b::putMetadata);
+        return Subscription.create(b.build());
+    }
+
     @Override
     public Subscription retrieveSubscription(String stripeSubId) throws StripeException {
         return Subscription.retrieve(stripeSubId);

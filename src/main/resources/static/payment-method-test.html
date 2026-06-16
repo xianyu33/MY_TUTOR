@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe 绑卡测试</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background: #f4f6f8;
+            color: #1f2933;
+            font-family: Arial, sans-serif;
+        }
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 28px 18px 48px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+        p {
+            color: #52606d;
+            line-height: 1.55;
+        }
+        .panel {
+            background: #fff;
+            border: 1px solid #d9e2ec;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 18px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+        }
+        label {
+            display: block;
+            font-weight: 700;
+            margin: 14px 0 6px;
+        }
+        input {
+            width: 100%;
+            border: 1px solid #bcccdc;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #fff;
+        }
+        button {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            background: #2563eb;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+            margin: 14px 8px 0 0;
+        }
+        button.secondary {
+            background: #334e68;
+        }
+        button.danger {
+            background: #dc2626;
+        }
+        button.small {
+            padding: 7px 10px;
+            margin: 0 6px 0 0;
+            font-size: 13px;
+        }
+        button:disabled {
+            background: #9fb3c8;
+            cursor: not-allowed;
+        }
+        #payment-element {
+            margin-top: 18px;
+            padding: 14px;
+            border: 1px solid #d9e2ec;
+            border-radius: 8px;
+        }
+        .status {
+            margin-top: 14px;
+            padding: 12px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .info {
+            background: #e0f2fe;
+            color: #075985;
+        }
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            background: #fff;
+        }
+        th, td {
+            border-bottom: 1px solid #d9e2ec;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            color: #334e68;
+            background: #f8fafc;
+        }
+        .muted {
+            color: #627d98;
+            font-size: 13px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Stripe 绑卡测试</h1>
+    <p>这个页面只用于本地联调。银行卡信息由 Stripe Elements 收集并直接提交给 Stripe，本系统只会在 webhook 后保存 pm_xxx、品牌、尾号和有效期。</p>
+
+    <section class="panel">
+        <label for="publishableKey">Stripe Publishable Key</label>
+        <input id="publishableKey" placeholder="pk_test_xxx">
+
+        <label for="token">X-Token</label>
+        <input id="token" placeholder="本地 auth bypass 开启时可留空">
+
+        <button id="startBtn">创建绑卡表单</button>
+        <button id="listBtn" class="secondary">刷新已绑卡列表</button>
+        <div id="setupStatus" class="status info">准备就绪。测试卡可用 4242 4242 4242 4242，任意未来有效期和任意 CVC。</div>
+    </section>
+
+    <section class="panel">
+        <form id="paymentForm">
+            <div id="payment-element"></div>
+            <button id="submitBtn" disabled>确认绑卡</button>
+        </form>
+        <div id="confirmStatus" class="status info">先创建绑卡表单。</div>
+    </section>
+
+    <section class="panel">
+        <h2>已绑定银行卡</h2>
+        <p class="muted">如果确认绑卡后列表没马上出现，请确认本地是否启动了 Stripe webhook 转发。</p>
+        <div id="methodsStatus" class="status info">还没有刷新。</div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>卡</th>
+                <th>有效期</th>
+                <th>状态</th>
+                <th>默认</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="methodsBody"></tbody>
+        </table>
+    </section>
+
+    <section class="panel">
+        <h2>默认卡付款测试</h2>
+        <p class="muted">调用 /api/payment/direct-pay。后端会使用当前默认卡,页面不传 paymentMethodId。</p>
+        <div class="form-row">
+            <div>
+                <label for="payPriceId">Price ID</label>
+                <input id="payPriceId" type="number" min="1" placeholder="一次性价格 ID">
+            </div>
+            <div>
+                <label for="payStudentId">Beneficiary Student ID</label>
+                <input id="payStudentId" type="number" min="1" placeholder="学生 ID">
+            </div>
+        </div>
+        <button id="payBtn">默认卡直接付款</button>
+        <div id="payStatus" class="status info">请先确认已有默认卡,再输入一次性价格 ID 和学生 ID。</div>
+    </section>
+</main>
+
+<script>
+    const keyInput = document.getElementById('publishableKey');
+    const tokenInput = document.getElementById('token');
+    const startBtn = document.getElementById('startBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const listBtn = document.getElementById('listBtn');
+    const setupStatus = document.getElementById('setupStatus');
+    const confirmStatus = document.getElementById('confirmStatus');
+    const methodsStatus = document.getElementById('methodsStatus');
+    const methodsBody = document.getElementById('methodsBody');
+    const payPriceIdInput = document.getElementById('payPriceId');
+    const payStudentIdInput = document.getElementById('payStudentId');
+    const payBtn = document.getElementById('payBtn');
+    const payStatus = document.getElementById('payStatus');
+
+    let stripe;
+    let elements;
+
+    keyInput.value = localStorage.getItem('stripePublishableKey') || '';
+    tokenInput.value = localStorage.getItem('xToken') || '';
+    payPriceIdInput.value = localStorage.getItem('directPayPriceId') || '';
+    payStudentIdInput.value = localStorage.getItem('directPayStudentId') || '';
+
+    function headers() {
+        const h = {'Content-Type': 'application/json'};
+        const token = tokenInput.value.trim();
+        if (token) h['X-Token'] = token;
+        return h;
+    }
+
+    function setStatus(el, text, type) {
+        el.className = 'status ' + type;
+        el.textContent = text;
+    }
+
+    async function api(path, options) {
+        const res = await fetch(path, options || {});
+        const contentType = res.headers.get('content-type') || '';
+        const text = await res.text();
+        if (!contentType.includes('application/json')) {
+            throw new Error(
+                '接口没有返回 JSON。HTTP ' + res.status + '\n' +
+                '请确认页面地址是 http://localhost:9009/payment-method-test.html, 后端已启动, 并且 Stripe sk_test_xxx 已配置。\n\n' +
+                text.substring(0, 900)
+            );
+        }
+        const json = JSON.parse(text);
+        if (!res.ok || json.code !== 200) {
+            throw new Error(json.message || JSON.stringify(json));
+        }
+        return json.data;
+    }
+
+    startBtn.addEventListener('click', async () => {
+        const publishableKey = keyInput.value.trim();
+        if (!publishableKey) {
+            setStatus(setupStatus, '请先填写 pk_test_xxx。', 'error');
+            return;
+        }
+        localStorage.setItem('stripePublishableKey', publishableKey);
+        localStorage.setItem('xToken', tokenInput.value.trim());
+        startBtn.disabled = true;
+        submitBtn.disabled = true;
+        setStatus(setupStatus, '正在创建 SetupIntent...', 'info');
+
+        try {
+            const data = await api('/api/payment/payment-methods/setup-intent', {
+                method: 'POST',
+                headers: headers(),
+                body: '{}'
+            });
+
+            stripe = Stripe(publishableKey);
+            elements = stripe.elements({clientSecret: data.clientSecret});
+            const paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
+
+            setStatus(setupStatus, 'SetupIntent 已创建: ' + data.setupIntentId, 'success');
+            setStatus(confirmStatus, '请输入测试卡并点击确认绑卡。', 'info');
+            submitBtn.disabled = false;
+        } catch (e) {
+            setStatus(setupStatus, e.message, 'error');
+        } finally {
+            startBtn.disabled = false;
+        }
+    });
+
+    document.getElementById('paymentForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!stripe || !elements) return;
+        submitBtn.disabled = true;
+        setStatus(confirmStatus, '正在提交给 Stripe 校验...', 'info');
+
+        const result = await stripe.confirmSetup({
+            elements,
+            confirmParams: {
+                return_url: window.location.href.split('?')[0]
+            },
+            redirect: 'if_required'
+        });
+
+        if (result.error) {
+            setStatus(confirmStatus, result.error.message, 'error');
+            submitBtn.disabled = false;
+            return;
+        }
+
+        setStatus(confirmStatus, 'Stripe 已确认绑卡: ' + result.setupIntent.id + '\n等待 webhook 写入 payment_method 表。', 'success');
+        await loadMethods();
+        submitBtn.disabled = false;
+    });
+
+    async function loadMethods() {
+        setStatus(methodsStatus, '正在查询...', 'info');
+        try {
+            const methods = await api('/api/payment/payment-methods', {
+                method: 'GET',
+                headers: headers()
+            });
+            methodsBody.innerHTML = '';
+            methods.forEach((m) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${m.id}</td>
+                    <td>${m.brand || ''} **** ${m.last4 || ''}</td>
+                    <td>${m.expMonth || ''}/${m.expYear || ''}</td>
+                    <td>${m.status || ''}</td>
+                    <td>${m.isDefault === 1 ? '是' : '否'}</td>
+                    <td>
+                        <button class="small" data-action="default" data-id="${m.id}" ${m.isDefault === 1 ? 'disabled' : ''}>设为默认</button>
+                        <button class="small danger" data-action="detach" data-id="${m.id}">解绑</button>
+                    </td>
+                `;
+                methodsBody.appendChild(tr);
+            });
+            setStatus(methodsStatus, '共 ' + methods.length + ' 张卡。', 'success');
+        } catch (e) {
+            setStatus(methodsStatus, e.message, 'error');
+        }
+    }
+
+    methodsBody.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const id = button.dataset.id;
+        const action = button.dataset.action;
+
+        if (action === 'default') {
+            await setDefaultMethod(id, button);
+            return;
+        }
+        if (action === 'detach') {
+            await detachMethod(id, button);
+        }
+    });
+
+    async function setDefaultMethod(id, button) {
+        button.disabled = true;
+        setStatus(methodsStatus, '正在设置默认卡 ID=' + id + '...', 'info');
+        try {
+            await api('/api/payment/payment-methods/' + encodeURIComponent(id) + '/default', {
+                method: 'POST',
+                headers: headers(),
+                body: '{}'
+            });
+            setStatus(methodsStatus, '已设置默认卡 ID=' + id + '。', 'success');
+            await loadMethods();
+        } catch (e) {
+            setStatus(methodsStatus, e.message, 'error');
+            button.disabled = false;
+        }
+    }
+
+    async function detachMethod(id, button) {
+        if (!window.confirm('确认解绑这张卡吗？ID=' + id)) return;
+        button.disabled = true;
+        setStatus(methodsStatus, '正在解绑卡 ID=' + id + '...', 'info');
+        try {
+            await api('/api/payment/payment-methods/' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: headers()
+            });
+            setStatus(methodsStatus, '已解绑卡 ID=' + id + '。', 'success');
+            await loadMethods();
+        } catch (e) {
+            setStatus(methodsStatus, e.message, 'error');
+            button.disabled = false;
+        }
+    }
+
+    payBtn.addEventListener('click', async () => {
+        const priceId = Number(payPriceIdInput.value);
+        const beneficiaryStudentId = Number(payStudentIdInput.value);
+        if (!priceId || !beneficiaryStudentId) {
+            setStatus(payStatus, '请填写 priceId 和 beneficiaryStudentId。', 'error');
+            return;
+        }
+        localStorage.setItem('directPayPriceId', String(priceId));
+        localStorage.setItem('directPayStudentId', String(beneficiaryStudentId));
+
+        payBtn.disabled = true;
+        setStatus(payStatus, '正在使用默认卡创建 PaymentIntent...', 'info');
+        try {
+            const result = await api('/api/payment/direct-pay', {
+                method: 'POST',
+                headers: headers(),
+                body: JSON.stringify({priceId, beneficiaryStudentId})
+            });
+            setStatus(
+                payStatus,
+                '付款接口返回:\n' + JSON.stringify(result, null, 2) +
+                (result.requiresAction ? '\n\n此笔支付需要 3DS/SCA,请用 clientSecret 继续前端验证。' : ''),
+                result.requiresAction ? 'info' : 'success'
+            );
+        } catch (e) {
+            setStatus(payStatus, e.message, 'error');
+        } finally {
+            payBtn.disabled = false;
+        }
+    });
+
+    listBtn.addEventListener('click', loadMethods);
+    loadMethods();
+</script>
+</body>
+</html>

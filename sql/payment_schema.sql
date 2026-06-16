@@ -20,6 +20,30 @@ CREATE TABLE IF NOT EXISTS payment_customer (
   UNIQUE KEY uk_stripe_customer_id (stripe_customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Stripe 客户映射';
 
+-- 表 1.1: 用户绑定的支付方式
+CREATE TABLE IF NOT EXISTS payment_method (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  stripe_customer_id VARCHAR(64) NOT NULL,
+  stripe_payment_method_id VARCHAR(64) NOT NULL,
+  type VARCHAR(32) NOT NULL DEFAULT 'card',
+  brand VARCHAR(32),
+  last4 VARCHAR(8),
+  exp_month INT,
+  exp_year INT,
+  country VARCHAR(8),
+  funding VARCHAR(32),
+  status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+  is_default TINYINT DEFAULT 0,
+  setup_intent_id VARCHAR(128),
+  create_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  delete_flag CHAR(1) DEFAULT 'N',
+  UNIQUE KEY uk_stripe_pm (stripe_payment_method_id),
+  INDEX idx_user_status (user_id, status),
+  INDEX idx_customer (stripe_customer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户支付方式';
+
 -- 表 2: 商品(订阅+一次性统一抽象)
 CREATE TABLE IF NOT EXISTS payment_product (
   id INT PRIMARY KEY AUTO_INCREMENT,
@@ -72,6 +96,7 @@ CREATE TABLE IF NOT EXISTS payment_order (
   status VARCHAR(32) NOT NULL COMMENT 'PENDING/PAID/FAILED/REFUNDED/PARTIALLY_REFUNDED/EXPIRED',
   stripe_checkout_session_id VARCHAR(128),
   stripe_payment_intent_id VARCHAR(128),
+  stripe_payment_method_id VARCHAR(64),
   stripe_invoice_id VARCHAR(128) COMMENT '订阅生成的发票;一次性为 NULL',
   subscription_id INT,
   paid_at DATETIME,
@@ -94,6 +119,7 @@ CREATE TABLE IF NOT EXISTS payment_order (
 CREATE TABLE IF NOT EXISTS payment_subscription (
   id INT PRIMARY KEY AUTO_INCREMENT,
   stripe_subscription_id VARCHAR(64) NOT NULL,
+  stripe_payment_method_id VARCHAR(64),
   payer_user_id INT NOT NULL,
   beneficiary_student_id INT NOT NULL,
   product_id INT NOT NULL,
