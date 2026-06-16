@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local deployment secrets ###
+deploy/*.env
+deploy/*.env.local
+*.pid
