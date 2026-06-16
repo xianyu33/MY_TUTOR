@@ -36,9 +36,9 @@ jwt:
   expiration: 86400 #JWT的超期限时间秒(60*60*24)
 
 stripe:
-  mode: test
-  api-key: STRIPE_API_KEY_PLACEHOLDER
-  webhook-secret: STRIPE_WEBHOOK_SECRET_PLACEHOLDER
+  mode: ${STRIPE_MODE:test}
+  api-key: ${STRIPE_API_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
   api-version: 2024-06-20
   default-currency: usd
   supported-currencies: usd,eur,cny
