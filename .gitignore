@@ -34,3 +34,8 @@ build/
 
 node_modules
 
+
+### Local deployment secrets ###
+deploy/*.env
+deploy/*.env.local
+*.pid
