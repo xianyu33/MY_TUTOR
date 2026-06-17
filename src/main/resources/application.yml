@@ -59,4 +59,4 @@ stripe:
     customer-email: local-payment-test@example.com
     customer-name: Local Payment Test User
   # 后台管理白名单(管理员 user_id 列表,逗号分隔)
-  admin-user-ids: ${STRIPE_ADMIN_USER_IDS:}
+  admin-user-ids: ${STRIPE_ADMIN_USER_IDS:108}

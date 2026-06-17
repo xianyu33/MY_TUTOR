@@ -10,7 +10,7 @@ import javax.annotation.Resource;
 
 /**
  * 校验付款人与受益学生的归属关系。两种合法情况:
- * 1. 学生自付: payerUserId == beneficiaryStudentId,且该用户 role='S'
+ * 1. 学生自付: payerUserId == beneficiaryStudentId,且该学生存在
  * 2. 家长/监护人付款: 在 guardian_student_rel 表中存在 (guardian_id=payerUserId, student_id=beneficiaryStudentId) 的有效关系
  */
 @Component
@@ -36,10 +36,10 @@ public class BeneficiaryValidator {
             throw PaymentException.of("PAYMENT_PAYER_REQUIRED", "付款人不能为空");
         }
 
-        // 情况 1: 学生自付 — payerUserId == beneficiaryStudentId,且用户 role='S'
+        // 情况 1: 学生自付 — payerUserId == beneficiaryStudentId,且学生记录存在
         if (payerUserId.equals(beneficiaryStudentId)) {
             User u = userMapper.findById(beneficiaryStudentId);
-            if (u != null && "S".equals(u.getRole())) {
+            if (u != null) {
                 return;
             }
         }
