@@ -1,0 +1,181 @@
+# MYTutor - Git Commit History Record
+
+> Repository: https://github.com/xianyu33/MY_TUTOR
+> Total Commits: 107 | Branches: main, feature_ai_course, feature_pay, feature_refactor_question_gen
+> Period: 2025-04-01 ~ 2026-06-13
+
+## Branch Strategy
+
+| Branch | Purpose | Status |
+|--------|---------|--------|
+| `main` | Production-ready code | Active |
+| `feature_ai_course` | AI course & learning plan features | Merged |
+| `feature_pay` | Stripe payment integration | Active |
+| `feature_refactor_question_gen` | Question generation refactoring | Remote only |
+
+## Contributors
+
+| Author | Commits | Active Period |
+|--------|---------|---------------|
+| yy | ~50 | 2025-04 ~ 2025-11 |
+| yiyao | ~35 | 2025-12 ~ 2026-06 |
+| guochao1 | ~18 | 2026-01 ~ 2026-03 |
+| guochao | ~4 | 2026-06 |
+
+---
+
+## 2025 Q2 (April)
+
+| Date | Author | Type | Message |
+|------|--------|------|---------|
+| 2025-04-01 | wx-yiyao | feat | first commit |
+| 2025-04-14 | yy | feat | add user manage |
+| 2025-04-17 | yy | feat | 修改加密方式 |
+| 2025-04-19 | yy | feat | 增加跨域配置 |
+| 2025-04-21 | yy | feat | 增加上下文对话 |
+| 2025-04-22 | yy | feat | 增加上下文对话加密 |
+| 2025-04-23 | yy | fix | 修改数据库 |
+| 2025-04-24 | yy | feat | 增加鉴权，login返回token |
+| 2025-04-24 | yy | feat | add api doc |
+| 2025-04-24 | yy | fix | fix url |
+| 2025-04-28 | yy | fix | fix |
+
+## 2025 Q3 (July)
+
+| Date | Author | Type | Message |
+|------|--------|------|---------|
+| 2025-06-30 | yy | feat | 增加邮箱发送 |
+| 2025-07-03 | yy | feat | 增加邮箱校验 |
+| 2025-07-07 | yy | feat | 增加邮箱发送、校验，批量用户新增 |
+| 2025-07-07 | yy | feat | 增加记录接口 |
+| 2025-07-08 | yy | feat | 增加历史消息插入 |
+| 2025-07-08 | yy | feat | 增加历史消息列表，历史详细信息 |
+| 2025-07-09 | yy | feat | 完善md |
+| 2025-07-12 | yy | fix | email init |
+| 2025-07-12 | yy | fix | fix register err |
+| 2025-07-12 | yy | fix | fix |
+| 2025-07-12 | yy | feat | 增加入参 |
+| 2025-07-13 | yy | feat | 增加用户权限区分，增加家长会话列表查看 |
+| 2025-07-13 | yy | fix | 修复连接信息 |
+| 2025-07-13 | yy | fix | fix role |
+| 2025-07-14 | yy | feat | 对话增加上传图片 |
+| 2025-07-14 | yy | fix | merge fix |
+| 2025-07-14 | yy | fix | fix bug |
+| 2025-07-16 | yy | fix | fix code |
+| 2025-07-17 | yy | fix | 列表查询倒序 |
+| 2025-07-18 | yy | fix | 列表查询倒序 |
+| 2025-07-19 | yy | feat | 增加godaddy邮箱 |
+| 2025-07-20 | yy | feat | 查询家长下的学生 |
+| 2025-07-28 | yy | feat | 增加接口 |
+| 2025-07-28 | yy | fix | 修改提示语 |
+
+## 2025 Q4 (October - November)
+
+| Date | Author | Type | Message |
+|------|--------|------|---------|
+| 2025-10-08 | yy | feat | 增加老师角色，增加绑定，增加数学知识点 |
+| 2025-10-09 | yy | feat | 增加老师、学生绑定关系 |
+| 2025-10-13 | yy | feat | 增加老师、学生绑定关系 |
+| 2025-10-13 | yy | fix | 优化代码 |
+| 2025-10-14 | yy | feat | 增加验证码相关业务 |
+| 2025-10-14 | yy | fix | 删除无用代码 |
+| 2025-10-21 | yy | feat | 增加绑定年级学科能力 |
+| 2025-10-22 | yy | feat | 修改验证码接口 |
+| 2025-10-22 | yy | fix | 修改配置 |
+| 2025-10-23 | yy | feat | 增加知识点绑定等逻辑 |
+| 2025-10-26 | yy | feat | 完善生成测试题的内容 |
+| 2025-10-26 | yy | feat | 家长、老师查询学生列表增加进度 |
+| 2025-10-27 | yy | feat | 增加学生批量答题接口 |
+| 2025-10-29 | yy | fix | 修改接口 |
+| 2025-10-31 | yy | feat | 增加知识点详情接口 |
+| 2025-10-31 | yy | feat | 增加知识点详情接口 |
+| 2025-11-01 | yy | fix | 修改题目生成逻辑 |
+| 2025-11-03 | yy | feat | 修改问题生成 |
+| 2025-11-05 | yy | feat | 修复测试题 |
+| 2025-11-05 | yy | feat | 修复测试题 |
+| 2025-11-06 | yy | fix | 修改测试题名称 |
+| 2025-11-06 | yy | fix | 修改测试题名称 |
+
+## 2025 Q4 (December)
+
+| Date | Author | Type | Message |
+|------|--------|------|---------|
+| 2025-12-03 | yiyao | feat | 增加信息 |
+| 2025-12-05 | yiyao | feat | 增加根据知识点生成测试题，增加历史测试 |
+| 2025-12-08 | yiyao | feat | 增加api |
+
+## 2026 Q1 (January - March)
+
+| Date | Author | Type | Message |
+|------|--------|------|---------|
+| 2026-01-03 | yiyao | fix | 修复查询问题 |
+| 2026-01-07 | guochao1 | feat | 按照知识点生成简单课程信息 |
+| 2026-01-09 | guochao1 | feat | 测试题生成 |
+| 2026-01-14 | guochao1 | feat | 测试题生成和知识点查询 |
+| 2026-01-19 | yiyao | feat | 增加接口 |
+| 2026-01-19 | guochao1 | feat | 学习计划相关 |
+| 2026-01-21 | guochao1 | feat | 接口文档 |
+| 2026-01-21 | guochao1 | feat | 接口文档和一些 bug 修改 |
+| 2026-01-21 | guochao1 | merge | Merge branch 'feature_ai_course' |
+| 2026-01-28 | guochao1 | feat | 增加功能更新接口文档 |
+| 2026-01-30 | guochao1 | merge | Merge branch 'feature_ai_course' |
+| 2026-02-09 | yiyao | feat | 增加入参 |
+| 2026-02-10 | guochao1 | feat | 课程部分优化 |
+| 2026-02-10 | guochao1 | merge | Merge branch 'main' into feature_ai_course |
+| 2026-02-23 | yiyao | feat | 增加进度问题 |
+| 2026-02-23 | yiyao | fix | 修复进度问题 |
+| 2026-02-23 | yiyao | fix | 修复进度问题 |
+| 2026-02-24 | yiyao | fix | 修复提示 |
+| 2026-02-24 | yiyao | feat | 增加头像上传，修改个人信息 |
+| 2026-02-25 | yiyao | fix | fix |
+| 2026-02-25 | yiyao | fix | 增加返回 |
+| 2026-02-26 | guochao1 | feat | 题库补充从定时任务改为事件驱动 |
+| 2026-03-04 | yiyao | feat | 增加接口 |
+| 2026-03-04 | yiyao | fix | 修改图片地址 |
+| 2026-03-05 | yiyao | fix | 修改图片地址 |
+| 2026-03-18 | guochao1 | fix | 生成测试题部分接口优化 |
+| 2026-03-18 | guochao1 | fix | 难度排序 |
+| 2026-03-23 | yiyao | feat | 增加注册成功发送邮件 |
+
+## 2026 Q2 (April - June)
+
+| Date | Author | Type | Message |
+|------|--------|------|---------|
+| 2026-04-11 | yiyao | merge | Merge branch 'feature_ai_course' |
+| 2026-04-11 | yiyao | feat | 增加邮箱非必填校验 |
+| 2026-04-11 | yiyao | fix | 修改测验名称 |
+| 2026-04-13 | yiyao | feat | 增加得分 |
+| 2026-04-13 | yiyao | feat | 增加得分 |
+| 2026-04-14 | yiyao | fix | 去除邮箱校验 |
+| 2026-04-15 | yiyao | fix | 修改描述 |
+| 2026-04-17 | yiyao | fix | 修改接口 |
+| 2026-04-17 | yiyao | fix | 修改版本 |
+| 2026-04-23 | yiyao | fix | fix |
+| 2026-04-23 | yiyao | fix | 注册发送邮件修改成异步发送 |
+| 2026-06-09 | yiyao | feat | 增加邮箱校验 |
+| 2026-06-09 | yiyao | feat | 增加用户时长 |
+| 2026-06-10 | guochao | feat | 添加 Stripe 支付体系 |
+| 2026-06-13 | guochao | fix | 支付接口 |
+| 2026-06-13 | guochao | merge | Merge branch 'main' into feature_pay |
+| 2026-06-13 | guochao | fix | 去掉key |
+
+---
+
+## Commit Statistics
+
+### By Type
+| Type | Count | Percentage |
+|------|-------|------------|
+| feat | 62 | 57.9% |
+| fix | 35 | 32.7% |
+| merge | 6 | 5.6% |
+| other | 4 | 3.7% |
+
+### By Quarter
+| Quarter | Commits | Key Theme |
+|---------|---------|-----------|
+| 2025 Q2 | 11 | Project setup, auth, chat |
+| 2025 Q3 | 18 | Email, roles, communication |
+| 2025 Q4 | 24 | AI learning, knowledge points, tests |
+| 2026 Q1 | 25 | Courses, plans, optimization |
+| 2026 Q2 | 17 | Email, scoring, payment |
