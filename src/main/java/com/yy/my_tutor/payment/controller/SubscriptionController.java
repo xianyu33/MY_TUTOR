@@ -11,6 +11,7 @@ import com.yy.my_tutor.payment.service.DirectPaymentService;
 import com.yy.my_tutor.payment.service.OrderService;
 import com.yy.my_tutor.payment.service.SubscriptionService;
 import com.yy.my_tutor.payment.util.PaymentSecurityUtil;
+import com.yy.my_tutor.user.domain.User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -34,8 +35,8 @@ public class SubscriptionController {
 
     @PostMapping("/api/payment/subscriptions/direct-create")
     public RespResult<DirectPaymentResponse> directCreate(@RequestBody CreateCheckoutRequest req) {
-        Integer uid = securityUtil.currentUserId();
-        return RespResult.data(directPaymentService.createSubscription(req, uid));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(directPaymentService.createSubscription(req, payer));
     }
 
     @GetMapping("/api/payment/subscriptions/{id}")
@@ -67,14 +68,14 @@ public class SubscriptionController {
                                                         @RequestParam(required = false) Integer beneficiaryStudentId,
                                                         @RequestParam(defaultValue = "1") int page,
                                                         @RequestParam(defaultValue = "20") int size) {
-        Integer uid = securityUtil.currentUserId();
-        return RespResult.data(orderService.listMyOrders(uid, status, beneficiaryStudentId, page, size));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(orderService.listMyOrders(payer, status, beneficiaryStudentId, page, size));
     }
 
     @GetMapping("/api/payment/orders/{orderNo}")
     public RespResult<OrderDetailDTO> orderDetail(@PathVariable String orderNo) {
-        Integer uid = securityUtil.currentUserId();
-        return RespResult.data(orderService.getMyOrderDetail(orderNo, uid));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(orderService.getMyOrderDetail(orderNo, payer));
     }
 
     @PostMapping("/api/admin/payment/subscriptions/{id}/cancel-now")

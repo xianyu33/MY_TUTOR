@@ -8,6 +8,7 @@ import com.yy.my_tutor.payment.mapper.PaymentCustomerMapper;
 import com.yy.my_tutor.payment.service.CustomerService;
 import com.yy.my_tutor.payment.service.StripeClientService;
 import com.yy.my_tutor.payment.util.PaymentException;
+import com.yy.my_tutor.payment.util.PaymentUserRoleUtil;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -28,31 +29,48 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public PaymentCustomer getOrCreate(Integer userId) {
-        PaymentCustomer existing = customerMapper.selectByUserId(userId);
-        if (existing != null) return existing;
-
         User user = userMapper.findById(userId);
         if (user == null && !stripeConfig.isLocalAuthBypassEnabled()) {
             throw PaymentException.of("PAYMENT_USER_NOT_FOUND");
         }
+        if (user == null) {
+            user = new User();
+            user.setId(userId);
+            user.setRole("S");
+            user.setEmail(stripeConfig.getLocalAuthBypass().getCustomerEmail());
+            user.setUsername(stripeConfig.getLocalAuthBypass().getCustomerName());
+        }
+        return getOrCreate(user);
+    }
 
-        String email = user == null ? stripeConfig.getLocalAuthBypass().getCustomerEmail() : user.getEmail();
-        String name = user == null ? stripeConfig.getLocalAuthBypass().getCustomerName() : user.getUsername();
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public PaymentCustomer getOrCreate(User user) {
+        if (user == null || user.getId() == null) {
+            throw PaymentException.of("PAYMENT_USER_NOT_FOUND");
+        }
+        String userRole = PaymentUserRoleUtil.roleOf(user);
+        PaymentCustomer existing = customerMapper.selectByUserIdAndRole(user.getId(), userRole);
+        if (existing != null) return existing;
+
+        String email = user.getEmail();
+        String name = user.getUsername();
 
         Customer stripeCustomer;
         try {
-            stripeCustomer = stripeClient.createCustomer(email, userId, name);
+            stripeCustomer = stripeClient.createCustomer(email, user.getId(), name);
         } catch (StripeException e) {
-            log.error("Stripe createCustomer failed for userId {}", userId, e);
+            log.error("Stripe createCustomer failed for userId {} role {}", user.getId(), userRole, e);
             throw PaymentException.of("PAYMENT_STRIPE_UNAVAILABLE", e.getMessage());
         }
 
         PaymentCustomer c = new PaymentCustomer();
-        c.setUserId(userId);
+        c.setUserId(user.getId());
+        c.setUserRole(userRole);
         c.setStripeCustomerId(stripeCustomer.getId());
         c.setEmail(email);
-        c.setCreateBy(String.valueOf(userId));
-        c.setUpdateBy(String.valueOf(userId));
+        c.setCreateBy(String.valueOf(user.getId()));
+        c.setUpdateBy(String.valueOf(user.getId()));
         customerMapper.insert(c);
         return c;
     }

@@ -13,6 +13,8 @@ import com.yy.my_tutor.payment.mapper.PaymentProductMapper;
 import com.yy.my_tutor.payment.mapper.PaymentRefundMapper;
 import com.yy.my_tutor.payment.service.OrderService;
 import com.yy.my_tutor.payment.util.PaymentException;
+import com.yy.my_tutor.payment.util.PaymentUserRoleUtil;
+import com.yy.my_tutor.user.domain.User;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -36,10 +38,36 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public IPage<OrderListItemDTO> listMyOrders(User payer, String status, Integer beneficiaryStudentId,
+                                                int page, int size) {
+        QueryWrapper<PaymentOrder> qw = baseQuery(status, payer.getId(), beneficiaryStudentId);
+        qw.eq("payer_role", PaymentUserRoleUtil.roleOf(payer));
+        return queryPage(qw, page, size);
+    }
+
+    @Override
     public OrderDetailDTO getMyOrderDetail(String orderNo, Integer payerUserId) {
         PaymentOrder order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) throw PaymentException.of("PAYMENT_ORDER_NOT_FOUND");
         if (!payerUserId.equals(order.getPayerUserId())) {
+            throw PaymentException.of("PAYMENT_ORDER_NOT_OWNED");
+        }
+        OrderDetailDTO d = new OrderDetailDTO();
+        d.setOrder(order);
+        PaymentProduct product = productMapper.selectById(order.getProductId());
+        if (product != null) d.setProductName(product.getName());
+        List<PaymentRefund> refunds = refundMapper.selectList(new QueryWrapper<PaymentRefund>()
+                .eq("order_id", order.getId()).eq("delete_flag", "N"));
+        d.setRefunds(refunds);
+        return d;
+    }
+
+    @Override
+    public OrderDetailDTO getMyOrderDetail(String orderNo, User payer) {
+        PaymentOrder order = orderMapper.selectByOrderNo(orderNo);
+        if (order == null) throw PaymentException.of("PAYMENT_ORDER_NOT_FOUND");
+        if (!payer.getId().equals(order.getPayerUserId())
+                || !PaymentUserRoleUtil.roleOf(payer).equals(order.getPayerRole())) {
             throw PaymentException.of("PAYMENT_ORDER_NOT_OWNED");
         }
         OrderDetailDTO d = new OrderDetailDTO();

@@ -40,8 +40,8 @@ stripe:
   api-key: ${STRIPE_API_KEY:}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
   api-version: 2024-06-20
-  default-currency: usd
-  supported-currencies: usd,eur,cny
+  default-currency: cad
+  supported-currencies: usd,eur,cny,cad
   checkout:
     session-expires-after-hours: 24
     success-url-template: https://mytutor.top/payment/success?orderNo={ORDER_NO}&session_id={CHECKOUT_SESSION_ID}

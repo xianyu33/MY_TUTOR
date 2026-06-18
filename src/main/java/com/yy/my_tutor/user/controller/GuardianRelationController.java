@@ -51,8 +51,9 @@ public class GuardianRelationController {
                                                @RequestParam Integer guardianType,
                                                @RequestParam Integer studentId,
                                                @RequestParam(required = false) String relation,
-                                               @RequestParam(required = false, defaultValue = "system") String operator) {
-        GuardianStudentRel rel = relService.bind(guardianId, guardianType, studentId, relation, operator);
+                                               @RequestParam(required = false, defaultValue = "system") String operator,
+                                               @RequestParam(required = false, defaultValue = "false") Boolean activate) {
+        GuardianStudentRel rel = relService.bind(guardianId, guardianType, studentId, relation, operator, activate);
         return RespResult.success("绑定成功", rel);
     }
 
@@ -73,5 +74,4 @@ public class GuardianRelationController {
         return ok ? RespResult.success("解绑成功") : RespResult.error("解绑失败");
     }
 }
-
 

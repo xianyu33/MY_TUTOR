@@ -19,6 +19,8 @@ import com.yy.my_tutor.payment.service.StripeClientService;
 import com.yy.my_tutor.payment.util.BeneficiaryValidator;
 import com.yy.my_tutor.payment.util.OrderNoGenerator;
 import com.yy.my_tutor.payment.util.PaymentException;
+import com.yy.my_tutor.payment.util.PaymentUserRoleUtil;
+import com.yy.my_tutor.user.domain.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,16 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CheckoutSessionResponse createSession(CreateCheckoutRequest req, Integer payerUserId) {
+        User payer = new User();
+        payer.setId(payerUserId);
+        payer.setRole("S");
+        return createSession(req, payer);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CheckoutSessionResponse createSession(CreateCheckoutRequest req, User payer) {
+        Integer payerUserId = payer.getId();
         // 1. 校验 price
         PaymentPrice price = priceMapper.selectById(req.getPriceId());
         if (price == null || price.getStatus() == null || price.getStatus() != 1) {
@@ -66,7 +78,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         validateReturnUrl(req.getCancelUrl());
 
         // 4. Customer 懒创建
-        PaymentCustomer customer = customerService.getOrCreate(payerUserId);
+        PaymentCustomer customer = customerService.getOrCreate(payer);
 
         // 5. 生成订单号 + 写本地 PENDING 订单
         String orderNo = orderNoGenerator.generate(price.getBillingInterval() == null ? "ORD" : "SUB");
@@ -76,9 +88,12 @@ public class CheckoutServiceImpl implements CheckoutService {
         PaymentOrder order = new PaymentOrder();
         order.setOrderNo(orderNo);
         order.setPayerUserId(payerUserId);
+        order.setPayerRole(PaymentUserRoleUtil.roleOf(payer));
         order.setBeneficiaryStudentId(req.getBeneficiaryStudentId());
         order.setProductId(product.getId());
         order.setPriceId(price.getId());
+        order.setQuantity(1);
+        order.setUnitAmount(price.getUnitAmount());
         order.setCurrency(price.getCurrency());
         order.setAmount(price.getUnitAmount());
         order.setStatus(OrderStatus.PENDING.name());
@@ -91,6 +106,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("local_order_no", orderNo);
         metadata.put("payer_user_id", String.valueOf(payerUserId));
+        metadata.put("payer_role", PaymentUserRoleUtil.roleOf(payer));
         metadata.put("beneficiary_student_id", String.valueOf(req.getBeneficiaryStudentId()));
         metadata.put("product_type", product.getProductType());
         if (product.getTargetRefId() != null) {
@@ -130,10 +146,19 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Override
     public CheckoutSessionResponse createSetupSession(Integer payerUserId, String returnUrl) {
+        User payer = new User();
+        payer.setId(payerUserId);
+        payer.setRole("S");
+        return createSetupSession(payer, returnUrl);
+    }
+
+    @Override
+    public CheckoutSessionResponse createSetupSession(User payer, String returnUrl) {
         validateReturnUrl(returnUrl);
-        PaymentCustomer customer = customerService.getOrCreate(payerUserId);
+        PaymentCustomer customer = customerService.getOrCreate(payer);
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("payer_user_id", String.valueOf(payerUserId));
+        metadata.put("payer_user_id", String.valueOf(payer.getId()));
+        metadata.put("payer_role", PaymentUserRoleUtil.roleOf(payer));
         try {
             Session session = stripeClient.createSetupSession(customer.getStripeCustomerId(), returnUrl, metadata);
             return new CheckoutSessionResponse(session.getId(), session.getUrl(), null);
@@ -147,6 +172,17 @@ public class CheckoutServiceImpl implements CheckoutService {
         PaymentOrder order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) throw PaymentException.of("PAYMENT_ORDER_NOT_FOUND");
         if (!payerUserId.equals(order.getPayerUserId())) {
+            throw PaymentException.of("PAYMENT_ORDER_NOT_OWNED");
+        }
+        return order;
+    }
+
+    @Override
+    public PaymentOrder getOrderStatus(String orderNo, User payer) {
+        PaymentOrder order = orderMapper.selectByOrderNo(orderNo);
+        if (order == null) throw PaymentException.of("PAYMENT_ORDER_NOT_FOUND");
+        if (!payer.getId().equals(order.getPayerUserId())
+                || !PaymentUserRoleUtil.roleOf(payer).equals(order.getPayerRole())) {
             throw PaymentException.of("PAYMENT_ORDER_NOT_OWNED");
         }
         return order;

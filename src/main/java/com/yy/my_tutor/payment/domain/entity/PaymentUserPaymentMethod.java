@@ -13,6 +13,7 @@ public class PaymentUserPaymentMethod {
     @TableId(type = IdType.AUTO)
     private Integer id;
     private Integer userId;
+    private String userRole;
     private String stripeCustomerId;
     private String stripePaymentMethodId;
     private String type;

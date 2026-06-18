@@ -26,10 +26,20 @@ public class PaymentSecurityUtil {
 
     /** 获取当前登录 user.id,无登录抛 PAYMENT_UNAUTHORIZED */
     public Integer currentUserId() {
+        return currentUser().getId();
+    }
+
+    /** 获取当前登录用户完整信息,包含学生/老师角色信息。 */
+    public User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null || "anonymousUser".equals(auth.getPrincipal())) {
             if (stripeConfig.isLocalAuthBypassEnabled()) {
-                return stripeConfig.getLocalAuthBypass().getUserId();
+                User local = new User();
+                local.setId(stripeConfig.getLocalAuthBypass().getUserId());
+                local.setRole("S");
+                local.setUsername(stripeConfig.getLocalAuthBypass().getCustomerName());
+                local.setEmail(stripeConfig.getLocalAuthBypass().getCustomerEmail());
+                return local;
             }
             throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
         }
@@ -38,7 +48,7 @@ public class PaymentSecurityUtil {
         if (u == null || u.getId() == null) {
             throw PaymentException.of("PAYMENT_UNAUTHORIZED", "用户不存在");
         }
-        return u.getId();
+        return u;
     }
 
     /** 当前用户必须是 admin(stripe.admin-user-ids 白名单);否则抛 PAYMENT_FORBIDDEN */

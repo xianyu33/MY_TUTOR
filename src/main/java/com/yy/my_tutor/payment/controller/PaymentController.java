@@ -1,16 +1,19 @@
 package com.yy.my_tutor.payment.controller;
 
 import com.yy.my_tutor.common.RespResult;
+import com.yy.my_tutor.payment.domain.dto.AnnualLicenseQuoteDTO;
 import com.yy.my_tutor.payment.domain.dto.CheckoutSessionResponse;
 import com.yy.my_tutor.payment.domain.dto.CreateCheckoutRequest;
 import com.yy.my_tutor.payment.domain.dto.DirectPaymentResponse;
 import com.yy.my_tutor.payment.domain.dto.PaymentMethodDTO;
 import com.yy.my_tutor.payment.domain.dto.SetupIntentResponse;
 import com.yy.my_tutor.payment.domain.entity.PaymentOrder;
+import com.yy.my_tutor.payment.service.AnnualLicenseService;
 import com.yy.my_tutor.payment.service.DirectPaymentService;
 import com.yy.my_tutor.payment.service.CheckoutService;
 import com.yy.my_tutor.payment.service.PaymentMethodService;
 import com.yy.my_tutor.payment.util.PaymentSecurityUtil;
+import com.yy.my_tutor.user.domain.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,25 +29,35 @@ public class PaymentController {
 
     @Resource private CheckoutService checkoutService;
     @Resource private DirectPaymentService directPaymentService;
+    @Resource private AnnualLicenseService annualLicenseService;
     @Resource private PaymentMethodService paymentMethodService;
     @Resource private PaymentSecurityUtil securityUtil;
 
     @PostMapping("/checkout")
     public RespResult<CheckoutSessionResponse> createCheckout(@RequestBody CreateCheckoutRequest req) {
-        Integer payerUserId = securityUtil.currentUserId();
-        return RespResult.data(checkoutService.createSession(req, payerUserId));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(checkoutService.createSession(req, payer));
     }
 
     @PostMapping("/direct-pay")
     public RespResult<DirectPaymentResponse> directPay(@RequestBody CreateCheckoutRequest req) {
-        Integer payerUserId = securityUtil.currentUserId();
-        return RespResult.data(directPaymentService.pay(req, payerUserId));
+        User payer = securityUtil.currentUser();
+        if (annualLicenseService.supports(req)) {
+            return RespResult.data(annualLicenseService.pay(req, payer));
+        }
+        return RespResult.data(directPaymentService.pay(req, payer));
+    }
+
+    @GetMapping("/annual-license/quote")
+    public RespResult<AnnualLicenseQuoteDTO> annualLicenseQuote(@RequestParam Integer productId,
+                                                                @RequestParam Integer quantity) {
+        return RespResult.data(annualLicenseService.quote(productId, quantity));
     }
 
     @GetMapping("/orders/{orderNo}/status")
     public RespResult<Map<String, Object>> getOrderStatus(@PathVariable String orderNo) {
-        Integer payerUserId = securityUtil.currentUserId();
-        PaymentOrder order = checkoutService.getOrderStatus(orderNo, payerUserId);
+        User payer = securityUtil.currentUser();
+        PaymentOrder order = checkoutService.getOrderStatus(orderNo, payer);
         Map<String, Object> result = new HashMap<>();
         result.put("status", order.getStatus());
         result.put("paidAt", order.getPaidAt());
@@ -54,33 +67,33 @@ public class PaymentController {
 
     @PostMapping("/payment-methods/setup-session")
     public RespResult<CheckoutSessionResponse> createSetupSession(@RequestBody Map<String, String> body) {
-        Integer payerUserId = securityUtil.currentUserId();
+        User payer = securityUtil.currentUser();
         String returnUrl = body.get("returnUrl");
-        return RespResult.data(checkoutService.createSetupSession(payerUserId, returnUrl));
+        return RespResult.data(checkoutService.createSetupSession(payer, returnUrl));
     }
 
     @PostMapping("/payment-methods/setup-intent")
     public RespResult<SetupIntentResponse> createSetupIntent() {
-        Integer payerUserId = securityUtil.currentUserId();
-        return RespResult.data(paymentMethodService.createSetupIntent(payerUserId));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(paymentMethodService.createSetupIntent(payer));
     }
 
     @GetMapping("/payment-methods")
     public RespResult<List<PaymentMethodDTO>> listPaymentMethods() {
-        Integer payerUserId = securityUtil.currentUserId();
-        return RespResult.data(paymentMethodService.listMy(payerUserId));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(paymentMethodService.listMy(payer));
     }
 
     @PostMapping("/payment-methods/{id}/default")
     public RespResult<PaymentMethodDTO> setDefaultPaymentMethod(@PathVariable Integer id) {
-        Integer payerUserId = securityUtil.currentUserId();
-        return RespResult.data(paymentMethodService.setDefault(payerUserId, id));
+        User payer = securityUtil.currentUser();
+        return RespResult.data(paymentMethodService.setDefault(payer, id));
     }
 
     @DeleteMapping("/payment-methods/{id}")
     public RespResult<Void> detachPaymentMethod(@PathVariable Integer id) {
-        Integer payerUserId = securityUtil.currentUserId();
-        paymentMethodService.detach(payerUserId, id);
+        User payer = securityUtil.currentUser();
+        paymentMethodService.detach(payer, id);
         return RespResult.data(null);
     }
 }

@@ -51,4 +51,12 @@ public interface UserMapper {
      * @param emailVerified 校验状态：1-已校验
      */
     void updateEmailVerified(@Param("email") String email, @Param("emailVerified") Integer emailVerified);
+
+    /**
+     * 从当前激活日期开始设置一年有效期。
+     * @param studentId 学生ID
+     * @param updateBy 更新人
+     * @return 影响行数
+     */
+    int setExpireTimeOneYearFromNow(@Param("studentId") Integer studentId, @Param("updateBy") String updateBy);
 }

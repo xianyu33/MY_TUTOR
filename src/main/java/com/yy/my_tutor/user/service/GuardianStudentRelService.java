@@ -12,7 +12,8 @@ public interface GuardianStudentRelService {
 
     List<GuardianStudentRel> listByStudent(Integer studentId);
 
-    GuardianStudentRel bind(Integer guardianId, Integer guardianType, Integer studentId, String relation, String operator);
+    GuardianStudentRel bind(Integer guardianId, Integer guardianType, Integer studentId,
+                            String relation, String operator, Boolean activate);
 
     boolean unbind(Long id);
 
@@ -26,5 +27,4 @@ public interface GuardianStudentRelService {
      */
     List<StudentDetailDTO> getStudentsWithDetailsByGuardian(Integer guardianId, Integer guardianType);
 }
-
 

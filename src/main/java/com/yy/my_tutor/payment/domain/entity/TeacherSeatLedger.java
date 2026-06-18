@@ -8,15 +8,15 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("payment_customer")
-public class PaymentCustomer {
+@TableName("teacher_seat_ledger")
+public class TeacherSeatLedger {
     @TableId(type = IdType.AUTO)
     private Integer id;
-    private Integer userId;
-    private String userRole;
-    private String stripeCustomerId;
-    private String email;
-    private String defaultPaymentMethod;
+    private Integer teacherId;
+    private Integer orderId;
+    private Integer studentId;
+    private Integer changeCount;
+    private String type;
     private Date createAt;
     private String createBy;
     private Date updateAt;

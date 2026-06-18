@@ -8,6 +8,7 @@
 CREATE TABLE IF NOT EXISTS payment_customer (
   id INT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
   user_id INT NOT NULL COMMENT '本地 user.id(付款人)',
+  user_role VARCHAR(8) NOT NULL DEFAULT 'S' COMMENT '付款主体角色:S/T/P',
   stripe_customer_id VARCHAR(64) NOT NULL COMMENT 'Stripe cus_xxx',
   email VARCHAR(120) COMMENT '付款邮箱(冗余,便于排查)',
   default_payment_method VARCHAR(64) COMMENT '默认支付方式 pm_xxx',
@@ -16,7 +17,7 @@ CREATE TABLE IF NOT EXISTS payment_customer (
   update_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   update_by VARCHAR(50),
   delete_flag CHAR(1) DEFAULT 'N',
-  UNIQUE KEY uk_user_id (user_id),
+  UNIQUE KEY uk_user_role (user_id, user_role),
   UNIQUE KEY uk_stripe_customer_id (stripe_customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Stripe 客户映射';
 
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS payment_customer (
 CREATE TABLE IF NOT EXISTS payment_method (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
+  user_role VARCHAR(8) NOT NULL DEFAULT 'S' COMMENT '付款主体角色:S/T/P',
   stripe_customer_id VARCHAR(64) NOT NULL,
   stripe_payment_method_id VARCHAR(64) NOT NULL,
   type VARCHAR(32) NOT NULL DEFAULT 'card',
@@ -41,6 +43,7 @@ CREATE TABLE IF NOT EXISTS payment_method (
   delete_flag CHAR(1) DEFAULT 'N',
   UNIQUE KEY uk_stripe_pm (stripe_payment_method_id),
   INDEX idx_user_status (user_id, status),
+  INDEX idx_user_role_status (user_id, user_role, status),
   INDEX idx_customer (stripe_customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户支付方式';
 
@@ -88,9 +91,13 @@ CREATE TABLE IF NOT EXISTS payment_order (
   id INT PRIMARY KEY AUTO_INCREMENT,
   order_no VARCHAR(32) NOT NULL,
   payer_user_id INT NOT NULL,
+  payer_role VARCHAR(8) NOT NULL DEFAULT 'S' COMMENT '付款主体角色:S/T/P',
   beneficiary_student_id INT COMMENT '订阅订单为 NULL,一次性课程购买必填',
   product_id INT NOT NULL,
   price_id INT NOT NULL,
+  price_tier_id INT COMMENT '命中的阶梯价格ID',
+  quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
+  unit_amount BIGINT COMMENT '成交单价,最小货币单位',
   currency CHAR(3) NOT NULL,
   amount BIGINT NOT NULL,
   status VARCHAR(32) NOT NULL COMMENT 'PENDING/PAID/FAILED/REFUNDED/PARTIALLY_REFUNDED/EXPIRED',
@@ -111,9 +118,45 @@ CREATE TABLE IF NOT EXISTS payment_order (
   UNIQUE KEY uk_stripe_session (stripe_checkout_session_id),
   UNIQUE KEY uk_stripe_invoice (stripe_invoice_id),
   INDEX idx_payer (payer_user_id, status),
+  INDEX idx_payer_role (payer_user_id, payer_role, status),
   INDEX idx_beneficiary (beneficiary_student_id),
   INDEX idx_subscription (subscription_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单';
+
+-- 表 4.1: 价格阶梯(年度授权等数量折扣场景)
+CREATE TABLE IF NOT EXISTS payment_price_tier (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  price_id INT NOT NULL,
+  min_quantity INT NOT NULL,
+  max_quantity INT NULL,
+  unit_amount BIGINT NOT NULL COMMENT '该阶梯单价,最小货币单位',
+  status TINYINT DEFAULT 1,
+  create_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  create_by VARCHAR(50),
+  update_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  update_by VARCHAR(50),
+  delete_flag CHAR(1) DEFAULT 'N',
+  INDEX idx_price_quantity (price_id, min_quantity, max_quantity),
+  INDEX idx_price_status (price_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付价格阶梯';
+
+-- 表 4.2: 老师年度授权名额账本
+CREATE TABLE IF NOT EXISTS teacher_seat_ledger (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  teacher_id INT NOT NULL COMMENT '老师ID(parent.id)',
+  order_id INT NULL COMMENT '购买订单ID',
+  student_id INT NULL COMMENT '激活学生ID',
+  change_count INT NOT NULL COMMENT '购买为正数,激活为-1',
+  type VARCHAR(32) NOT NULL COMMENT 'PURCHASE/ACTIVATE',
+  create_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  create_by VARCHAR(50),
+  update_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  update_by VARCHAR(50),
+  delete_flag CHAR(1) DEFAULT 'N',
+  INDEX idx_teacher (teacher_id, delete_flag),
+  INDEX idx_teacher_student (teacher_id, student_id, type, delete_flag),
+  INDEX idx_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='老师年度授权名额账本';
 
 -- 表 5: 订阅状态镜像
 CREATE TABLE IF NOT EXISTS payment_subscription (

@@ -14,9 +14,13 @@ public class PaymentOrder {
     private Integer id;
     private String orderNo;
     private Integer payerUserId;
+    private String payerRole;
     private Integer beneficiaryStudentId;
     private Integer productId;
     private Integer priceId;
+    private Integer priceTierId;
+    private Integer quantity;
+    private Long unitAmount;
     private String currency;
     private Long amount;
     private String status;

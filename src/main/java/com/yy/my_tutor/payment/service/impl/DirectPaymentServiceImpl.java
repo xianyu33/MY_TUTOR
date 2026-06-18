@@ -23,6 +23,8 @@ import com.yy.my_tutor.payment.service.StripeClientService;
 import com.yy.my_tutor.payment.util.BeneficiaryValidator;
 import com.yy.my_tutor.payment.util.OrderNoGenerator;
 import com.yy.my_tutor.payment.util.PaymentException;
+import com.yy.my_tutor.payment.util.PaymentUserRoleUtil;
+import com.yy.my_tutor.user.domain.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,13 +70,23 @@ public class DirectPaymentServiceImpl implements DirectPaymentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DirectPaymentResponse pay(CreateCheckoutRequest req, Integer payerUserId) {
-        ProductContext ctx = validateContext(req, payerUserId);
+        User payer = new User();
+        payer.setId(payerUserId);
+        payer.setRole("S");
+        return pay(req, payer);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public DirectPaymentResponse pay(CreateCheckoutRequest req, User payer) {
+        ProductContext ctx = validateContext(req, payer.getId());
         if (ctx.price.getBillingInterval() != null) {
             throw PaymentException.of("PAYMENT_PRICE_REQUIRES_SUBSCRIPTION");
         }
-        PaymentUserPaymentMethod method = paymentMethodService.defaultMethod(payerUserId);
+        PaymentUserPaymentMethod method = paymentMethodService.defaultMethod(payer);
         String orderNo = orderNoGenerator.generate("ORD");
-        Map<String, String> metadata = metadata(orderNo, payerUserId, req, ctx.product);
+        Map<String, String> metadata = metadata(orderNo, payer.getId(), req, ctx.product);
+        metadata.put("payer_role", PaymentUserRoleUtil.roleOf(payer));
 
         try {
             PaymentIntent pi = stripeClient.createAndConfirmPaymentIntent(
@@ -84,7 +96,7 @@ public class DirectPaymentServiceImpl implements DirectPaymentService {
                     ctx.price.getCurrency(),
                     metadata);
 
-            PaymentOrder order = buildOrder(orderNo, payerUserId, req, ctx);
+            PaymentOrder order = buildOrder(orderNo, payer, req, ctx);
             order.setStripePaymentMethodId(method.getStripePaymentMethodId());
             order.setStripePaymentIntentId(pi.getId());
             order.setStatus(isSucceeded(pi.getStatus()) ? OrderStatus.PAID.name() : OrderStatus.PENDING.name());
@@ -101,13 +113,23 @@ public class DirectPaymentServiceImpl implements DirectPaymentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DirectPaymentResponse createSubscription(CreateCheckoutRequest req, Integer payerUserId) {
-        ProductContext ctx = validateContext(req, payerUserId);
+        User payer = new User();
+        payer.setId(payerUserId);
+        payer.setRole("S");
+        return createSubscription(req, payer);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public DirectPaymentResponse createSubscription(CreateCheckoutRequest req, User payer) {
+        ProductContext ctx = validateContext(req, payer.getId());
         if (ctx.price.getBillingInterval() == null) {
             throw PaymentException.of("PAYMENT_PRICE_NOT_SUBSCRIPTION");
         }
-        PaymentUserPaymentMethod method = paymentMethodService.defaultMethod(payerUserId);
+        PaymentUserPaymentMethod method = paymentMethodService.defaultMethod(payer);
         String orderNo = orderNoGenerator.generate("SUB");
-        Map<String, String> metadata = metadata(orderNo, payerUserId, req, ctx.product);
+        Map<String, String> metadata = metadata(orderNo, payer.getId(), req, ctx.product);
+        metadata.put("payer_role", PaymentUserRoleUtil.roleOf(payer));
 
         try {
             Subscription sub = stripeClient.createSubscription(
@@ -120,7 +142,7 @@ public class DirectPaymentServiceImpl implements DirectPaymentService {
                     : subscriptionUpsertHelper.upsert(sub, System.currentTimeMillis() / 1000L, metadata);
             PaymentIntent pi = latestInvoicePaymentIntent(sub);
 
-            PaymentOrder order = buildOrder(orderNo, payerUserId, req, ctx);
+            PaymentOrder order = buildOrder(orderNo, payer, req, ctx);
             order.setStripePaymentMethodId(method.getStripePaymentMethodId());
             order.setStripePaymentIntentId(pi == null ? null : pi.getId());
             order.setStripeInvoiceId(sub.getLatestInvoice());
@@ -154,17 +176,20 @@ public class DirectPaymentServiceImpl implements DirectPaymentService {
         return new ProductContext(price, product);
     }
 
-    private PaymentOrder buildOrder(String orderNo, Integer payerUserId, CreateCheckoutRequest req, ProductContext ctx) {
+    private PaymentOrder buildOrder(String orderNo, User payer, CreateCheckoutRequest req, ProductContext ctx) {
         PaymentOrder order = new PaymentOrder();
         order.setOrderNo(orderNo);
-        order.setPayerUserId(payerUserId);
+        order.setPayerUserId(payer.getId());
+        order.setPayerRole(PaymentUserRoleUtil.roleOf(payer));
         order.setBeneficiaryStudentId(req.getBeneficiaryStudentId());
         order.setProductId(ctx.product.getId());
         order.setPriceId(ctx.price.getId());
+        order.setQuantity(1);
+        order.setUnitAmount(ctx.price.getUnitAmount());
         order.setCurrency(ctx.price.getCurrency());
         order.setAmount(ctx.price.getUnitAmount());
-        order.setCreateBy(String.valueOf(payerUserId));
-        order.setUpdateBy(String.valueOf(payerUserId));
+        order.setCreateBy(String.valueOf(payer.getId()));
+        order.setUpdateBy(String.valueOf(payer.getId()));
         return order;
     }
 

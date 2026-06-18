@@ -49,6 +49,8 @@ public class InvoicePaidHandler implements EventHandler {
         order.setBeneficiaryStudentId(sub.getBeneficiaryStudentId());
         order.setProductId(sub.getProductId());
         order.setPriceId(sub.getPriceId());
+        order.setQuantity(1);
+        order.setUnitAmount(invoice.getAmountPaid());
         order.setCurrency(invoice.getCurrency());
         order.setAmount(invoice.getAmountPaid());
         order.setStatus(OrderStatus.PAID.name());

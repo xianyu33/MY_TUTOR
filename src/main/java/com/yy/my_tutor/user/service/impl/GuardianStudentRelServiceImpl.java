@@ -8,6 +8,8 @@ import com.yy.my_tutor.math.service.GradeService;
 import com.yy.my_tutor.math.service.KnowledgeCategoryService;
 import com.yy.my_tutor.math.service.KnowledgePointService;
 import com.yy.my_tutor.math.service.LearningProgressService;
+import com.yy.my_tutor.payment.service.AnnualLicenseService;
+import com.yy.my_tutor.payment.util.PaymentException;
 import com.yy.my_tutor.user.domain.GuardianStudentRel;
 import com.yy.my_tutor.user.domain.StudentDetailDTO;
 import com.yy.my_tutor.user.domain.User;
@@ -17,6 +19,7 @@ import com.yy.my_tutor.user.service.GuardianStudentRelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -48,6 +51,9 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
     @Autowired
     private KnowledgePointService knowledgePointService;
 
+    @Autowired
+    private AnnualLicenseService annualLicenseService;
+
     @Override
     public List<GuardianStudentRel> listByGuardian(Integer guardianId, Integer guardianType) {
         List<GuardianStudentRel> list = relMapper.findByGuardian(guardianId, guardianType);
@@ -73,9 +79,12 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
     }
 
     @Override
-    public GuardianStudentRel bind(Integer guardianId, Integer guardianType, Integer studentId, String relation, String operator) {
+    @Transactional(rollbackFor = Exception.class)
+    public GuardianStudentRel bind(Integer guardianId, Integer guardianType, Integer studentId,
+                                   String relation, String operator, Boolean activate) {
         GuardianStudentRel exists = relMapper.findUnique(guardianId, studentId);
         if (exists != null) {
+            activateIfRequested(guardianId, guardianType, studentId, operator, activate);
             return exists;
         }
         GuardianStudentRel rel = new GuardianStudentRel();
@@ -90,7 +99,19 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
         rel.setUpdateBy(operator);
         rel.setDeleteFlag("0");
         relMapper.insert(rel);
+        activateIfRequested(guardianId, guardianType, studentId, operator, activate);
         return rel;
+    }
+
+    private void activateIfRequested(Integer guardianId, Integer guardianType, Integer studentId,
+                                     String operator, Boolean activate) {
+        if (!Boolean.TRUE.equals(activate)) {
+            return;
+        }
+        if (guardianType == null || guardianType != 1) {
+            throw PaymentException.of("PAYMENT_ACTIVATION_TEACHER_REQUIRED", "只有老师绑定学生时可以激活年度授权");
+        }
+        annualLicenseService.activateForTeacherBind(guardianId, studentId, operator);
     }
 
     @Override
@@ -365,5 +386,3 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
         }
     }
 }
-
-

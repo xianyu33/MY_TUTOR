@@ -25,12 +25,26 @@
   - `studentId` (Integer, 必填) - 学生ID（user表ID）
   - `relation` (String, 可选) - 关系描述：父亲/母亲/监护人/班主任/任课老师等
   - `operator` (String, 可选) - 操作人，默认"system"
+  - `activate` (Boolean, 可选) - 是否在绑定时使用老师年度授权名额激活学生，默认 `false`
 - **响应**: 返回绑定成功的关系记录
 
 **示例请求**:
 ```bash
 POST /api/guardian-rel/bind?guardianId=1&guardianType=0&studentId=100&relation=父亲&operator=admin
 ```
+
+老师绑定并激活学生:
+
+```bash
+POST /api/guardian-rel/bind?guardianId=5&guardianType=1&studentId=100&relation=班主任&operator=teacher5&activate=true
+```
+
+激活规则:
+
+- 仅 `guardianType=1` 的老师可以使用 `activate=true`。
+- `activate=true` 时,系统先完成绑定,再消耗老师 1 个年度授权名额并将学生有效期设置为激活日期后一年。
+- 如果该老师已为该学生激活过年度授权,重复绑定不会重复扣名额。
+- 如果老师可用名额不足,接口返回支付业务异常,本次绑定事务回滚。
 
 **示例响应**:
 ```json
@@ -277,4 +291,3 @@ DELETE /api/guardian-rel/1
 3. **权限控制**: 根据用户角色限制操作权限
 4. **通知机制**: 关系变更时发送通知
 5. **统计分析**: 提供关系统计报表
-

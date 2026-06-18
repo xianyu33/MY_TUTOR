@@ -16,11 +16,23 @@ public interface PaymentMethodMapper extends BaseMapper<PaymentUserPaymentMethod
     @Select("SELECT COUNT(*) FROM payment_method WHERE user_id = #{userId} AND status = 'ACTIVE' AND delete_flag = 'N'")
     int countActiveByUserId(@Param("userId") Integer userId);
 
+    @Select("SELECT COUNT(*) FROM payment_method WHERE user_id = #{userId} AND user_role = #{userRole} AND status = 'ACTIVE' AND delete_flag = 'N'")
+    int countActiveByUserIdAndRole(@Param("userId") Integer userId,
+                                   @Param("userRole") String userRole);
+
     @Select("SELECT * FROM payment_method WHERE user_id = #{userId} AND is_default = 1 AND status = 'ACTIVE' AND delete_flag = 'N' LIMIT 1")
     PaymentUserPaymentMethod selectDefaultByUserId(@Param("userId") Integer userId);
 
+    @Select("SELECT * FROM payment_method WHERE user_id = #{userId} AND user_role = #{userRole} AND is_default = 1 AND status = 'ACTIVE' AND delete_flag = 'N' LIMIT 1")
+    PaymentUserPaymentMethod selectDefaultByUserIdAndRole(@Param("userId") Integer userId,
+                                                          @Param("userRole") String userRole);
+
     @Update("UPDATE payment_method SET is_default = 0 WHERE user_id = #{userId} AND delete_flag = 'N'")
     int clearDefaultForUser(@Param("userId") Integer userId);
+
+    @Update("UPDATE payment_method SET is_default = 0 WHERE user_id = #{userId} AND user_role = #{userRole} AND delete_flag = 'N'")
+    int clearDefaultForUserAndRole(@Param("userId") Integer userId,
+                                   @Param("userRole") String userRole);
 
     @Update("UPDATE payment_method SET status = #{status}, is_default = 0 WHERE stripe_payment_method_id = #{paymentMethodId} AND delete_flag = 'N'")
     int updateStatusByStripePaymentMethodId(@Param("paymentMethodId") String paymentMethodId,
