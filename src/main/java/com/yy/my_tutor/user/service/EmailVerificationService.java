@@ -59,6 +59,7 @@ public class EmailVerificationService {
 
     @Async("emailAsyncExecutor")
     public void sendVerificationEmailAsync(String email, String displayName) {
+        log.info("开始异步发送校验邮件: email={}", email);
         if (!StringUtils.hasText(email)) {
             return;
         }

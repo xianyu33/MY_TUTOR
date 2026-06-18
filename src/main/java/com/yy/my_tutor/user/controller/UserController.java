@@ -18,6 +18,8 @@ import com.yy.my_tutor.util.CaptchaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -216,13 +218,34 @@ public class UserController {
         // 使用新的学生注册服务，自动分配课程和生成测试题
         boolean result = studentRegistrationService.registerStudentWithCoursesAndTest(user);
         if (result) {
-            if (StringUtils.hasText(user.getEmail()) && user.getEmailVerified() == null) {
-                emailVerificationService.sendVerificationEmailAsync(user.getEmail(), user.getUsername());
+            // register() 会把 emailVerified 设为 0，不能仅用 == null 判断
+            if (needsEmailVerification(user)) {
+                final String email = user.getEmail();
+                final String username = user.getUsername();
+                scheduleVerificationEmailAfterCommit(email, username);
                 return RespResult.success("注册成功，已自动分配课程和生成测试题。请前往邮箱完成校验后登录", true);
             }
             return RespResult.success("注册成功，已自动分配课程和生成测试题", true);
         }
         return RespResult.error("注册失败，用户可能已存在");
+    }
+
+    private boolean needsEmailVerification(User user) {
+        return StringUtils.hasText(user.getEmail()) && !Integer.valueOf(1).equals(user.getEmailVerified());
+    }
+
+    /** 事务提交后再发校验邮件，避免异步线程早于入库完成。 */
+    private void scheduleVerificationEmailAfterCommit(String email, String username) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    emailVerificationService.sendVerificationEmailAsync(email, username);
+                }
+            });
+        } else {
+            emailVerificationService.sendVerificationEmailAsync(email, username);
+        }
     }
 
     /**
