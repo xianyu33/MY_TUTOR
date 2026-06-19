@@ -2,7 +2,9 @@ package com.yy.my_tutor.payment.service.impl;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.yy.my_tutor.payment.domain.dto.AnnualLicenseQuoteDTO;
+import com.yy.my_tutor.payment.domain.dto.AnnualLicenseSeatUsageDTO;
 import com.yy.my_tutor.payment.domain.dto.CreateCheckoutRequest;
 import com.yy.my_tutor.payment.domain.dto.DirectPaymentResponse;
 import com.yy.my_tutor.payment.domain.entity.PaymentOrder;
@@ -24,6 +26,7 @@ import com.yy.my_tutor.payment.service.StripeClientService;
 import com.yy.my_tutor.payment.util.OrderNoGenerator;
 import com.yy.my_tutor.payment.util.PaymentException;
 import com.yy.my_tutor.payment.util.PaymentUserRoleUtil;
+import com.yy.my_tutor.user.domain.StudentDetailDTO;
 import com.yy.my_tutor.user.domain.User;
 import com.yy.my_tutor.user.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +48,9 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
     private static final String CURRENCY_CAD = "cad";
     private static final String LEDGER_PURCHASE = "PURCHASE";
     private static final String LEDGER_ACTIVATE = "ACTIVATE";
+    private static final String LICENSE_UNACTIVATED = "UNACTIVATED";
+    private static final String LICENSE_ACTIVE = "ACTIVE";
+    private static final String LICENSE_EXPIRED = "EXPIRED";
 
     @Resource private PaymentProductMapper productMapper;
     @Resource private PaymentPriceMapper priceMapper;
@@ -148,8 +156,10 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
         if (seatLedgerMapper.availableSeats(teacherId) <= 0) {
             throw PaymentException.of("PAYMENT_TEACHER_SEAT_NOT_ENOUGH", "老师可用名额不足");
         }
+        Integer orderId = findConsumableSeatOrderId(teacherId);
         TeacherSeatLedger ledger = new TeacherSeatLedger();
         ledger.setTeacherId(teacherId);
+        ledger.setOrderId(orderId);
         ledger.setStudentId(studentId);
         ledger.setChangeCount(-1);
         ledger.setType(LEDGER_ACTIVATE);
@@ -159,6 +169,187 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
         seatLedgerMapper.insert(ledger);
         activateStudent(studentId, operator);
         return true;
+    }
+
+    @Override
+    public void enrichTeacherStudentLicense(Integer teacherId, List<StudentDetailDTO> students) {
+        if (students == null || students.isEmpty()) {
+            return;
+        }
+        Map<Integer, StudentDetailDTO> studentById = new HashMap<>();
+        for (StudentDetailDTO student : students) {
+            if (student == null || student.getStudentId() == null) {
+                continue;
+            }
+            student.setLicenseActivated(false);
+            student.setLicenseStatus(LICENSE_UNACTIVATED);
+            studentById.put(student.getStudentId(), student);
+        }
+        if (studentById.isEmpty()) {
+            return;
+        }
+
+        QueryWrapper<TeacherSeatLedger> query = new QueryWrapper<>();
+        query.eq("teacher_id", teacherId)
+                .eq("type", LEDGER_ACTIVATE)
+                .eq("delete_flag", "N")
+                .in("student_id", studentById.keySet())
+                .orderByDesc("create_at")
+                .orderByDesc("id");
+        List<TeacherSeatLedger> ledgers = seatLedgerMapper.selectList(query);
+        if (ledgers == null || ledgers.isEmpty()) {
+            return;
+        }
+
+        Date now = new Date();
+        for (TeacherSeatLedger ledger : ledgers) {
+            if (ledger == null || ledger.getStudentId() == null) {
+                continue;
+            }
+            StudentDetailDTO detail = studentById.remove(ledger.getStudentId());
+            if (detail == null) {
+                continue;
+            }
+            User student = userMapper.findById(ledger.getStudentId());
+            Date expireAt = student == null ? null : student.getExpireTime();
+            detail.setLicenseExpireAt(expireAt);
+            detail.setLicenseActivated(expireAt != null && expireAt.after(now));
+            detail.setLicenseStatus(Boolean.TRUE.equals(detail.getLicenseActivated())
+                    ? LICENSE_ACTIVE : LICENSE_EXPIRED);
+            if (ledger.getOrderId() != null) {
+                PaymentOrder order = orderMapper.selectById(ledger.getOrderId());
+                if (order != null) {
+                    detail.setActivatedOrderNo(order.getOrderNo());
+                }
+            }
+        }
+    }
+
+    @Override
+    public AnnualLicenseSeatUsageDTO seatUsage(User teacher) {
+        if (teacher == null || teacher.getId() == null) {
+            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
+        }
+        if (teacher.getType() == null || teacher.getType() != 1) {
+            throw PaymentException.of("PAYMENT_TEACHER_REQUIRED", "仅老师可以查看年度授权名额");
+        }
+
+        QueryWrapper<TeacherSeatLedger> query = new QueryWrapper<>();
+        query.eq("teacher_id", teacher.getId())
+                .eq("delete_flag", "N")
+                .isNotNull("order_id")
+                .orderByAsc("create_at")
+                .orderByAsc("id");
+        List<TeacherSeatLedger> ledgers = seatLedgerMapper.selectList(query);
+
+        AnnualLicenseSeatUsageDTO usage = new AnnualLicenseSeatUsageDTO();
+        usage.setTotalSeats(0);
+        usage.setUsedSeats(0);
+        usage.setAvailableSeats(0);
+        Map<Integer, AnnualLicenseSeatUsageDTO.OrderUsageDTO> usageByOrder = new LinkedHashMap<>();
+        if (ledgers == null || ledgers.isEmpty()) {
+            return usage;
+        }
+
+        for (TeacherSeatLedger ledger : ledgers) {
+            if (ledger == null || ledger.getOrderId() == null || ledger.getChangeCount() == null) {
+                continue;
+            }
+            AnnualLicenseSeatUsageDTO.OrderUsageDTO orderUsage =
+                    getOrCreateOrderUsage(usageByOrder, ledger.getOrderId());
+            if (LEDGER_PURCHASE.equals(ledger.getType())) {
+                int quantity = Math.max(ledger.getChangeCount(), 0);
+                orderUsage.setQuantity(orderUsage.getQuantity() + quantity);
+                usage.setTotalSeats(usage.getTotalSeats() + quantity);
+            } else if (LEDGER_ACTIVATE.equals(ledger.getType())) {
+                int used = Math.max(-ledger.getChangeCount(), 0);
+                orderUsage.setUsed(orderUsage.getUsed() + used);
+                usage.setUsedSeats(usage.getUsedSeats() + used);
+                AnnualLicenseSeatUsageDTO.ActivatedStudentDTO activatedStudent =
+                        buildActivatedStudent(ledger);
+                orderUsage.getActivatedStudents().add(activatedStudent);
+            }
+        }
+
+        for (AnnualLicenseSeatUsageDTO.OrderUsageDTO orderUsage : usageByOrder.values()) {
+            orderUsage.setAvailable(Math.max(orderUsage.getQuantity() - orderUsage.getUsed(), 0));
+            usage.getOrders().add(orderUsage);
+        }
+        usage.setAvailableSeats(Math.max(usage.getTotalSeats() - usage.getUsedSeats(), 0));
+        return usage;
+    }
+
+    private AnnualLicenseSeatUsageDTO.OrderUsageDTO getOrCreateOrderUsage(
+            Map<Integer, AnnualLicenseSeatUsageDTO.OrderUsageDTO> usageByOrder,
+            Integer orderId) {
+        AnnualLicenseSeatUsageDTO.OrderUsageDTO existing = usageByOrder.get(orderId);
+        if (existing != null) {
+            return existing;
+        }
+        AnnualLicenseSeatUsageDTO.OrderUsageDTO orderUsage = new AnnualLicenseSeatUsageDTO.OrderUsageDTO();
+        orderUsage.setOrderId(orderId);
+        orderUsage.setQuantity(0);
+        orderUsage.setUsed(0);
+        orderUsage.setAvailable(0);
+        PaymentOrder order = orderMapper.selectById(orderId);
+        if (order != null) {
+            orderUsage.setOrderNo(order.getOrderNo());
+            orderUsage.setPaidAt(order.getPaidAt());
+            orderUsage.setUnitAmount(order.getUnitAmount());
+            orderUsage.setCurrency(order.getCurrency());
+            if (order.getProductId() != null) {
+                PaymentProduct product = productMapper.selectById(order.getProductId());
+                if (product != null) {
+                    orderUsage.setProductName(product.getName());
+                }
+            }
+        }
+        usageByOrder.put(orderId, orderUsage);
+        return orderUsage;
+    }
+
+    private AnnualLicenseSeatUsageDTO.ActivatedStudentDTO buildActivatedStudent(TeacherSeatLedger ledger) {
+        AnnualLicenseSeatUsageDTO.ActivatedStudentDTO dto =
+                new AnnualLicenseSeatUsageDTO.ActivatedStudentDTO();
+        dto.setStudentId(ledger.getStudentId());
+        dto.setActivatedAt(ledger.getCreateAt());
+        if (ledger.getStudentId() != null) {
+            User student = userMapper.findById(ledger.getStudentId());
+            if (student != null) {
+                dto.setStudentName(student.getUsername());
+                dto.setStudentAccount(student.getUserAccount());
+                dto.setExpireAt(student.getExpireTime());
+            }
+        }
+        return dto;
+    }
+
+    private Integer findConsumableSeatOrderId(Integer teacherId) {
+        QueryWrapper<TeacherSeatLedger> query = new QueryWrapper<>();
+        query.eq("teacher_id", teacherId)
+                .eq("delete_flag", "N")
+                .isNotNull("order_id")
+                .orderByAsc("create_at")
+                .orderByAsc("id");
+        List<TeacherSeatLedger> ledgers = seatLedgerMapper.selectList(query);
+
+        Map<Integer, Integer> remainingByOrder = new LinkedHashMap<>();
+        if (ledgers != null) {
+            for (TeacherSeatLedger ledger : ledgers) {
+                if (ledger == null || ledger.getOrderId() == null || ledger.getChangeCount() == null) {
+                    continue;
+                }
+                Integer current = remainingByOrder.get(ledger.getOrderId());
+                remainingByOrder.put(ledger.getOrderId(),
+                        (current == null ? 0 : current) + ledger.getChangeCount());
+            }
+        }
+        for (Map.Entry<Integer, Integer> entry : remainingByOrder.entrySet()) {
+            if (entry.getValue() != null && entry.getValue() > 0) {
+                return entry.getKey();
+            }
+        }
+        throw PaymentException.of("PAYMENT_TEACHER_SEAT_ORDER_NOT_FOUND", "没有可消耗的老师名额订单");
     }
 
     private PaymentPrice annualPrice(Integer productId) {

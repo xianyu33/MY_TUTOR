@@ -105,6 +105,43 @@ GET /api/guardian-rel/guardian/1/type/0
 }
 ```
 
+#### 1.2.1 按监护人查询学生详细信息
+- **URL**: `POST /api/guardian-rel/guardian/{guardianId}/type/{guardianType}`
+- **描述**: 查询指定家长/老师绑定的学生详细信息。`guardianType=1` 老师查询时,每个学生会额外返回年度授权激活状态。
+- **参数**:
+  - `guardianId` (Integer) - 家长/老师ID
+  - `guardianType` (Integer) - 类型：0-家长，1-老师
+- **响应**: 返回学生详细信息列表 `StudentDetailDTO[]`
+
+老师查询示例:
+
+```bash
+POST /api/guardian-rel/guardian/5/type/1
+```
+
+老师查询响应中的年度授权字段:
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `licenseActivated` | boolean | 是否已激活且未过期。前端用 `student.licenseActivated === true` 判断是否隐藏 Activate 按钮 |
+| `licenseStatus` | string | `UNACTIVATED`=未激活,`ACTIVE`=已激活且未过期,`EXPIRED`=已激活但已过期 |
+| `licenseExpireAt` | datetime/null | 授权到期时间,仅用于展示 |
+| `activatedOrderNo` | string/null | 消耗的老师年度授权订单号,用于展示名额来源 |
+
+示例响应片段:
+
+```json
+{
+  "studentId": 100,
+  "studentName": "Tom",
+  "studentAccount": "tom001",
+  "licenseActivated": true,
+  "licenseStatus": "ACTIVE",
+  "licenseExpireAt": "2027-06-19 10:00:00",
+  "activatedOrderNo": "ORD202606191234567890"
+}
+```
+
 #### 1.3 按学生查询关系
 - **URL**: `GET /api/guardian-rel/student/{studentId}`
 - **描述**: 查询指定学生的所有监护人关系

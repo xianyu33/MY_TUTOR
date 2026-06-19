@@ -171,6 +171,10 @@ public class GuardianStudentRelServiceImpl implements GuardianStudentRelService 
             
             studentDetails.add(detail);
         }
+
+        if (guardianType != null && guardianType == 1) {
+            annualLicenseService.enrichTeacherStudentLicense(guardianId, studentDetails);
+        }
         
         return studentDetails;
     }

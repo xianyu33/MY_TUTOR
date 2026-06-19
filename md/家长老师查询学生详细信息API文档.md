@@ -38,6 +38,10 @@
       "studentEmail": "xiaoming@example.com",
       "studentGrade": "8",
       "studentRole": "S",
+      "licenseActivated": true,
+      "licenseStatus": "ACTIVE",
+      "licenseExpireAt": "2027-06-19 10:00:00",
+      "activatedOrderNo": "ORD202606191234567890",
       "studentCreateAt": "2023-09-01 08:00:00",
       "studentUpdateAt": "2024-01-15 10:30:00",
       
@@ -93,6 +97,15 @@
 - `studentRole` - 学生角色（S-学生）
 - `studentCreateAt` - 学生创建时间
 - `studentUpdateAt` - 学生更新时间
+
+### 老师年度授权信息
+
+当 `guardianType=1` 老师查询绑定学生时,每个学生会额外返回以下字段；家长查询时不依赖这些字段。
+
+- `licenseActivated` - 是否已激活年度授权且未过期。前端建议直接使用 `student.licenseActivated === true` 判断是否隐藏 Activate 按钮
+- `licenseStatus` - 授权状态：`UNACTIVATED` 未激活、`ACTIVE` 已激活且未过期、`EXPIRED` 已激活但已过期
+- `licenseExpireAt` - 授权到期时间，仅用于展示
+- `activatedOrderNo` - 激活时消耗的老师年度授权订单号，可能为空
 
 ### 学习统计信息（预留）
 - `totalTests` - 总测试次数
@@ -219,6 +232,12 @@ function StudentList({ guardianId, guardianType }) {
     </div>
   );
 }
+```
+
+### 前端激活按钮判断
+
+```javascript
+const showActivateButton = student.licenseActivated !== true;
 ```
 
 ### cURL

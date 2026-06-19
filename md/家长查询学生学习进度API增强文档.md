@@ -42,6 +42,10 @@
       "studentEmail": "xiaoming@example.com",
       "studentGrade": "8",
       "studentRole": "S",
+      "licenseActivated": true,
+      "licenseStatus": "ACTIVE",
+      "licenseExpireAt": "2027-06-19 10:00:00",
+      "activatedOrderNo": "ORD202606191234567890",
       
       "categoryLearningProgress": [
         {
@@ -117,6 +121,17 @@
 | easyCount | Integer | 简单难度知识点数 |
 | mediumCount | Integer | 中等难度知识点数 |
 | hardCount | Integer | 困难难度知识点数 |
+
+## 老师年度授权字段说明
+
+当 `guardianType=1` 老师查询绑定学生时,每个学生会额外返回年度授权状态:
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| licenseActivated | Boolean | 是否已激活年度授权且未过期。前端用 `student.licenseActivated === true` 隐藏 Activate 按钮 |
+| licenseStatus | String | `UNACTIVATED` 未激活、`ACTIVE` 已激活且未过期、`EXPIRED` 已激活但已过期 |
+| licenseExpireAt | Date | 授权到期时间,仅用于展示 |
+| activatedOrderNo | String | 激活时消耗的老师年度授权订单号,可能为空 |
 
 ## 进度状态说明
 

@@ -39,6 +39,12 @@ public class StudentDetailDTO implements Serializable {
     private String studentRole;
 
     private String avatarUrl;
+
+    private Boolean licenseActivated;
+    private String licenseStatus;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date licenseExpireAt;
+    private String activatedOrderNo;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date studentCreateAt;
@@ -82,4 +88,3 @@ public class StudentDetailDTO implements Serializable {
         private Integer hardCount;
     }
 }
-

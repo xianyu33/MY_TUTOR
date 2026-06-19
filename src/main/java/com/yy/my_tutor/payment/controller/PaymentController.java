@@ -2,6 +2,7 @@ package com.yy.my_tutor.payment.controller;
 
 import com.yy.my_tutor.common.RespResult;
 import com.yy.my_tutor.payment.domain.dto.AnnualLicenseQuoteDTO;
+import com.yy.my_tutor.payment.domain.dto.AnnualLicenseSeatUsageDTO;
 import com.yy.my_tutor.payment.domain.dto.CheckoutSessionResponse;
 import com.yy.my_tutor.payment.domain.dto.CreateCheckoutRequest;
 import com.yy.my_tutor.payment.domain.dto.DirectPaymentResponse;
@@ -52,6 +53,12 @@ public class PaymentController {
     public RespResult<AnnualLicenseQuoteDTO> annualLicenseQuote(@RequestParam Integer productId,
                                                                 @RequestParam Integer quantity) {
         return RespResult.data(annualLicenseService.quote(productId, quantity));
+    }
+
+    @GetMapping("/annual-license/seat-usage")
+    public RespResult<AnnualLicenseSeatUsageDTO> annualLicenseSeatUsage() {
+        User teacher = securityUtil.currentUser();
+        return RespResult.data(annualLicenseService.seatUsage(teacher));
     }
 
     @GetMapping("/orders/{orderNo}/status")
