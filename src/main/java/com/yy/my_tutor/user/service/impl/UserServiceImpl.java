@@ -55,10 +55,13 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        // 检查学生邮箱是否已校验（有邮箱才需要校验）
-        if (user.getEmail() != null && user.getEmailVerified() == 0) {
-            log.info("学生邮箱未校验，无法登录: {}", userAccount);
-            return null;
+        // 仅学生校验邮箱；家长/老师来自 parent 表，type、emailVerified 可能为 null
+        if ("S".equals(user.getRole())
+                && user.getEmail() != null && !user.getEmail().isEmpty()) {
+            if (user.getEmailVerified() == null || user.getEmailVerified() == 0) {
+                log.info("学生邮箱未校验，无法登录: {}", userAccount);
+                return null;
+            }
         }
 
         // 检查账号是否已过期
