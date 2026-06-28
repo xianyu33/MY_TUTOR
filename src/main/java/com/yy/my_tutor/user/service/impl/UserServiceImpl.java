@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 检查学生邮箱是否已校验（有邮箱才需要校验）
-        if (user.getEmailVerified() != null && user.getEmailVerified() == 0) {
+        if (user.getEmail() != null && user.getEmailVerified() == 0) {
             log.info("学生邮箱未校验，无法登录: {}", userAccount);
             return null;
         }
