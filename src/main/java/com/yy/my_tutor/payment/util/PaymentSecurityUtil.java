@@ -12,8 +12,8 @@ import javax.annotation.Resource;
 /**
  * 从 SecurityContext 取出登录用户 ID。
  *
- * 项目现状:JwtAuthenticationTokenFilter 把 username 作为 principal(String),
- * 因此需要二次查 user 表拿 id。
+ * 项目现状:JwtAuthenticationTokenFilter 把 JWT subject(username) 作为 principal(String),
+ * 因此需要按 username 二次查 user/parent 表拿 id。
  */
 @Component
 public class PaymentSecurityUtil {
@@ -44,7 +44,7 @@ public class PaymentSecurityUtil {
             throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
         }
         String username = auth.getPrincipal().toString();
-        User u = userMapper.findByUserAccount(username);
+        User u = userMapper.findByUsername(username);
         if (u == null || u.getId() == null) {
             throw PaymentException.of("PAYMENT_UNAUTHORIZED", "用户不存在");
         }

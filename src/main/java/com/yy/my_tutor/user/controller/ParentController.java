@@ -205,7 +205,7 @@ public class ParentController {
         }
 
         // 查询用户信息（可能来自user表或parent表）
-        User currentUser = userMapper.findByUserAccount(username);
+        User currentUser = userMapper.findByUsername(username);
         if (currentUser == null) {
             throw new CustomException("用户不存在");
         }
@@ -216,7 +216,7 @@ public class ParentController {
         
         // 如果从user表查询的结果中type为null，且role为"P"（家长/老师），需要查询parent表
         if (userType == null && "P".equals(currentUser.getRole())) {
-            List<Parent> parents = parentService.findByUserAccount(username);
+            List<Parent> parents = parentService.findByUserAccount(currentUser.getUserAccount());
             if (parents != null && !parents.isEmpty()) {
                 userType = parents.get(0).getType();
             }

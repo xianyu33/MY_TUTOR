@@ -16,6 +16,8 @@ public interface UserMapper {
      */
     User findByUserAccount(String userAccount);
 
+    User findByUsername(String username);
+
     /**
      * 插入新用户
      * @param user 用户信息

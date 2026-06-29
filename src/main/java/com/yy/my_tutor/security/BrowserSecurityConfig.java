@@ -2,6 +2,7 @@ package com.yy.my_tutor.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,6 +38,13 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/existAccount").permitAll()
                 .antMatchers("/parent/**").permitAll()
                 .antMatchers("/payment-method-test.html").permitAll()
+                .antMatchers("/api/payment/stripe/webhook").permitAll()
+                .antMatchers(HttpMethod.GET,
+                        "/api/payment/products",
+                        "/api/payment/products/**",
+                        "/api/payment/annual-license/quote").permitAll()
+                .antMatchers("/api/admin/payment/**").authenticated()
+                .antMatchers("/api/payment/**").authenticated()
                 .antMatchers("/user/**").authenticated()
                 .antMatchers("/chat/**").authenticated()
                 .antMatchers("/update").authenticated()
