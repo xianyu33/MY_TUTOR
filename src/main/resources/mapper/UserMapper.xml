@@ -47,6 +47,7 @@
             <if test="grade != null">grade = #{grade},</if>
             <if test="school != null">school = #{school},</if>
             <if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
+            <if test="password != null">password = #{password},</if>
             <if test="emailVerified != null">email_verified = #{emailVerified},</if>
             <if test="expireTime != null">expire_time = #{expireTime},</if>
             <if test="updateAt != null">update_at = NOW(),</if>
@@ -61,6 +62,7 @@
             <if test="username != null">username = #{username},</if>
             <if test="sex != null">sex = #{sex},</if>
             <if test="age != null">age = #{age},</if>
+            <if test="password != null">password = #{password},</if>
             <if test="tel != null">tel = #{tel},</if>
             <if test="country != null">country = #{country},</if>
             <if test="city != null">city = #{city},</if>

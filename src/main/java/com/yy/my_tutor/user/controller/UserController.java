@@ -322,6 +322,16 @@ public class UserController {
     }
 
     /**
+     * 修改登录账号与密码
+     */
+    @PostMapping("/changeCredentials")
+    public RespResult<User> changeCredentials(@RequestBody User user) {
+        log.info("修改账号密码: id={}, role={}, userAccount={}", user.getId(), user.getRole(), user.getUserAccount());
+        User updated = userService.changeCredentials(user);
+        return RespResult.success("账号密码修改成功", updated);
+    }
+
+    /**
      * 根据名称动态查询学生列表（POST请求）
      * @param request 搜索请求参数
      * @return 学生列表

@@ -46,6 +46,13 @@ public interface UserService {
     User find(User user);
 
     User edit(User user);
+
+    /**
+     * 修改登录账号与密码
+     * @param user 用户信息（id、role、userAccount、password 必填）
+     * @return 更新后的用户信息（不含密码）
+     */
+    User changeCredentials(User user);
     
     /**
      * 根据名称动态查询学生列表

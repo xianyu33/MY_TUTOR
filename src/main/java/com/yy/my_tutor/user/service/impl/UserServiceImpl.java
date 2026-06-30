@@ -1,5 +1,7 @@
 package com.yy.my_tutor.user.service.impl;
 
+import com.yy.my_tutor.common.AESUtil;
+import com.yy.my_tutor.config.CustomException;
 import com.yy.my_tutor.security.JwtTokenUtil;
 import com.yy.my_tutor.security.UserDetailsServiceImpl;
 import com.yy.my_tutor.user.domain.User;
@@ -10,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -179,6 +182,49 @@ public class UserServiceImpl implements UserService {
             userMapper.updateParent(user);
         }
         return null;
+    }
+
+    @Override
+    public User changeCredentials(User user) {
+        if (user.getId() == null || !StringUtils.hasText(user.getRole())) {
+            throw new CustomException("用户信息不完整");
+        }
+        if (!StringUtils.hasText(user.getUserAccount())) {
+            throw new CustomException("账号不能为空");
+        }
+        if (!StringUtils.hasText(user.getPassword())) {
+            throw new CustomException("密码不能为空");
+        }
+
+        User existing = find(user);
+        if (existing == null) {
+            throw new CustomException("用户不存在");
+        }
+
+        if (!existing.getUserAccount().equals(user.getUserAccount())) {
+            User conflict = userMapper.findByUserAccount(user.getUserAccount());
+            if (conflict != null
+                    && (!conflict.getId().equals(user.getId()) || !user.getRole().equals(conflict.getRole()))) {
+                throw new CustomException("账号已存在");
+            }
+        }
+
+        String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
+        String encryptedPassword = DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8));
+
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setRole(user.getRole());
+        updateUser.setUserAccount(user.getUserAccount());
+        updateUser.setPassword(encryptedPassword);
+        updateUser.setUpdateAt(new Date());
+        edit(updateUser);
+
+        User updated = find(user);
+        if (updated != null) {
+            updated.setPassword(null);
+        }
+        return updated;
     }
 
     @Override
