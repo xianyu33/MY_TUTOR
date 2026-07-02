@@ -70,22 +70,22 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
     @Override
     public AnnualLicenseQuoteDTO quote(Integer productId, Integer quantity) {
         if (productId == null) {
-            throw PaymentException.of("PAYMENT_PRODUCT_REQUIRED", "商品不能为空");
+            throw PaymentException.of("PAYMENT_PRODUCT_REQUIRED", "Product is required.");
         }
         if (quantity == null || quantity <= 0) {
-            throw PaymentException.of("PAYMENT_QUANTITY_INVALID", "购买数量必须大于 0");
+            throw PaymentException.of("PAYMENT_QUANTITY_INVALID", "Quantity must be greater than 0.");
         }
 
         PaymentProduct product = productMapper.selectById(productId);
         if (product == null || product.getStatus() == null || product.getStatus() != 1
                 || !ProductType.ANNUAL_LICENSE.name().equals(product.getProductType())) {
-            throw PaymentException.of("PAYMENT_PRODUCT_NOT_FOUND", "年度授权商品不存在或已下架");
+            throw PaymentException.of("PAYMENT_PRODUCT_NOT_FOUND", "Annual membership product not found or unavailable.");
         }
 
         PaymentPrice price = annualPrice(productId);
         PaymentPriceTier tier = tierMapper.selectActiveTier(price.getId(), quantity);
         if (tier == null) {
-            throw PaymentException.of("PAYMENT_PRICE_TIER_NOT_FOUND", "购买数量未匹配到有效阶梯价格");
+            throw PaymentException.of("PAYMENT_PRICE_TIER_NOT_FOUND", "No valid tier price found for the selected quantity.");
         }
 
         AnnualLicenseQuoteDTO quote = new AnnualLicenseQuoteDTO();
@@ -103,16 +103,16 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
     @Transactional(rollbackFor = Exception.class)
     public DirectPaymentResponse pay(CreateCheckoutRequest req, User payer) {
         if (payer == null || payer.getId() == null) {
-            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
+            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "Please log in first.");
         }
         Integer quantity = req.getQuantity() == null ? 1 : req.getQuantity();
         boolean student = "S".equals(payer.getRole());
         boolean teacher = payer.getType() != null && payer.getType() == 1;
         if (student && quantity != 1) {
-            throw PaymentException.of("PAYMENT_STUDENT_QUANTITY_INVALID", "学生只能购买 1 个年度授权");
+            throw PaymentException.of("PAYMENT_STUDENT_QUANTITY_INVALID", "Students can only purchase 1 annual membership.");
         }
         if (!student && !teacher) {
-            throw PaymentException.of("PAYMENT_ROLE_INVALID", "仅学生或老师可以购买年度授权");
+            throw PaymentException.of("PAYMENT_ROLE_INVALID", "Only students or teachers can purchase annual membership.");
         }
 
         AnnualLicenseQuoteDTO quote = quote(req.getProductId(), quantity);
@@ -147,14 +147,14 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
     @Transactional(rollbackFor = Exception.class)
     public boolean activateForTeacherBind(Integer teacherId, Integer studentId, String operator) {
         if (teacherId == null || studentId == null) {
-            throw PaymentException.of("PAYMENT_ACTIVATION_INVALID", "老师和学生不能为空");
+            throw PaymentException.of("PAYMENT_ACTIVATION_INVALID", "Teacher and student are required.");
         }
         if (seatLedgerMapper.countActivation(teacherId, studentId) > 0) {
             log.info("Teacher {} already activated student {}, skip duplicate activation", teacherId, studentId);
             return false;
         }
         if (seatLedgerMapper.availableSeats(teacherId) <= 0) {
-            throw PaymentException.of("PAYMENT_TEACHER_SEAT_NOT_ENOUGH", "老师可用名额不足");
+            throw PaymentException.of("PAYMENT_TEACHER_SEAT_NOT_ENOUGH", "Insufficient available memberships for the teacher.");
         }
         Integer orderId = findConsumableSeatOrderId(teacherId);
         TeacherSeatLedger ledger = new TeacherSeatLedger();
@@ -228,10 +228,10 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
     @Override
     public AnnualLicenseSeatUsageDTO seatUsage(User teacher) {
         if (teacher == null || teacher.getId() == null) {
-            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
+            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "Please log in first.");
         }
         if (teacher.getType() == null || teacher.getType() != 1) {
-            throw PaymentException.of("PAYMENT_TEACHER_REQUIRED", "仅老师可以查看年度授权名额");
+            throw PaymentException.of("PAYMENT_TEACHER_REQUIRED", "Only teachers can view annual membership usage.");
         }
 
         QueryWrapper<TeacherSeatLedger> query = new QueryWrapper<>();
@@ -349,7 +349,7 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
                 return entry.getKey();
             }
         }
-        throw PaymentException.of("PAYMENT_TEACHER_SEAT_ORDER_NOT_FOUND", "没有可消耗的老师名额订单");
+        throw PaymentException.of("PAYMENT_TEACHER_SEAT_ORDER_NOT_FOUND", "No consumable teacher membership order found.");
     }
 
     private PaymentPrice annualPrice(Integer productId) {
@@ -363,7 +363,7 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
                 }
             }
         }
-        throw PaymentException.of("PAYMENT_PRICE_NOT_FOUND", "年度授权 CAD 一次性价格不存在或已下架");
+        throw PaymentException.of("PAYMENT_PRICE_NOT_FOUND", "Annual membership CAD one-time price not found or unavailable.");
     }
 
     private PaymentOrder buildOrder(String orderNo, User payer, AnnualLicenseQuoteDTO quote,
@@ -407,7 +407,7 @@ public class AnnualLicenseServiceImpl implements AnnualLicenseService {
     private void activateStudent(Integer studentId, String updateBy) {
         int updated = userMapper.setExpireTimeOneYearFromNow(studentId, updateBy);
         if (updated == 0) {
-            throw PaymentException.of("PAYMENT_STUDENT_NOT_FOUND", "学生不存在,无法激活年度授权");
+            throw PaymentException.of("PAYMENT_STUDENT_NOT_FOUND", "Student not found. Unable to activate annual membership.");
         }
     }
 
