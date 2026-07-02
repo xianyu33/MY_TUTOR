@@ -2,6 +2,8 @@ package com.yy.my_tutor.user.service.impl;
 
 import com.yy.my_tutor.common.AESUtil;
 import com.yy.my_tutor.config.CustomException;
+import com.yy.my_tutor.config.GoDaddyEmailSender;
+import com.yy.my_tutor.config.RedisUtil;
 import com.yy.my_tutor.security.JwtTokenUtil;
 import com.yy.my_tutor.security.UserDetailsServiceImpl;
 import com.yy.my_tutor.user.domain.User;
@@ -35,6 +37,18 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private JwtTokenUtil jwtTokenUtil;
+
+    @Resource
+    private RedisUtil redisUtil;
+
+    private String getResetPasswordKey(String email) {
+        return ("RESET_PWD:" + email).replace("@", "_").replace(".", "_");
+    }
+
+    private String generateVerificationCode() {
+        return String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
+    }
+
     @Override
     public User login(String userAccount, String password) {
         User user = userMapper.findByUserAccount(userAccount);
@@ -225,6 +239,69 @@ public class UserServiceImpl implements UserService {
             updated.setPassword(null);
         }
         return updated;
+    }
+
+    @Override
+    public void sendResetPasswordCode(User user) {
+        User existing = resolveUserForPasswordReset(user);
+        if (!StringUtils.hasText(existing.getEmail())) {
+            throw new CustomException("未绑定邮箱，无法重置密码");
+        }
+
+        String code = generateVerificationCode();
+        redisUtil.set(getResetPasswordKey(existing.getEmail()), code, 5 * 60);
+        GoDaddyEmailSender.send(existing.getEmail(), code);
+    }
+
+    @Override
+    public void resetPassword(User user) {
+        if (!StringUtils.hasText(user.getVerificationCode())) {
+            throw new CustomException("验证码不能为空");
+        }
+        if (!StringUtils.hasText(user.getPassword())) {
+            throw new CustomException("密码不能为空");
+        }
+
+        User existing = resolveUserForPasswordReset(user);
+        if (!StringUtils.hasText(existing.getEmail())) {
+            throw new CustomException("未绑定邮箱，无法重置密码");
+        }
+
+        String redisKey = getResetPasswordKey(existing.getEmail());
+        String storedCode = redisUtil.get(redisKey);
+        if (!StringUtils.hasText(storedCode) || !storedCode.equals(user.getVerificationCode())) {
+            throw new CustomException("验证码错误或已过期");
+        }
+
+        String decryptedPassword = AESUtil.decryptBase64(user.getPassword());
+        String encryptedPassword = DigestUtils.md5DigestAsHex(decryptedPassword.getBytes(StandardCharsets.UTF_8));
+
+        User updateUser = new User();
+        updateUser.setId(existing.getId());
+        updateUser.setRole(existing.getRole());
+        updateUser.setPassword(encryptedPassword);
+        updateUser.setUpdateAt(new Date());
+        edit(updateUser);
+
+        redisUtil.delete(redisKey);
+    }
+
+    private User resolveUserForPasswordReset(User user) {
+        if (StringUtils.hasText(user.getUserAccount())) {
+            User existing = userMapper.findByUserAccount(user.getUserAccount());
+            if (existing == null) {
+                throw new CustomException("用户不存在");
+            }
+            return existing;
+        }
+        if (user.getId() != null && StringUtils.hasText(user.getRole())) {
+            User existing = find(user);
+            if (existing == null) {
+                throw new CustomException("用户不存在");
+            }
+            return existing;
+        }
+        throw new CustomException("用户信息不完整");
     }
 
     @Override

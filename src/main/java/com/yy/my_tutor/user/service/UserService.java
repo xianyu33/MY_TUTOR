@@ -53,6 +53,18 @@ public interface UserService {
      * @return 更新后的用户信息（不含密码）
      */
     User changeCredentials(User user);
+
+    /**
+     * 发送重置密码邮箱验证码
+     * @param user 用户信息（id、role 必填）
+     */
+    void sendResetPasswordCode(User user);
+
+    /**
+     * 通过邮箱验证码重置密码
+     * @param user 用户信息（id、role、verificationCode、password 必填）
+     */
+    void resetPassword(User user);
     
     /**
      * 根据名称动态查询学生列表

@@ -332,6 +332,26 @@ public class UserController {
     }
 
     /**
+     * 发送重置密码邮箱验证码
+     */
+    @PostMapping("/resetPasswordCode")
+    public RespResult<Boolean> sendResetPasswordCode(@RequestBody User user) {
+        log.info("发送重置密码验证码: userAccount={}", user.getUserAccount());
+        userService.sendResetPasswordCode(user);
+        return RespResult.success("验证码已发送至邮箱", true);
+    }
+
+    /**
+     * 通过邮箱验证码重置密码
+     */
+    @PostMapping("/resetPassword")
+    public RespResult<Boolean> resetPassword(@RequestBody User user) {
+        log.info("重置密码: userAccount={}", user.getUserAccount());
+        userService.resetPassword(user);
+        return RespResult.success("密码重置成功", true);
+    }
+
+    /**
      * 根据名称动态查询学生列表（POST请求）
      * @param request 搜索请求参数
      * @return 学生列表

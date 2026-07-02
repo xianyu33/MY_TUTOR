@@ -36,6 +36,8 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/verify-email").permitAll()
                 .antMatchers("/parent/addWithUsers").permitAll()
                 .antMatchers("/user/existAccount").permitAll()
+                .antMatchers("/user/resetPasswordCode").permitAll()
+                .antMatchers("/user/resetPassword").permitAll()
                 .antMatchers("/parent/**").permitAll()
                 .antMatchers("/payment-method-test.html").permitAll()
                 .antMatchers("/api/payment/stripe/webhook").permitAll()
