@@ -66,7 +66,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public SubscriptionDTO resume(Integer subId, Integer payerUserId) {
         PaymentSubscription s = mustOwn(subId, payerUserId);
         if (s.getCancelAtPeriodEnd() == null || s.getCancelAtPeriodEnd() == 0) {
-            throw PaymentException.of("PAYMENT_SUB_NOT_CANCELABLE", "订阅未发起周期末取消,无需恢复");
+            throw PaymentException.of("PAYMENT_SUB_NOT_CANCELABLE", "This subscription is not scheduled to cancel at period end.");
         }
         try {
             Subscription remote = stripeClient.cancelSubscriptionAtPeriodEnd(s.getStripeSubscriptionId(), false);

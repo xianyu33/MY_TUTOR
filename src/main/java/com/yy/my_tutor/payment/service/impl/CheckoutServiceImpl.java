@@ -61,11 +61,11 @@ public class CheckoutServiceImpl implements CheckoutService {
         // 1. 校验 price
         PaymentPrice price = priceMapper.selectById(req.getPriceId());
         if (price == null || price.getStatus() == null || price.getStatus() != 1) {
-            throw PaymentException.of("PAYMENT_PRICE_NOT_FOUND", "价格不存在或已下架");
+            throw PaymentException.of("PAYMENT_PRICE_NOT_FOUND", "Price not found or unavailable.");
         }
         PaymentProduct product = productMapper.selectById(price.getProductId());
         if (product == null || product.getStatus() == null || product.getStatus() != 1) {
-            throw PaymentException.of("PAYMENT_PRODUCT_NOT_FOUND", "商品不存在或已下架");
+            throw PaymentException.of("PAYMENT_PRODUCT_NOT_FOUND", "Product not found or unavailable.");
         }
 
         // 2. 受益学生校验
@@ -198,10 +198,10 @@ public class CheckoutServiceImpl implements CheckoutService {
             if (host == null
                     || stripeConfig.getCheckout().getAllowedReturnHosts() == null
                     || !stripeConfig.getCheckout().getAllowedReturnHosts().contains(host)) {
-                throw PaymentException.of("PAYMENT_RETURN_URL_INVALID", "URL host 不在白名单: " + host);
+                throw PaymentException.of("PAYMENT_RETURN_URL_INVALID", "Return URL host is not allowed: " + host);
             }
         } catch (IllegalArgumentException e) {
-            throw PaymentException.of("PAYMENT_RETURN_URL_INVALID", "URL 格式错误");
+            throw PaymentException.of("PAYMENT_RETURN_URL_INVALID", "Invalid return URL.");
         }
     }
 }

@@ -164,11 +164,11 @@ public class DirectPaymentServiceImpl implements DirectPaymentService {
     private ProductContext validateContext(CreateCheckoutRequest req, Integer payerUserId) {
         PaymentPrice price = priceMapper.selectById(req.getPriceId());
         if (price == null || price.getStatus() == null || price.getStatus() != 1) {
-            throw PaymentException.of("PAYMENT_PRICE_NOT_FOUND", "价格不存在或已下架");
+            throw PaymentException.of("PAYMENT_PRICE_NOT_FOUND", "Price not found or unavailable.");
         }
         PaymentProduct product = productMapper.selectById(price.getProductId());
         if (product == null || product.getStatus() == null || product.getStatus() != 1) {
-            throw PaymentException.of("PAYMENT_PRODUCT_NOT_FOUND", "商品不存在或已下架");
+            throw PaymentException.of("PAYMENT_PRODUCT_NOT_FOUND", "Product not found or unavailable.");
         }
         if (!stripeConfig.isLocalAuthBypassSkipBeneficiaryValidation()) {
             beneficiaryValidator.assertAccessible(payerUserId, req.getBeneficiaryStudentId());

@@ -30,10 +30,10 @@ public class BeneficiaryValidator {
      */
     public void assertAccessible(Integer payerUserId, Integer beneficiaryStudentId) {
         if (beneficiaryStudentId == null) {
-            throw PaymentException.of("PAYMENT_BENEFICIARY_REQUIRED", "受益学生不能为空");
+            throw PaymentException.of("PAYMENT_BENEFICIARY_REQUIRED", "Beneficiary student is required.");
         }
         if (payerUserId == null) {
-            throw PaymentException.of("PAYMENT_PAYER_REQUIRED", "付款人不能为空");
+            throw PaymentException.of("PAYMENT_PAYER_REQUIRED", "Payer is required.");
         }
 
         // 情况 1: 学生自付 — payerUserId == beneficiaryStudentId,且学生记录存在
@@ -47,7 +47,7 @@ public class BeneficiaryValidator {
         // 情况 2: 家长/监护人付款 — 必须存在有效的 GuardianStudentRel 关系
         GuardianStudentRel rel = guardianStudentRelMapper.findUnique(payerUserId, beneficiaryStudentId);
         if (rel == null || "Y".equalsIgnoreCase(rel.getDeleteFlag())) {
-            throw PaymentException.of("PAYMENT_BENEFICIARY_INVALID", "受益学生与付款人无关系");
+            throw PaymentException.of("PAYMENT_BENEFICIARY_INVALID", "This payer is not authorized for the selected student.");
         }
     }
 }

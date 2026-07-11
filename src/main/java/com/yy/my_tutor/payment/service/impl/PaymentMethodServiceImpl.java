@@ -195,7 +195,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     public PaymentUserPaymentMethod defaultMethod(User payer) {
         PaymentUserPaymentMethod method = paymentMethodMapper.selectDefaultByUserIdAndRole(
                 payer.getId(), PaymentUserRoleUtil.roleOf(payer));
-        if (method == null) throw PaymentException.of("PAYMENT_METHOD_REQUIRED", "请先绑定默认银行卡");
+        if (method == null) throw PaymentException.of("PAYMENT_METHOD_REQUIRED", "Please add your bank card first");
         return method;
     }
 

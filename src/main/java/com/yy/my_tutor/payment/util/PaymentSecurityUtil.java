@@ -41,12 +41,12 @@ public class PaymentSecurityUtil {
                 local.setEmail(stripeConfig.getLocalAuthBypass().getCustomerEmail());
                 return local;
             }
-            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
+            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "Please log in first.");
         }
         String username = auth.getPrincipal().toString();
         User u = userMapper.findByUsername(username);
         if (u == null || u.getId() == null) {
-            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "用户不存在");
+            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "User not found.");
         }
         return u;
     }

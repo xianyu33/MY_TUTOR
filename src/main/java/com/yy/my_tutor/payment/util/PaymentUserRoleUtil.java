@@ -9,7 +9,7 @@ public final class PaymentUserRoleUtil {
 
     public static String roleOf(User user) {
         if (user == null) {
-            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "请先登录");
+            throw PaymentException.of("PAYMENT_UNAUTHORIZED", "Please log in first.");
         }
         if ("S".equals(user.getRole())) {
             return "S";
